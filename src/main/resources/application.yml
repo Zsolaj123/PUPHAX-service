@@ -11,6 +11,7 @@ spring:
     caffeine:
       spec: maximumSize=1000,expireAfterWrite=10m
     cache-names:
+      - drugSearchCache
       - puphax-drugs
       - puphax-drug-details
   
@@ -82,12 +83,17 @@ management:
 # Logging Configuration
 logging:
   level:
-    com.puphax: INFO
+    com.puphax: DEBUG
     org.springframework.cache: DEBUG
-    jakarta.xml.ws: WARN
+    jakarta.xml.ws: DEBUG
+    root: INFO
   pattern:
-    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
-    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%X{correlationId:-}] [%X{operation:-}] %-5level %logger{36} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] [%X{correlationId:-}] [%X{operation:-}] %-5level %logger{36} - %msg [%X{searchTerm:-}] [%X{responseTimeMs:-}ms] [%X{resultCount:-}] [%X{errorCode:-}]%n"
+  file:
+    name: logs/puphax-service.log
+    max-size: 100MB
+    max-history: 30
 
 # OpenAPI Documentation
 springdoc:

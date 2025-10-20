@@ -10,6 +10,8 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
 
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.ConstraintViolationException;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
@@ -110,6 +112,35 @@ public class GlobalExceptionHandler {
     }
     
     /**
+     * Handle constraint violation exceptions (Jakarta Bean Validation).
+     */
+    @ExceptionHandler(ConstraintViolationException.class)
+    public ResponseEntity<ValidationErrorResponse> handleConstraintViolationException(
+            ConstraintViolationException ex, WebRequest request) {
+        
+        String correlationId = generateCorrelationId();
+        
+        logger.warn("Constraint validation error [{}]: {}", correlationId, ex.getMessage());
+        
+        List<FieldErrorDto> fieldErrors = ex.getConstraintViolations()
+            .stream()
+            .map(this::mapConstraintViolation)
+            .collect(Collectors.toList());
+        
+        ValidationErrorResponse errorResponse = new ValidationErrorResponse(
+            Instant.now(),
+            HttpStatus.BAD_REQUEST.value(),
+            "Validation Failed",
+            "Request validation failed",
+            request.getDescription(false).replace("uri=", ""),
+            correlationId,
+            fieldErrors
+        );
+        
+        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+    }
+    
+    /**
      * Handle general exceptions.
      */
     @ExceptionHandler(Exception.class)
@@ -165,6 +196,24 @@ public class GlobalExceptionHandler {
             fieldError.getField(),
             fieldError.getRejectedValue(),
             fieldError.getDefaultMessage()
+        );
+    }
+    
+    /**
+     * Map constraint violation to our DTO.
+     */
+    private FieldErrorDto mapConstraintViolation(ConstraintViolation<?> violation) {
+        String fieldName = violation.getPropertyPath().toString();
+        // Extract the method parameter name if it's a method parameter validation
+        if (fieldName.contains(".")) {
+            String[] parts = fieldName.split("\\.");
+            fieldName = parts[parts.length - 1];
+        }
+        
+        return new FieldErrorDto(
+            fieldName,
+            violation.getInvalidValue(),
+            violation.getMessage()
         );
     }
     

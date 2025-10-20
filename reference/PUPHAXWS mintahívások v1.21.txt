@@ -1,0 +1,1292 @@
+
+
+
+
+
+NEAK Ártámogatási Főosztály
+
+
+PUPHAXWS
+webszolgáltatás
+Mintahívások
+
+Verzió: v.:1.21
+Dátum: 2021.11.11.
+
+ 
+Dokumentum változástörténet
+Név
+Esemény
+Dátum
+Verzió
+Fadgyas Tibor
+kezdeti terv verzió
+2015.07.10
+0.1
+Fadgyas Tibor
+megvalósított verzió
+2015.11.30
+0.2
+Fadgyas Tibor
+kiegészített, javított verzió
+2016.02.04
+0.3
+Fadgyas Tibor
+kiegészített, javított verzió
+2017.01.06
+0.5
+Fadgyas Tibor
+éles verzió
+2021.09.22
+1.2
+Fadgyas Tibor
+éles verzió
+2021.11.11
+1.21
+
+
+
+
+
+
+Tartalom
+1.	Bevezetés	4
+1.1.	A dokumentum célja	4
+1.2.	A dokumentum tartalma	4
+2.	A webszolgáltatás általános jellemzői	4
+2.1.	A webszolgáltatás elérhetősége	4
+2.2.	PUPHAX törzs munkaverziójának kezelése	4
+2.3.	ATC tábla lekérdezése	4
+2.4.	BNO tábla lekérdezése	5
+2.5.	Brand tábla lekérdezése	6
+2.6.	A NICHE tábla lekérdezése	7
+2.7.	Cégek lekérdezése	8
+2.8.	KIINTOR tábla lekérdezése	9
+2.9.	ISO tábla lekérdezése	11
+2.10.	Szakképesítések tábla lekérdezése	12
+2.11.	Orvosok szakképesítésének lekérdezése	12
+3.	Idősoros adatok lekérdezése	13
+3.1.	Kihirdetések lekérdezése	14
+3.2.	Termékek listájának lekérdezése	15
+3.3.	Termék alapadatainak lekérdezése	16
+3.4.	Termék támogatási adatainak lekérdezése	17
+3.5.	Az EÜ pontok, és a hozzá tartozó információk lekérdezése	19
+3.6.	Az inkrementális változások lekérdezése	25
+3.7.	Változások az éles verzió bevezetésével kapcsolatban	27
+
+Bevezetés
+A dokumentum célja
+Az 2007-ben bevezetett publikus gyógyszertörzs (PUPHA) az utóbbi évek fejlesztése során egy teljesen új, hatékonyabb adatszerkezetben tárolja a termékek adatait. Az új törzset egy webszolgáltatáson keresztül lehet elérni, amely az NEAK_PUPHAX_WS_v1.2.docx dokumentumban van leírva. A jelen  dokumentum célja, hogy példákat mutasson arra, miként lehet a PUPHAXWS webszolgáltatás egyes eljárásait meghívni, az adatokat letölteni.
+A dokumentum tartalma
+A dokumentum konkrét, tesztelhető adatokat tartalmaz az egyes eljárások használatához. Az itt megadott példák segítségével egyszerűbbé válik a saját fejlesztésű interfész kidolgozása, ezen interfézek tesztelése és a különböző „3rd party” programok konfigurálása is. Így például a SoapUI, XMLSpy, Oxygen, ..., stb. programok tesztkörnyezetének kialakítása is a jelen dokumentum példáinak segítségével rendkívűl egyszerűvé válik Az egyes eljárások, paraméterek  leírását a jelen dokumentumban nem részletezzük. 
+
+A webszolgáltatás általános jellemzői
+
+A webszolgáltatás elérhetősége
+
+A PUPHAXWS webszolgáltatást HTTPS protokoll segítségével az NEAK webszerverén keresztül lehet elérni. A SOAP hívásoknál felhasználói nevet és jelszót kell megadni a szolgáltatás eléréséhez:
+ felhasználónév: PUPHAX
+jelszó: 	puphax
+ Az URL cím:
+
+	https://puphax.neak.gov.hu/PUPHAXWS
+
+ A « basic » authentikáció megadása :
+ 
+	https://PUPHAX:puphax@puphax.neak.gov.hu/PUPHAXWS?wsdl
+PUPHAX törzs munkaverziójának kezelése
+
+A jelen dokumentum nem tartalmaz külön a munkaverzió lekérdezésére való mintát. Ennek lekérdezése
+ugyanúgy történik mint az éles verzió lekérdezése. 
+A PUPHAX adatbázis 2007.04.15-től (első kihirdetés)  a legutolsó kihirdetésig tartalmaz adatokat. Alap- és kódtáblák lekérdezése a következőképpen történik:
+
+ATC tábla lekérdezése
+
+Példa XML állomány a TabATC metódus hívására:
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:pup="http://xmlns.oracle.com/orawsv/PUPHAX/PUPHAXWS">
+   <soapenv:Header/>
+   <soapenv:Body>
+      <pup:COBJALAP-TABATCInput>
+          <pup:SXFILTER-VARCHAR2-IN>
+              <![CDATA[
+                <alapfilter>
+				<ATC>N05BA%</ATC>
+				<ATCNEV>loraze%</ATCNEV>
+	    		 </alapfilter>
+              ]]>
+          </pup:SXFILTER-VARCHAR2-IN>
+      </pup:COBJALAP-TABATCInput>
+   </soapenv:Body>
+</soapenv:Envelope>
+Az eredmény:
+<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+   <soap:Body>
+      <TABATCOutput xmlns="http://xmlns.oracle.com/orawsv/PUPHAX/PUPHAXWS">
+         <RETURN>
+            <OBJALAP>
+               <SZURO>ATC:N05BA%,ATCNEV:loraze%</SZURO>
+               <REKORDOK>
+                  <OBJKODTABLA>
+                     <KOD>N05BA06</KOD>
+                     <ELNEVEZ>lorazepam</ELNEVEZ>
+                     <MEGJEGYZ>lorazepam</MEGJEGYZ>
+                  </OBJKODTABLA>
+                  <OBJKODTABLA>
+                     <KOD>N05BA56</KOD>
+                     <ELNEVEZ>lorazepam, combinations</ELNEVEZ>
+                     <MEGJEGYZ>lorazepam, combinations</MEGJEGYZ>
+                  </OBJKODTABLA>
+               </REKORDOK>
+            </OBJALAP>
+         </RETURN>
+      </TABATCOutput>
+   </soap:Body>
+</soap:Envelope>
+BNO tábla lekérdezése
+
+Példa XML állomány a TabBNO metódus hívására:
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:pup="http://xmlns.oracle.com/orawsv/PUPHAX/PUPHAXWS">
+   <soapenv:Header/>
+   <soapenv:Body>
+      <pup:COBJALAP-TABBNOInput>
+         <pup:SXFILTER-VARCHAR2-IN>
+           <![CDATA[
+                <alapfilter>
+				<BNO>F43%</BNO>
+				<BNONEV>%stressz%</BNONEV>
+	    		 </alapfilter>
+           ]]>
+         </pup:SXFILTER-VARCHAR2-IN>
+      </pup:COBJALAP-TABBNOInput>
+   </soapenv:Body>
+</soapenv:Envelope>
+Az eredmény:
+<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+   <soap:Body>
+      <TABBNOOutput xmlns="http://xmlns.oracle.com/orawsv/PUPHAX/PUPHAXWS">
+         <RETURN>
+            <OBJALAP>
+               <SZURO>BNO:F43%,BNONEV:%stressz%</SZURO>
+               <REKORDOK>
+                  <OBJKODTABLA>
+                     <KOD>F4300</KOD>
+                     <ELNEVEZ>Akut stresszreakció</ELNEVEZ>
+                     <MEGJEGYZ/>
+                  </OBJKODTABLA>
+                  <OBJKODTABLA>
+                     <KOD>F4310</KOD>
+                     <ELNEVEZ>Poszttraumás stressz zavar</ELNEVEZ>
+                     <MEGJEGYZ/>
+                  </OBJKODTABLA>
+                  <OBJKODTABLA>
+                     <KOD>F4380</KOD>
+                     <ELNEVEZ>Súlyos stresszre adott egyéb reakció</ELNEVEZ>
+                     <MEGJEGYZ/>
+                  </OBJKODTABLA>
+                  <OBJKODTABLA>
+                     <KOD>F4390</KOD>
+                     <ELNEVEZ>Súlyos stresszre adott nem-meghatározott válasz</ELNEVEZ>
+                     <MEGJEGYZ/>
+                  </OBJKODTABLA>
+               </REKORDOK>
+            </OBJALAP>
+         </RETURN>
+      </TABBNOOutput>
+   </soap:Body>
+</soap:Envelope>
+
+
+Brand tábla lekérdezése
+Példa XML állomány a TabBRAND metódus hívására:
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:pup="http://xmlns.oracle.com/orawsv/PUPHAX/PUPHAXWS">
+   <soapenv:Header/>
+   <soapenv:Body>
+      <pup:COBJALAP-TABBRANDInput>
+         <pup:SXFILTER-VARCHAR2-IN>
+           <![CDATA[
+                <alapfilter>
+				<BRAND>XANAX%</BRAND>
+	    		 </alapfilter>
+           ]]>
+         </pup:SXFILTER-VARCHAR2-IN>
+      </pup:COBJALAP-TABBRANDInput>
+   </soapenv:Body>
+</soapenv:Envelope>
+Az eredmény:
+<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+   <soap:Body>
+      <TABBRANDOutput xmlns="http://xmlns.oracle.com/orawsv/PUPHAX/PUPHAXWS">
+         <RETURN>
+            <OBJALAP>
+               <SZURO>BRAND:XANAX%</SZURO>
+               <REKORDOK>
+                  <OBJKODTABLA>
+                     <KOD>50120</KOD>
+                     <ELNEVEZ>XANAX</ELNEVEZ>
+                     <MEGJEGYZ/>
+                  </OBJKODTABLA>
+                  <OBJKODTABLA>
+                     <KOD>82600</KOD>
+                     <ELNEVEZ>XANAX SUBLINGUALIS</ELNEVEZ>
+                     <MEGJEGYZ/>
+                  </OBJKODTABLA>
+               </REKORDOK>
+            </OBJALAP>
+         </RETURN>
+      </TABBRANDOutput>
+   </soap:Body>
+</soap:Envelope>
+
+A NICHE tábla lekérdezése
+Példa XML állomány a TabNICHE metódus hívására:
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:pup="http://xmlns.oracle.com/orawsv/PUPHAX/PUPHAXWS">
+   <soapenv:Header/>
+   <soapenv:Body>
+      <pup:COBJALAP-TABNICHEInput>
+          <pup:SXFILTER-VARCHAR2-IN>
+              <![CDATA[
+                <alapfilter>
+				<NICHEGYEN>406</NICHEGYEN>
+				<NICHENEV>%statin%</NICHENEV>
+	    		 </alapfilter>
+              ]]>
+          </pup:SXFILTER-VARCHAR2-IN>
+      </pup:COBJALAP-TABNICHEInput>
+   </soapenv:Body>
+</soapenv:Envelope>
+Az eredmény:
+<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+   <soap:Body>
+      <TABNICHEOutput xmlns="http://xmlns.oracle.com/orawsv/PUPHAX/PUPHAXWS">
+         <RETURN>
+            <OBJALAP>
+               <SZURO>NICHENEV:%statin%,NICHEGYEN:406</SZURO>
+               <REKORDOK>
+                  <OBJKODTABLA>
+                     <KOD>406</KOD>
+                     <ELNEVEZ>pravastatin 40 mg filmtabletta/tabletta</ELNEVEZ>
+                     <MEGJEGYZ/>
+                  </OBJKODTABLA>
+               </REKORDOK>
+            </OBJALAP>
+         </RETURN>
+      </TABNICHEOutput>
+   </soap:Body>
+</soap:Envelope>
+
+Cégek lekérdezése
+Példa XML állomány a TabCEGEK metódus hívására CEGNEV alapján:
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:pup="http://xmlns.oracle.com/orawsv/PUPHAX/PUPHAXWS">
+   <soapenv:Header/>
+   <soapenv:Body>
+      <pup:COBJALAP-TABCEGEKInput>
+         <pup:SXFILTER-VARCHAR2-IN>
+           <![CDATA[
+                <alapfilter>
+				<CEGNEV>Pfizer%</CEGNEV>
+	    		 </alapfilter>
+           ]]>
+         </pup:SXFILTER-VARCHAR2-IN>
+      </pup:COBJALAP-TABCEGEKInput>
+   </soapenv:Body>
+</soapenv:Envelope>
+Az eredmény:
+<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+   <soap:Body>
+      <TABCEGEKOutput xmlns="http://xmlns.oracle.com/orawsv/PUPHAX/PUPHAXWS">
+         <RETURN>
+            <OBJALAP>
+               <SZURO>CEGID:,CEGNEV:Pfizer%</SZURO>
+               <REKORDOK>
+                  <OBJKODTABLA>
+                     <KOD>67</KOD>
+                     <ELNEVEZ>Pfizer Gyógyszerkereskedelmi Korlátolt Felelősségű Társaság</ELNEVEZ>
+                     <MEGJEGYZ>2015.01.01-2099.12.31</MEGJEGYZ>
+                  </OBJKODTABLA>
+                  <OBJKODTABLA>
+                     <KOD>1361</KOD>
+                     <ELNEVEZ>Pfizer Limited </ELNEVEZ>
+                     <MEGJEGYZ>2015.01.01-2099.12.31</MEGJEGYZ>
+                  </OBJKODTABLA>
+                  <OBJKODTABLA>
+                     <KOD>26359</KOD>
+                     <ELNEVEZ>Pfizer Enterprises SARL</ELNEVEZ>
+                     <MEGJEGYZ>2015.01.01-2099.12.31</MEGJEGYZ>
+                  </OBJKODTABLA>
+                  <OBJKODTABLA>
+                     <KOD>28379</KOD>
+                     <ELNEVEZ>Pfizer Manufacturing Deutschland GmbH</ELNEVEZ>
+                     <MEGJEGYZ>2015.01.01-2099.12.31</MEGJEGYZ>
+                  </OBJKODTABLA>
+                  <OBJKODTABLA>
+                     <KOD>29743</KOD>
+                     <ELNEVEZ>Pfizer Pharma GmbH</ELNEVEZ>
+                     <MEGJEGYZ>2015.01.01-2099.12.31</MEGJEGYZ>
+                  </OBJKODTABLA>
+                  <OBJKODTABLA>
+                     <KOD>29772</KOD>
+                     <ELNEVEZ>Pfizer Corporation Austria GmbH</ELNEVEZ>
+                     <MEGJEGYZ>2015.01.01-2099.12.31</MEGJEGYZ>
+                  </OBJKODTABLA>
+               </REKORDOK>
+            </OBJALAP>
+         </RETURN>
+      </TABCEGEKOutput>
+   </soap:Body>
+</soap:Envelope>
+Másik példa XML állomány a TabCEGEK metódus hívására CEGID alapján:
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:pup="http://xmlns.oracle.com/orawsv/PUPHAX/PUPHAXWS">
+   <soapenv:Header/>
+   <soapenv:Body>
+      <pup:COBJALAP-TABCEGEKInput>
+         <pup:SXFILTER-VARCHAR2-IN>
+           <![CDATA[
+                <alapfilter>
+				<CEGID>67</CEGID>
+	    		 </alapfilter>
+           ]]>
+         </pup:SXFILTER-VARCHAR2-IN>
+      </pup:COBJALAP-TABCEGEKInput>
+   </soapenv:Body>
+</soapenv:Envelope>
+Az eredmény:
+<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+   <soap:Body>
+      <TABCEGEKOutput xmlns="http://xmlns.oracle.com/orawsv/PUPHAX/PUPHAXWS">
+         <RETURN>
+            <OBJALAP>
+               <SZURO>CEGID:67,CEGNEV:</SZURO>
+               <REKORDOK>
+                  <OBJKODTABLA>
+                     <KOD>67</KOD>
+                     <ELNEVEZ>Pfizer Gyógyszerkereskedelmi Korlátolt Felelősségű Társaság</ELNEVEZ>
+                     <MEGJEGYZ>2015.01.01-2099.12.31</MEGJEGYZ>
+                  </OBJKODTABLA>
+               </REKORDOK>
+            </OBJALAP>
+         </RETURN>
+      </TABCEGEKOutput>
+   </soap:Body>
+</soap:Envelope>
+
+Kijelölt intézet, kijelölt orvos (KIINTOR tábla) lekérdezése
+Példa XML állomány a TabKiintOr metódus hívására CEGNEV alapján:
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:pup="http://xmlns.oracle.com/orawsv/PUPHAX/PUPHAXWS">
+   <soapenv:Header/>
+   <soapenv:Body>
+      <pup:COBJALAP-TABKIINTORInput>
+         <pup:SXFILTER-VARCHAR2-IN> 
+         <![CDATA[
+             <alapfilter>
+			<CEGNEV>Pécsi%</CEGNEV>
+	    	</alapfilter>
+           ]]>
+           </pup:SXFILTER-VARCHAR2-IN>
+      </pup:COBJALAP-TABKIINTORInput>
+   </soapenv:Body>
+</soapenv:Envelope>
+Az eredmény:
+soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+   <soap:Body>
+      <TABKIINTOROutput xmlns="http://xmlns.oracle.com/orawsv/PUPHAX/PUPHAXWS">
+         <RETURN>
+            <OBJALAP>
+               <SZURO>CEGID:,CEGNEV:PÉCSI%</SZURO>
+               <REKORDOK>
+                  <OBJKODTABLA>
+                     <KOD>37370941</KOD>
+                     <ELNEVEZ>Pécsi Tudományegyetem, Gyermek-tüdőgyógyászat, Gyermekgyógyászati Klinika Tüdogyógy. Oszt.</ELNEVEZ>
+                     <MEGJEGYZ/>
+                  </OBJKODTABLA>
+                  <OBJKODTABLA>
+                     <KOD>37370944</KOD>
+                     <ELNEVEZ>Pécsi Tudományegyetem, tüdogyógyászat, I.sz. Belgyógyászati Klinika Tüdőgyógyászat I.</ELNEVEZ>
+                     <MEGJEGYZ/>
+                  </OBJKODTABLA>
+                  <OBJKODTABLA>
+                     <KOD>37786631</KOD>
+                     <ELNEVEZ>Pécsi Tudományegyetem,</ELNEVEZ>
+                     <MEGJEGYZ/>
+                  </OBJKODTABLA>
+               </REKORDOK>
+            </OBJALAP>
+         </RETURN>
+      </TABKIINTOROutput>
+   </soap:Body>
+</soap:Envelope>
+A CEGNEV-ben megadott filter nem érzékeny a kis-, nagybetűre, ezért a filterben megadott  „Pécsi%”  karaktersorozat a válasz üzenetben „PÉCSI%”-ként jelenik meg.
+ISO tábla lekérdezése
+Példa XML állomány a TabISO metódus hívására:
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:pup="http://xmlns.oracle.com/orawsv/PUPHAX/PUPHAXWS">
+   <soapenv:Header/>
+   <soapenv:Body>
+      <pup:COBJALAP-TABISOInput>
+         <pup:SXFILTER-VARCHAR2-IN>
+           <![CDATA[
+                <alapfilter>
+				<ISO>0930040312%</ISO>
+				<ISONEV>%inkontinencia%</ISONEV>
+	    		 </alapfilter>
+           ]]>
+         </pup:SXFILTER-VARCHAR2-IN>
+      </pup:COBJALAP-TABISOInput>
+   </soapenv:Body>
+</soapenv:Envelope>
+
+Az eredmény:
+<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+   <soap:Body>
+      <TABISOOutput xmlns="http://xmlns.oracle.com/orawsv/PUPHAX/PUPHAXWS">
+         <RETURN>
+            <OBJALAP>
+               <SZURO>ISO:0930040312%,ISONEV:%inkontinencia%</SZURO>
+               <REKORDOK>
+                  <OBJKODTABLA>
+                     <KOD>0930040312</KOD>
+                     <ELNEVEZ>Egyszer használatos inkontinenciabetétek 901 ml-1100 ml között</ELNEVEZ>
+                     <MEGJEGYZ/>
+                  </OBJKODTABLA>
+               </REKORDOK>
+            </OBJALAP>
+         </RETURN>
+      </TABISOOutput>
+   </soap:Body>
+</soap:Envelope>
+
+Szakképesítések tábla lekérdezése
+Példa XML állomány a TabOSZAKKEP metódus hívására:
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:pup="http://xmlns.oracle.com/orawsv/PUPHAX/PUPHAXWS">
+   <soapenv:Header/>
+   <soapenv:Body>
+      <pup:COBJALAP-TABOSZAKKEPInput>
+         <pup:SXFILTER-VARCHAR2-IN>
+           <![CDATA[
+                <alapfilter>
+				<SZKOD>43</SZKOD>
+				<SZNEV>Sport%</SZNEV>
+	    		 </alapfilter>
+           ]]>
+         </pup:SXFILTER-VARCHAR2-IN>
+      </pup:COBJALAP-TABOSZAKKEPInput>
+   </soapenv:Body>
+</soapenv:Envelope>
+
+Az eredmény:
+<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+   <soap:Body>
+      <TABOSZAKKEPOutput xmlns="http://xmlns.oracle.com/orawsv/PUPHAX/PUPHAXWS">
+         <RETURN>
+            <OBJALAP>
+               <SZURO>SZKOD:43,SZNEV:Sport%</SZURO>
+               <REKORDOK>
+                  <OBJKODTABLA>
+                     <KOD>43</KOD>
+                     <ELNEVEZ>Sportorvostan</ELNEVEZ>
+                     <MEGJEGYZ/>
+                  </OBJKODTABLA>
+               </REKORDOK>
+            </OBJALAP>
+         </RETURN>
+      </TABOSZAKKEPOutput>
+   </soap:Body>
+</soap:Envelope>
+
+Orvosok szakképesítésének lekérdezése
+Példa XML állomány a TabORVKEP metódus hívására:
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:pup="http://xmlns.oracle.com/orawsv/PUPHAX/PUPHAXWS">
+   <soapenv:Header/>
+   <soapenv:Body>
+      <pup:COBJALAP-TABORVKEPInput>
+          <pup:SXFILTER-VARCHAR2-IN>
+              <![CDATA[
+                <alapfilter>
+	             <PECSET>544%</PECSET>		
+		        <SZKOD>33</SZKOD>
+		      </alapfilter>
+              ]]>
+          </pup:SXFILTER-VARCHAR2-IN>
+      </pup:COBJALAP-TABORVKEPInput>
+   </soapenv:Body>
+</soapenv:Envelope>
+
+Az eredmény:
+<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+   <soap:Body>
+      <TABORVKEPOutput xmlns="http://xmlns.oracle.com/orawsv/PUPHAX/PUPHAXWS">
+         <RETURN>
+            <OBJALAP>
+               <SZURO>PECSET:544%, SZKOD:33</SZURO>
+               <REKORDOK>
+                  <OBJKODTABLA>
+                     <KOD>54443</KOD>
+                     <ELNEVEZ>33</ELNEVEZ>
+                     <MEGJEGYZ>Ortopédia</MEGJEGYZ>
+                  </OBJKODTABLA>
+                  <OBJKODTABLA>
+                     <KOD>54461</KOD>
+                     <ELNEVEZ>33</ELNEVEZ>
+                     <MEGJEGYZ>Ortopédia</MEGJEGYZ>
+                  </OBJKODTABLA>
+                  <OBJKODTABLA>
+                     <KOD>54483</KOD>
+                     <ELNEVEZ>33</ELNEVEZ>
+                     <MEGJEGYZ>Ortopédia</MEGJEGYZ>
+                  </OBJKODTABLA>
+                  <OBJKODTABLA>
+                     <KOD>54489</KOD>
+                     <ELNEVEZ>33</ELNEVEZ>
+                     <MEGJEGYZ>Ortopédia</MEGJEGYZ>
+                  </OBJKODTABLA>
+                  <OBJKODTABLA>
+                     <KOD>54491</KOD>
+                     <ELNEVEZ>33</ELNEVEZ>
+                     <MEGJEGYZ>Ortopédia</MEGJEGYZ>
+                  </OBJKODTABLA>
+               </REKORDOK>
+            </OBJALAP>
+         </RETURN>
+      </TABORVKEPOutput>
+   </soap:Body>
+</soap:Envelope>
+
+Idősoros adatok lekérdezése
+
+Az idősoros adatok lekérdezésénél a szúrópontnak van jelentős szerepe, ahogy azt a NEAK_PUPHAX_WS_v1.2.docx dokumentum 3.2 fejezet b) pontjában leírtuk. A frissítések kezelésénél alapvető fontosságú, hogy tudjuk, mikor voltak frissítések, van-e újabb az utolsó lekérdezés után.
+Kihirdetések lekérdezése
+
+Példa XML állomány a KIHIRD metódus hívására:
+
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:pup="http://xmlns.oracle.com/orawsv/PUPHAX/PUPHAXWS">
+   <soapenv:Header/>
+   <soapenv:Body>
+      <pup:COBJKIHIRD-KIHIRDInput>
+        <pup:DSTART-DATE-IN>2015-02-13</pup:DSTART-DATE-IN>
+      </pup:COBJKIHIRD-KIHIRDInput>
+   </soapenv:Body>
+</soapenv:Envelope>
+Az eredmény:
+
+<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+   <soap:Body>
+      <KIHIRDOutput xmlns="http://xmlns.oracle.com/orawsv/PUPHAX/PUPHAXWS">
+         <RETURN>
+            <OBJKIHIRD>
+               <KEZDET>2015.02.13</KEZDET>
+               <KIHIRDETESEK>
+                  <OBJKIHIRDELEM>
+                     <ELETBELEP>2015-02-16</ELETBELEP>
+                     <STATUS>E</STATUS>
+                     <VER/>
+                  </OBJKIHIRDELEM>
+                  <OBJKIHIRDELEM>
+                     <ELETBELEP>2015-03-01</ELETBELEP>
+                     <STATUS>E</STATUS>
+                     <VER/>
+                  </OBJKIHIRDELEM>
+                  <OBJKIHIRDELEM>
+                     <ELETBELEP>2015-03-16</ELETBELEP>
+                     <STATUS>E</STATUS>
+                     <VER/>
+                  </OBJKIHIRDELEM>
+                  <OBJKIHIRDELEM>
+                     <ELETBELEP>2015-04-01</ELETBELEP>
+                     <STATUS>E</STATUS>
+                     <VER/>
+                  </OBJKIHIRDELEM>
+                  <OBJKIHIRDELEM>
+                     <ELETBELEP>2015-05-01</ELETBELEP>
+                     <STATUS>M</STATUS>
+                     <VER>3</VER>
+                  </OBJKIHIRDELEM>
+               </KIHIRDETESEK>
+            </OBJKIHIRD>
+         </RETURN>
+      </KIHIRDOutput>
+   </soap:Body>
+</soap:Envelope>
+Ebben a listában láthatjuk, hogy az utolsó kihirdetés (2015.05.01) egy munkaverzió, 3-as verziójú.
+Termékek listájának lekérdezése
+
+Például:
+
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:pup="http://xmlns.oracle.com/orawsv/PUPHAX/PUPHAXWS">
+   <soapenv:Header/>
+   <soapenv:Body>
+      <pup:COBJIDLISTA-TERMEKLISTAInput>
+         <pup:DSP-DATE-IN>2014-09-29</pup:DSP-DATE-IN>
+          <pup:SXFILTER-VARCHAR2-IN>
+              <![CDATA[
+                <alapfilter>
+				<ATC>N05BA%</ATC>
+				<BRAND>XANAX</BRAND>
+				<FORGCID>67</FORGCID>
+				<TERMKOD>G7</TERMKOD>
+				<TNEV>XANAX%</TNEV>
+				<TK>OGYI-T-04617%</TK>
+			</alapfilter>
+              ]]>
+          </pup:SXFILTER-VARCHAR2-IN>
+      </pup:COBJIDLISTA-TERMEKLISTAInput>
+   </soapenv:Body>
+</soapenv:Envelope>
+
+Az eredmény:
+
+<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+   <soap:Body>
+      <TERMEKLISTAOutput xmlns="http://xmlns.oracle.com/orawsv/PUPHAX/PUPHAXWS">
+         <RETURN>
+            <OBJIDLISTA>
+               <SP>2014-09-29</SP>
+               <SZURO><![CDATA[<alapfilter>
+				<ATC>N05BA%</ATC>
+				<BRAND>XANAX</BRAND>
+				<FORGCID>67</FORGCID>
+				<TERMKOD>G7</TERMKOD>
+				<TNEV>XANAX%</TNEV>
+				<TK>OGYI-T-04617%</TK>
+			</alapfilter>]]></SZURO>
+               <IDLIST>
+                  <OBJSTRING256>
+                     <SZOVEG>14714225</SZOVEG>
+                  </OBJSTRING256>
+                  <OBJSTRING256>
+                     <SZOVEG>14714226</SZOVEG>
+                  </OBJSTRING256>
+                  <OBJSTRING256>
+                     <SZOVEG>14714227</SZOVEG>
+                  </OBJSTRING256>
+                  <OBJSTRING256>
+                     <SZOVEG>14714228</SZOVEG>
+                  </OBJSTRING256>
+                  <OBJSTRING256>
+                     <SZOVEG>14714229</SZOVEG>
+                  </OBJSTRING256>
+                  <OBJSTRING256>
+                     <SZOVEG>14714187</SZOVEG>
+                  </OBJSTRING256>
+                  <OBJSTRING256>
+                     <SZOVEG>14714188</SZOVEG>
+                  </OBJSTRING256>
+                  <OBJSTRING256>
+                     <SZOVEG>14714149</SZOVEG>
+                  </OBJSTRING256>
+               </IDLIST>
+            </OBJIDLISTA>
+         </RETURN>
+      </TERMEKLISTAOutput>
+   </soap:Body>
+</soap:Envelope>
+
+Termék alapadatainak lekérdezése
+
+Példa ( ID=14714226):
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:pup="http://xmlns.oracle.com/orawsv/PUPHAX/PUPHAXWS">
+   <soapenv:Header/>
+   <soapenv:Body>
+      <pup:COBJTERMEKADAT-TERMEKADATInput>
+         <pup:NID-NUMBER-IN>14714226</pup:NID-NUMBER-IN>
+      </pup:COBJTERMEKADAT-TERMEKADATInput>
+   </soapenv:Body>
+</soapenv:Envelope>
+A visszakapott eredmény:
+
+<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+   <soap:Body>
+      <TERMEKADATOutput xmlns="http://xmlns.oracle.com/orawsv/PUPHAX/PUPHAXWS">
+         <RETURN>
+            <OBJTERMEKADAT>
+               <ID>14714226</ID>
+               <PARENT_ID/>
+               <ERV_KEZD>2012-04-01</ERV_KEZD>
+               <ERV_VEGE>2099-12-31</ERV_VEGE>
+               <TERMEKKOD>G7</TERMEKKOD>
+               <KOZHID>5886</KOZHID>
+               <TTT>210037077</TTT>
+               <TK>OGYI-T-04617/04</TK>
+               <TKTORLES/>
+               <TKTORLESDAT/>
+               <EANKOD/>
+               <BRAND_ID>50120</BRAND_ID>
+               <NEV>XANAX 0,25 MG TABLETTA</NEV>
+               <KISZNEV>30x átlátszó buborékcsomagolásban</KISZNEV>
+               <ATC>N05BA12</ATC>
+               <ISO/>
+               <HATOANYAG>alprazolam</HATOANYAG>
+               <ADAGMOD>orális</ADAGMOD>
+               <GYFORMA>tabletta</GYFORMA>
+               <RENDELHET>V</RENDELHET>
+               <EGYEN_ID>24</EGYEN_ID>
+               <HELYETTESITH/>
+               <POTENCIA/>
+               <OHATO_MENNY>7,5</OHATO_MENNY>
+               <HATO_MENNY>,25</HATO_MENNY>
+               <HATO_EGYS>mg</HATO_EGYS>
+               <KISZ_MENNY>30</KISZ_MENNY>
+               <KISZ_EGYS>db</KISZ_EGYS>
+               <DDD_MENNY>1</DDD_MENNY>
+               <DDD_EGYS>mg</DDD_EGYS>
+               <DDD_FAKTOR>1</DDD_FAKTOR>
+               <DOT>7,5</DOT>
+               <ADAG_MENNY>30</ADAG_MENNY>
+               <ADAG_EGYS>tabletta</ADAG_EGYS>
+               <EGYEDI>0</EGYEDI>
+               <OLDALISAG/>
+               <TOBBLGAR/>
+               <PATIKA/>
+               <DOBAZON/>
+               <KERESZTJELZES>#</KERESZTJELZES>
+               <FORGENGT_ID>67</FORGENGT_ID>
+               <FORGALMAZ_ID>67</FORGALMAZ_ID>
+               <FORGALOMBAN>1</FORGALOMBAN>
+            </OBJTERMEKADAT>
+         </RETURN>
+      </TERMEKADATOutput>
+   </soap:Body>
+</soap:Envelope>
+
+Termék támogatási adatainak lekérdezése
+
+Minta hívás az előző termékre, ugyanabban az időpontban:
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:pup="http://xmlns.oracle.com/orawsv/PUPHAX/PUPHAXWS">
+   <soapenv:Header/>
+   <soapenv:Body>
+      <pup:COBJTAMOGAT-TAMOGATADATInput>
+         <pup:DSP-DATE-IN>2014-09-29</pup:DSP-DATE-IN>
+         <pup:NID-NUMBER-IN>14714225</pup:NID-NUMBER-IN>
+      </pup:COBJTAMOGAT-TAMOGATADATInput>
+   </soapenv:Body>
+</soapenv:Envelope>
+
+Az eredmény:
+
+<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+   <soap:Body>
+      <TAMOGATADATOutput xmlns="http://xmlns.oracle.com/orawsv/PUPHAX/PUPHAXWS">
+         <RETURN>
+            <OBJTAMOGAT>
+               <ID>2766488</ID>
+               <TERMEK_ID>14714225</TERMEK_ID>
+               <ERV_KEZD>2014-09-01</ERV_KEZD>
+               <ERV_VEGE>2014-09-30</ERV_VEGE>
+               <TERMAR>713</TERMAR>
+               <NKAR>759,35</NKAR>
+               <FAN>934</FAN>
+               <FAB>981</FAB>
+               <MAXFAB/>
+               <AFA>5</AFA>
+               <NTK>39,24</NTK>
+               <EGYSEGAR>39,24</EGYSEGAR>
+               <BESOROLAS>50305</BESOROLAS>
+               <PRAS_TERMEK>323</PRAS_TERMEK>
+               <NICHE_ID/>
+               <KEST_TERM>0</KEST_TERM>
+               <KGYKERET>2</KGYKERET>
+               <KULONL100>111</KULONL100>
+               <TAMOGATASOK>
+                  <OBJKATEGTAM>
+                     <ID>3338198</ID>
+                     <KATEGORIA>1</KATEGORIA>
+                     <TAMTECHN>NOMIN</TAMTECHN>
+                     <KGYIRHATO>0</KGYIRHATO>
+                     <MIN_ELETKOR/>
+                     <MAX_ELETKOR/>
+                     <NEM/>
+                     <TAMSZAZ>0</TAMSZAZ>
+                     <FIX_ID/>
+                     <REFNTK/>
+                     <NTAM>0</NTAM>
+                     <BTAM>0</BTAM>
+                     <TERDIJ>981</TERDIJ>
+                     <NTKTD>39,24</NTKTD>
+                     <MIHAID>0</MIHAID>
+                     <MIHACEL/>
+                     <MIHASTAT>0</MIHASTAT>
+                     <KIHI/>
+                     <FELME/>
+                     <EUPONTAZON/>
+                  </OBJKATEGTAM>
+                  <OBJKATEGTAM>
+                     <ID>3338199</ID>
+                     <KATEGORIA>2</KATEGORIA>
+                     <TAMTECHN>HFIX</TAMTECHN>
+                     <KGYIRHATO>0</KGYIRHATO>
+                     <MIN_ELETKOR/>
+                     <MAX_ELETKOR/>
+                     <NEM/>
+                     <TAMSZAZ>90</TAMSZAZ>
+                     <FIX_ID>510675</FIX_ID>
+                     <REFNTK>33,24</REFNTK>
+                     <NTAM>606</NTAM>
+                     <BTAM>636</BTAM>
+                     <TERDIJ>345</TERDIJ>
+                     <NTKTD>13,8</NTKTD>
+                     <MIHAID/>
+                     <MIHACEL/>
+                     <MIHASTAT/>
+                     <KIHI/>
+                     <FELME/>
+                     <EUPONTAZON>
+                        <OBJSTRING256>
+                           <SZOVEG>76255</SZOVEG>
+                        </OBJSTRING256>
+                     </EUPONTAZON>
+                  </OBJKATEGTAM>
+               </TAMOGATASOK>
+            </OBJTAMOGAT>
+         </RETURN>
+      </TAMOGATADATOutput>
+   </soap:Body>
+</soap:Envelope>
+Az EÜ pontok, és a hozzá tartozó információk lekérdezése
+
+Az előző példában a XANAX a 76255-ös EÜ ponton volt felírható. Ennek lekérdezése:
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:pup="http://xmlns.oracle.com/orawsv/PUPHAX/PUPHAXWS">
+   <soapenv:Header/>
+   <soapenv:Body>
+      <pup:COBJEUPONT-TAMOGATEUPONTInput>
+         <pup:NID-NUMBER-IN>76255</pup:NID-NUMBER-IN>
+      </pup:COBJEUPONT-TAMOGATEUPONTInput>
+   </soapenv:Body>
+</soapenv:Envelope>
+
+Az eredmény:
+
+<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+   <soap:Body>
+      <TAMOGATEUPONTOutput xmlns="http://xmlns.oracle.com/orawsv/PUPHAX/PUPHAXWS">
+         <RETURN>
+            <OBJEUPONT>
+               <ID>76255</ID>
+               <PONTSZAM>7</PONTSZAM>
+               <PERJELZES>a1</PERJELZES>
+               <FELIRAS/>
+               <MEGJEGYZES/>
+               <INDIKACIOK>
+                  <OBJINDIKACIO>
+                     <NDX>1</NDX>
+                     <LEIRAS>Hangulatzavarok, neurotikus, stresszhez társuló és szomatoform rendellenességek, valamint bulimia nervosa diagnózisa esetén, de kizárólag az adott készítmény alkalmazási előírásában szereplő javallatokban</LEIRAS>
+                  </OBJINDIKACIO>
+               </INDIKACIOK>
+               <FELIRBNO>
+                  <OBJSTRING256>
+                     <SZOVEG>F4530</SZOVEG>
+                  </OBJSTRING256>
+                  <OBJSTRING256>
+                     <SZOVEG>F4540</SZOVEG>
+                  </OBJSTRING256>
+                  <OBJSTRING256>
+                     <SZOVEG>F4580</SZOVEG>
+                  </OBJSTRING256>
+                  <OBJSTRING256>
+                     <SZOVEG>F4590</SZOVEG>
+                  </OBJSTRING256>
+                  <OBJSTRING256>
+                     <SZOVEG>F4800</SZOVEG>
+                  </OBJSTRING256>
+                  <OBJSTRING256>
+                     <SZOVEG>F4810</SZOVEG>
+                  </OBJSTRING256>
+                  <OBJSTRING256>
+                     <SZOVEG>F4880</SZOVEG>
+                  </OBJSTRING256>
+                  <OBJSTRING256>
+                     <SZOVEG>F4890</SZOVEG>
+                  </OBJSTRING256>
+                  <OBJSTRING256>
+                     <SZOVEG>F5020</SZOVEG>
+                  </OBJSTRING256>
+                  <OBJSTRING256>
+                     <SZOVEG>F5030</SZOVEG>
+                  </OBJSTRING256>
+                  <OBJSTRING256>
+                     <SZOVEG>F0630</SZOVEG>
+                  </OBJSTRING256>
+                  <OBJSTRING256>
+                     <SZOVEG>F2040</SZOVEG>
+                  </OBJSTRING256>
+                  <OBJSTRING256>
+                     <SZOVEG>F3160</SZOVEG>
+                  </OBJSTRING256>
+                  <OBJSTRING256>
+                     <SZOVEG>F3170</SZOVEG>
+                  </OBJSTRING256>
+                  <OBJSTRING256>
+                     <SZOVEG>F3180</SZOVEG>
+                  </OBJSTRING256>
+                  <OBJSTRING256>
+                     <SZOVEG>F3190</SZOVEG>
+                  </OBJSTRING256>
+                  <OBJSTRING256>
+                     <SZOVEG>F3200</SZOVEG>
+                  </OBJSTRING256>
+                  <OBJSTRING256>
+                     <SZOVEG>F3210</SZOVEG>
+                  </OBJSTRING256>
+                  <OBJSTRING256>
+                     <SZOVEG>F3220</SZOVEG>
+                  </OBJSTRING256>
+                  <OBJSTRING256>
+                     <SZOVEG>F3230</SZOVEG>
+                  </OBJSTRING256>
+                  <OBJSTRING256>
+                     <SZOVEG>F3280</SZOVEG>
+                  </OBJSTRING256>
+                  <OBJSTRING256>
+                     <SZOVEG>F3290</SZOVEG>
+                  </OBJSTRING256>
+                  <OBJSTRING256>
+                     <SZOVEG>F3300</SZOVEG>
+                  </OBJSTRING256>
+                  <OBJSTRING256>
+                     <SZOVEG>F3310</SZOVEG>
+                  </OBJSTRING256>
+                  <OBJSTRING256>
+                     <SZOVEG>F3320</SZOVEG>
+                  </OBJSTRING256>
+                  <OBJSTRING256>
+                     <SZOVEG>F3330</SZOVEG>
+                  </OBJSTRING256>
+                  <OBJSTRING256>
+                     <SZOVEG>F3340</SZOVEG>
+                  </OBJSTRING256>
+                  <OBJSTRING256>
+                     <SZOVEG>F3380</SZOVEG>
+                  </OBJSTRING256>
+                  <OBJSTRING256>
+                     <SZOVEG>F3390</SZOVEG>
+                  </OBJSTRING256>
+                  <OBJSTRING256>
+                     <SZOVEG>F3400</SZOVEG>
+                  </OBJSTRING256>
+                  <OBJSTRING256>
+                     <SZOVEG>F3410</SZOVEG>
+                  </OBJSTRING256>
+                  <OBJSTRING256>
+                     <SZOVEG>F3480</SZOVEG>
+                  </OBJSTRING256>
+                  <OBJSTRING256>
+                     <SZOVEG>F3490</SZOVEG>
+                  </OBJSTRING256>
+                  <OBJSTRING256>
+                     <SZOVEG>F3800</SZOVEG>
+                  </OBJSTRING256>
+                  <OBJSTRING256>
+                     <SZOVEG>F3810</SZOVEG>
+                  </OBJSTRING256>
+                  <OBJSTRING256>
+                     <SZOVEG>F3880</SZOVEG>
+                  </OBJSTRING256>
+                  <OBJSTRING256>
+                     <SZOVEG>F39H0</SZOVEG>
+                  </OBJSTRING256>
+                  <OBJSTRING256>
+                     <SZOVEG>F4000</SZOVEG>
+                  </OBJSTRING256>
+                  <OBJSTRING256>
+                     <SZOVEG>F4010</SZOVEG>
+                  </OBJSTRING256>
+                  <OBJSTRING256>
+                     <SZOVEG>F4020</SZOVEG>
+                  </OBJSTRING256>
+                  <OBJSTRING256>
+                     <SZOVEG>F4080</SZOVEG>
+                  </OBJSTRING256>
+                  <OBJSTRING256>
+                     <SZOVEG>F4090</SZOVEG>
+                  </OBJSTRING256>
+                  <OBJSTRING256>
+                     <SZOVEG>F4100</SZOVEG>
+                  </OBJSTRING256>
+                  <OBJSTRING256>
+                     <SZOVEG>F4110</SZOVEG>
+                  </OBJSTRING256>
+                  <OBJSTRING256>
+                     <SZOVEG>F4120</SZOVEG>
+                  </OBJSTRING256>
+                  <OBJSTRING256>
+                     <SZOVEG>F4130</SZOVEG>
+                  </OBJSTRING256>
+                  <OBJSTRING256>
+                     <SZOVEG>F4180</SZOVEG>
+                  </OBJSTRING256>
+                  <OBJSTRING256>
+                     <SZOVEG>F4190</SZOVEG>
+                  </OBJSTRING256>
+                  <OBJSTRING256>
+                     <SZOVEG>F4200</SZOVEG>
+                  </OBJSTRING256>
+                  <OBJSTRING256>
+                     <SZOVEG>F4210</SZOVEG>
+                  </OBJSTRING256>
+                  <OBJSTRING256>
+                     <SZOVEG>F4220</SZOVEG>
+                  </OBJSTRING256>
+                  <OBJSTRING256>
+                     <SZOVEG>F4280</SZOVEG>
+                  </OBJSTRING256>
+                  <OBJSTRING256>
+                     <SZOVEG>F4290</SZOVEG>
+                  </OBJSTRING256>
+                  <OBJSTRING256>
+                     <SZOVEG>F4300</SZOVEG>
+                  </OBJSTRING256>
+                  <OBJSTRING256>
+                     <SZOVEG>F4310</SZOVEG>
+                  </OBJSTRING256>
+                  <OBJSTRING256>
+                     <SZOVEG>F4320</SZOVEG>
+                  </OBJSTRING256>
+                  <OBJSTRING256>
+                     <SZOVEG>F4380</SZOVEG>
+                  </OBJSTRING256>
+                  <OBJSTRING256>
+                     <SZOVEG>F4390</SZOVEG>
+                  </OBJSTRING256>
+                  <OBJSTRING256>
+                     <SZOVEG>F4400</SZOVEG>
+                  </OBJSTRING256>
+                  <OBJSTRING256>
+                     <SZOVEG>F4410</SZOVEG>
+                  </OBJSTRING256>
+                  <OBJSTRING256>
+                     <SZOVEG>F4420</SZOVEG>
+                  </OBJSTRING256>
+                  <OBJSTRING256>
+                     <SZOVEG>F4430</SZOVEG>
+                  </OBJSTRING256>
+                  <OBJSTRING256>
+                     <SZOVEG>F4440</SZOVEG>
+                  </OBJSTRING256>
+                  <OBJSTRING256>
+                     <SZOVEG>F4450</SZOVEG>
+                  </OBJSTRING256>
+                  <OBJSTRING256>
+                     <SZOVEG>F4460</SZOVEG>
+                  </OBJSTRING256>
+                  <OBJSTRING256>
+                     <SZOVEG>F4470</SZOVEG>
+                  </OBJSTRING256>
+                  <OBJSTRING256>
+                     <SZOVEG>F4480</SZOVEG>
+                  </OBJSTRING256>
+                  <OBJSTRING256>
+                     <SZOVEG>F4490</SZOVEG>
+                  </OBJSTRING256>
+                  <OBJSTRING256>
+                     <SZOVEG>F4500</SZOVEG>
+                  </OBJSTRING256>
+                  <OBJSTRING256>
+                     <SZOVEG>F4510</SZOVEG>
+                  </OBJSTRING256>
+                  <OBJSTRING256>
+                     <SZOVEG>F4520</SZOVEG>
+                  </OBJSTRING256>
+                  <OBJSTRING256>
+                     <SZOVEG>F2510</SZOVEG>
+                  </OBJSTRING256>
+                  <OBJSTRING256>
+                     <SZOVEG>F3100</SZOVEG>
+                  </OBJSTRING256>
+                  <OBJSTRING256>
+                     <SZOVEG>F3110</SZOVEG>
+                  </OBJSTRING256>
+                  <OBJSTRING256>
+                     <SZOVEG>F3120</SZOVEG>
+                  </OBJSTRING256>
+                  <OBJSTRING256>
+                     <SZOVEG>F3130</SZOVEG>
+                  </OBJSTRING256>
+                  <OBJSTRING256>
+                     <SZOVEG>F3140</SZOVEG>
+                  </OBJSTRING256>
+                  <OBJSTRING256>
+                     <SZOVEG>F3150</SZOVEG>
+                  </OBJSTRING256>
+               </FELIRBNO>
+               <FELIRHAT>
+                  <OBJFELIRHATOSAG>
+                     <KATEGORIA_ID>5</KATEGORIA_ID>
+                     <JOGOSULT_ID>3</JOGOSULT_ID>
+                     <JIDOKORLAT>12</JIDOKORLAT>
+                     <SZAKVKOD>0</SZAKVKOD>
+                     <KIINT_ID>1</KIINT_ID>
+                  </OBJFELIRHATOSAG>
+                  <OBJFELIRHATOSAG>
+                     <KATEGORIA_ID>0</KATEGORIA_ID>
+                     <JOGOSULT_ID>4</JOGOSULT_ID>
+                     <JIDOKORLAT>0</JIDOKORLAT>
+                     <SZAKVKOD>189</SZAKVKOD>
+                     <KIINT_ID>1</KIINT_ID>
+                  </OBJFELIRHATOSAG>
+                  <OBJFELIRHATOSAG>
+                     <KATEGORIA_ID>4</KATEGORIA_ID>
+                     <JOGOSULT_ID>4</JOGOSULT_ID>
+                     <JIDOKORLAT>0</JIDOKORLAT>
+                     <SZAKVKOD>189</SZAKVKOD>
+                     <KIINT_ID>1</KIINT_ID>
+                  </OBJFELIRHATOSAG>
+                  <OBJFELIRHATOSAG>
+                     <KATEGORIA_ID>0</KATEGORIA_ID>
+                     <JOGOSULT_ID>4</JOGOSULT_ID>
+                     <JIDOKORLAT>0</JIDOKORLAT>
+                     <SZAKVKOD>38</SZAKVKOD>
+                     <KIINT_ID>1</KIINT_ID>
+                  </OBJFELIRHATOSAG>
+                  <OBJFELIRHATOSAG>
+                     <KATEGORIA_ID>4</KATEGORIA_ID>
+                     <JOGOSULT_ID>4</JOGOSULT_ID>
+                     <JIDOKORLAT>0</JIDOKORLAT>
+                     <SZAKVKOD>38</SZAKVKOD>
+                     <KIINT_ID>1</KIINT_ID>
+                  </OBJFELIRHATOSAG>
+                  <OBJFELIRHATOSAG>
+                     <KATEGORIA_ID>4</KATEGORIA_ID>
+                     <JOGOSULT_ID>4</JOGOSULT_ID>
+                     <JIDOKORLAT>0</JIDOKORLAT>
+                     <SZAKVKOD>1095</SZAKVKOD>
+                     <KIINT_ID>1</KIINT_ID>
+                  </OBJFELIRHATOSAG>
+                  <OBJFELIRHATOSAG>
+                     <KATEGORIA_ID>0</KATEGORIA_ID>
+                     <JOGOSULT_ID>4</JOGOSULT_ID>
+                     <JIDOKORLAT>0</JIDOKORLAT>
+                     <SZAKVKOD>1095</SZAKVKOD>
+                     <KIINT_ID>1</KIINT_ID>
+                  </OBJFELIRHATOSAG>
+                  <OBJFELIRHATOSAG>
+                     <KATEGORIA_ID>0</KATEGORIA_ID>
+                     <JOGOSULT_ID>4</JOGOSULT_ID>
+                     <JIDOKORLAT>0</JIDOKORLAT>
+                     <SZAKVKOD>10</SZAKVKOD>
+                     <KIINT_ID>1</KIINT_ID>
+                  </OBJFELIRHATOSAG>
+                  <OBJFELIRHATOSAG>
+                     <KATEGORIA_ID>4</KATEGORIA_ID>
+                     <JOGOSULT_ID>4</JOGOSULT_ID>
+                     <JIDOKORLAT>0</JIDOKORLAT>
+                     <SZAKVKOD>10</SZAKVKOD>
+                     <KIINT_ID>1</KIINT_ID>
+                  </OBJFELIRHATOSAG>
+               </FELIRHAT>
+            </OBJEUPONT>
+         </RETURN>
+      </TAMOGATEUPONTOutput>
+   </soap:Body>
+</soap:Envelope>
+
+Az inkrementális változások lekérdezése
+
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:pup="http://xmlns.oracle.com/orawsv/PUPHAX/PUPHAXWS">
+   <soapenv:Header/>
+   <soapenv:Body>
+      <pup:COBJIDLISTA-INKVALTInput>
+         <pup:DSP1-DATE-IN>2015-02-13</pup:DSP1-DATE-IN>
+         <pup:DSP2-DATE-IN>2015-05-01</pup:DSP2-DATE-IN>
+         <pup:SXFILTER-VARCHAR2-IN>
+           <![CDATA[
+                <alapfilter>
+	    		 </alapfilter>
+           ]]>
+         </pup:SXFILTER-VARCHAR2-IN>
+      </pup:COBJIDLISTA-INKVALTInput>
+   </soapenv:Body>
+</soapenv:Envelope>
+
+Az eredményként visszakapott lista:
+
+<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+   <soap:Body>
+      <INKVALTOutput xmlns="http://xmlns.oracle.com/orawsv/PUPHAX/PUPHAXWS">
+         <RETURN>
+            <OBJIDLISTA>
+               <SP>2015-05-01</SP>
+               <SZURO>
+                     <alapfilter>
+                     </alapfilter>
+               </SZURO>
+               <IDLIST>
+                  <OBJSTRING256>
+                     <SZOVEG>28979828</SZOVEG>
+                  </OBJSTRING256>
+                  <OBJSTRING256>
+                     <SZOVEG>28979829</SZOVEG>
+                  </OBJSTRING256>
+			... 			(a lista nagyon hosszú, a közbülső elemeket kihagytuk)
+                 <OBJSTRING256>
+                     <SZOVEG>28395232</SZOVEG>
+                  </OBJSTRING256>
+               </IDLIST>
+            </OBJIDLISTA>
+         </RETURN>
+      </INKVALTOutput>
+   </soap:Body>
+</soap:Envelope>
+
+A következő példában azt mutatjuk be, hogy ha csak egy termékcsoportot akarunk frissíteni (G7: ‘Gyári gyógyszerek’ ), hogyan használhatjuk az alapfiltert:
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:pup="http://xmlns.oracle.com/orawsv/PUPHAX/PUPHAXWS">
+   <soapenv:Header/>
+   <soapenv:Body>
+      <pup:COBJIDLISTA-INKVALTInput>
+         <pup:DSP1-DATE-IN>2015-02-13</pup:DSP1-DATE-IN>
+         <pup:DSP2-DATE-IN>2015-05-01</pup:DSP2-DATE-IN>
+         <pup:SXFILTER-VARCHAR2-IN>
+           <![CDATA[
+                <alapfilter>
+                  <TERMKOD>G7</TERMKOD>
+	          </alapfilter>
+           ]]>
+         </pup:SXFILTER-VARCHAR2-IN>
+      </pup:COBJIDLISTA-INKVALTInput>
+   </soapenv:Body>
+</soapenv:Envelope>
+
+Az eredmény:
+
+<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+   <soap:Body>
+      <INKVALTOutput xmlns="http://xmlns.oracle.com/orawsv/PUPHAX/PUPHAXWS">
+         <RETURN>
+            <OBJIDLISTA>
+               <SP>2015-05-01</SP>
+               <SZURO>
+                 <alapfilter>
+                    <TERMKOD>G7</TERMKOD>
+	    	    </alapfilter>
+               </SZURO>
+               <IDLIST>
+                  <OBJSTRING256>
+                     <SZOVEG>28979828</SZOVEG>
+                  </OBJSTRING256>
+                  <OBJSTRING256>
+                     <SZOVEG>28979829</SZOVEG>
+                  </OBJSTRING256>
+                  <OBJSTRING256>
+                     <SZOVEG>28980001</SZOVEG>
+                  </OBJSTRING256>
+			...                (itt sorokat kihagytunk)
+                  <OBJSTRING256>
+                     <SZOVEG>27145541</SZOVEG>
+                  </OBJSTRING256>
+                  <OBJSTRING256>
+                     <SZOVEG>26312031</SZOVEG>
+                  </OBJSTRING256>
+                  <OBJSTRING256>
+                     <SZOVEG>26312036</SZOVEG>
+                  </OBJSTRING256>
+               </IDLIST>
+            </OBJIDLISTA>
+         </RETURN>
+      </INKVALTOutput>
+   </soap:Body>
+</soap:Envelope>
+
+Változások az éles verzió bevezetésével kapcsolatban
+Az éles bevezetés és verzióváltás (v.:0.5-ről v.:1.2-ra)  nem tartalmaz olyan változásokat, amelyek miatt a korábban kifejlesztett és tesztüzemben letesztelt lekérdező programokban változtatni kellene, kivéve a következőt:
+
+A WSDL lekérdezés eredménye
+A tesztüzem idején a visszakapott WSDL állományban egy nem a valódi URL szerepelt. Az éles verziónál
+a valódi, a webszolgáltatás hívásánál alkalmazandó
+                <soap:address location="https://puphax.neak.gov.hu/PUPHAXWS"/>
+URL szerepel. 
+

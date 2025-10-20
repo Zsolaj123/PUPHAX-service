@@ -52,7 +52,7 @@ public class DrugService {
      * @param sortDirection Sort direction (ASC, DESC)
      * @return DrugSearchResponse with paginated results
      */
-    @Cacheable(value = "drugSearchCache", key = "#searchTerm + '_' + #manufacturer + '_' + #atcCode + '_' + #page + '_' + #size + '_' + #sortBy + '_' + #sortDirection")
+    // @Cacheable(value = "drugSearchCache", key = "#searchTerm + '_' + #manufacturer + '_' + #atcCode + '_' + #page + '_' + #size + '_' + #sortBy + '_' + #sortDirection")
     public DrugSearchResponse searchDrugs(String searchTerm, String manufacturer, String atcCode,
                                          int page, int size, String sortBy, String sortDirection) {
         
@@ -77,7 +77,7 @@ public class DrugService {
             // Apply pagination
             List<DrugSummary> paginatedDrugs = applyPagination(sortedDrugs, page, size);
             
-            // Create pagination info
+            // Create pagination info - use total count before pagination
             PaginationInfo pagination = PaginationInfo.of(page, size, sortedDrugs.size());
             
             // Create search info

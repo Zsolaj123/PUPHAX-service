@@ -1,0 +1,2904 @@
+NEAK ÁTFO PUPHAX webszolgáltatás
+PUPHAXWS v.: 1.33
+oldal 1
+NEAK Ártámogatási Főosztály
+PUPHAX
+PUblikus PHArma Xml
+terméktörzs
+PUPHAXWS
+webszolgáltatása
+Verzió: v.:1.33
+Dátum: 2025.02.02.
+NEAK ÁTFO PUPHAX webszolgáltatás
+PUPHAXWS v.: 1.33
+oldal 2
+Dokumentum változástörténet
+Név Esemény Dátum Verzió
+Fadgyas Tibor kezdeti terv verzió 2015.07.10 0.1
+Fadgyas Tibor megvalósított verzió 2015.11.30 0.2
+Fadgyas Tibor kiegészített, javított verzió 2016.02.04 0.3
+Fadgyas Tibor javított dokumentáció 2016.03.21 0.31
+Fadgyas Tibor javított verzió és kiegészített dokumentáció 2016.04.17 0.4
+Fadgyas Tibor javított verzió és kiegészített dokumentáció 2016.09.01 0.5
+Fadgyas Tibor éles verzió 2021.09.22 1.2
+Fadgyas Tibor kiegészített éles verzió 2021.11.11 1.21
+Fadgyas Tibor javított dokumentáció 2022.03.24 1.22
+Fadgyas Tibor kiegészített dokumentáció 2022.04.04 1.23
+Fadgyas Tibor javított dokumentáció 2022.10.05 1.24
+Fadgyas Tibor javított verzió és dokumentáció 2022.10.07 1.25
+Fadgyas Tibor javított dokumentáció, CSV fájl 2023.03.07 1.26
+Fadgyas Tibor javítások: lapozás, ATC tábla, KIINTOR, szakkép., OFFLABEL
+XML tag hozzáadása
+2023.06.07 1.27
+Fadgyas Tibor kiegészítés: ORVOSOK tábla TIPUS mező. KIEGINFO XML
+tag hozzáadása
+2024.05.17 1.3
+Fadgyas Tibor Az orvos lekérdezés példájának javítása a pecsétkód 5-ről 6-ra
+hosszúságúra változásával kapcsolatban
+2024.06.10 1.31
+Fadgyas Tibor Az orvos lekérdezés példájának javítása a pecsétkód 5 és 6
+hosszúságával kapcsolatban
+2024.08.01 1.32
+Fadgyas Tibor javítások: lapozás értékének változása a DIP_... eljárásoknál,
+kötelező szűrő TAB… eljáárásoknál
+2025.05.02 1.33
+NEAK ÁTFO PUPHAX webszolgáltatás
+PUPHAXWS v.: 1.33
+oldal 3
+Tartalom
+1. Bevezetés...............................................................................................................................................4
+1.1. A dokumentum célja .......................................................................................................................4
+1.2. A dokumentum tartalma..................................................................................................................4
+1.3. Változások az előző verzióhoz képest ............................................................................................4
+2. A PUPHAX törzs, a webszolgáltatás alapja ..........................................................................................5
+3. A webszolgáltatás általános jellemzői ...................................................................................................6
+3.1. A webszolgáltatás elérhetősége.......................................................................................................6
+3.2. A webszolgáltatás szerkezete ..........................................................................................................7
+3.3. Kitöltetlen mezők értéke .................................................................................................................8
+3.4. PUPHAX törzs munkaverziójának kezelése...................................................................................9
+4. A webszolgáltatás metódusai.................................................................................................................9
+4.1. A metódusoknál általánosan használt szűrő..................................................................................10
+4.2. Alap- és kódtáblák lekérdezése.....................................................................................................12
+4.2.1. ATC tábla lekérdezése ...........................................................................................................13
+4.2.2. ISO tábla lekérdezése ............................................................................................................15
+4.2.3. BNO tábla lekérdezése ..........................................................................................................15
+4.2.4. Brand tábla lekérdezése .........................................................................................................15
+4.2.5. Cégek tábla lekérdezése.........................................................................................................16
+4.2.6. A NICHE tábla lekérdezése ...................................................................................................17
+4.2.7. Szakképesítések tábla lekérdezése.........................................................................................17
+4.2.8. Orvosok és szakképesítéseik tábla lekérdezése .....................................................................17
+4.3. Idősoros adatok lekérdezése..........................................................................................................18
+4.3.1. Kihirdetések lekérdezése .......................................................................................................20
+4.3.2. Termékek listájának lekérdezése ...........................................................................................21
+4.3.3. Termék alapadatainak lekérdezése.........................................................................................24
+4.3.4. Termék támogatási adatainak lekérdezése.............................................................................26
+4.3.5. Az EÜ pontok, és a hozzá tartozó információk lekérdezése..................................................28
+4.3.6. Az inkrementális változások lekérdezése ..............................................................................31
+5. A törzs megjelenítését segítő metódusok.............................................................................................34
+5.1. Termékek adatainak, támogatásának megjelenítéséhez használandó metódus.............................35
+5.2. A termék- és támogatásváltozások megjelenítésére szolgáló metódus.........................................47
+6. A webszolgáltatás felhasználása ..........................................................................................................54
+6.1. Saját, teljes, lokális adatbázis rendszeres szinkronizálása ............................................................54
+6.2. Adott termékkörre, meghatározott időszakra való adatgyűjtés.....................................................55
+6.3. Adott termékkörre való rendszeres szinkronizálás .......................................................................56
+6.4. Ad-hoc, online bekérdezés csak egy adott termékre, ill. támogatásra ..........................................56
+7. Záró megjegyzések ..............................................................................................................................57
+8. Mellékletek ..........................................................................................................................................58
+NEAK ÁTFO PUPHAX webszolgáltatás
+PUPHAXWS v.: 1.33
+oldal 4
+1. Bevezetés
+1.1. A dokumentum célja
+Az 2007-ben bevezetett publikus gyógyszertörzs (PUPHA) az utóbbi évek fejlesztése során egy teljesen új,
+hatékonyabb adatszerkezetben tárolja a termékek adatait. Az új törzset PUPHAX-nek neveztük el, mert a
+modern technológiákat követve hozzáférését, elérhetőségét XML alapú technikákra építettük. A
+dokumentum célja, hogy leírja, miként lehet a PUPHAX gyógyszertörzset webszolgáltatáson keresztül
+elérni, az adatokat letölteni.
+1.2. A dokumentum tartalma
+A dokumentum csak a webszolgáltatás leírására szorítkozik. Az egyes mezők, paraméterek tartalma a
+PUPHAX adatbázis leírásában található, amely a NEAK honlapjáról letölthető. (Annak érdekében, hogy
+érthető legyen a PUPHAX szerkezete, működése a NEAK honlapján publikáltunk egy minta törzset is.)
+Az egyes paraméterek, mezők teljesen megfelelnek a releváns adatbázismezőknek, ezért ezek tartalmának
+leírását a jelen dokumentumban nem részletezzük.
+1.3. Változások az előző verzióhoz képest
+Az új 1.33-es PUPHAX verzióban a DIP_... eljárások lapozásnál lekérhető rekordok számát a maximális
+500-ról 100-ra. A lapizás értékét minden esetben meg kell adni. Kötelező szűrők bevezetése a TAB…
+eljárásoknál.
+Az 1.32-es PUPHAX verzióban pontosítottuk az orvosok lekérdezésénél mutatott példákat (4.2.8 fejezet).
+A lényege az, hogy az orvosok pecsétkódját ún. „pecsét helyesen” kell megjeleníteni, vagyis az 5
+jegyűeket továbbra is 5 jegyűként, vezető 0 nélkül, a 6 jegyűeket pedig 6 jeggyel, természetesen ott nem a
+kód kezdődhet 0-val.
+Az 1.31-es PUPHAX verzióban javítottuk az orvosok lekérdezésénél mutatott példákat (4.2.8 fejezet).
+Az 1.3-es PUPHAX verzióban megjelenik az orvosoknál a pecsétkód típusa, a pecsétkód mező
+hosszúságának változása kapcsán a vezető 0-k kerültek a pecsétkódokba (4.2.8 fejezet).
+Az 1.27-es PUPHAX verzióba bekerültek azon gyógyszerek külön jelölései melyek kizárólag off-label
+engedély birtokában rendelhetők adott EÜ ponton. (EÜpontos gyógyszerek off-label kiválthatósága), ld.
+4.3.4-es fejezet.
+Ezzel a módosítással új WSDL fájlt is publikálunk a honlapon..Kérjük Önöket,hogy a jövőben azt
+használják.
+A 1.27 verzióban a változás még a LAPOZAS automatikus értékének kikapcsolása, az ATC mezőkkel
+kapcsolatos információk, a szakképesítés megadása.
+A részletes leírás az érintett fejezetekben található.
+Az 1.21 éles verzió az 1.2 utolsó teszt-verzióhoz képest a következő változást tartalmazza:
+ Új metódus: TABKIINTOR hozzáadása, amellyel a kijelölt intézeteket/orvosokat lehet lekérdezni.
+ DISP_INF metódus sXFilter bővítése KATKAT filterrel.
+Az 1.2 éles verzió az azt megelőző 0.5 teszt-verzióhoz képest a következő főbb változásokat tartalmazza:
+ Adatbázistartalom kiegészült az új GYSE információkkal (ld. PUPHAX WS adatbázis.rtf).
+ Néhány kisebb javítást, és hatékonyság növelő változtatást (tuning) tartalmaz.
+NEAK ÁTFO PUPHAX webszolgáltatás
+PUPHAXWS v.: 1.33
+oldal 5
+2. A PUPHAX törzs, a webszolgáltatás alapja
+A PUPHAX két idősort alkalmaz a változások követésére. Csak akkor kerül új rekord az adatbázisba, ha
+az új kihirdetésnél a termék valamilyen adata megváltozott. Mivel az interfész alapvetően inkrementális
+lekérdezéseket támogatja, az idősorokat részletesebben, példákon keresztül is bemutatjuk. A továbbiakban
+PUPHAX adatbázis ismeretére alapozunk.
+Két egymástól nem független idősort kezelünk a PUPHAX törzsben, mindkettő úgy működik, hogy az
+érvényességi tartományon belül (ERV_KEZD, ERV_VEGE) a rekord és a hozzá kapcsolódó rekordok
+adatai változatlanok. A két dátum között eltelt idő 1 naptól 1000 évig terjedhet.
+Első idősor: TERMEK tábla
+ha a TERMEK tábla valamely adata (pl. 2015.08.01-el megváltozik (például a gyógyszer új nevet
+kap), akkor
+a TERMEK táblában egy új rekordot veszünk fel, amelyben minden adat - a név kivételével -
+megegyezik a régivel,
+a régi rekordot lezárjuk (pl. ERV_VEGE = 2015.07.31-el, az új rekordnál pedig ERV_KEZD=
+2015.08.01 lesz).
+Mivel a TAMALAP tábla a TERMEK táblára hivatkozik, az összes támogatási rekordot (beleértve
+a KATEGTAM , … táblákat is) amelyek a régi TERMEK rekordra vonatkoztak lemásoljuk úgy,
+hogy a másolat az új TERMEK rekordra mutasson.
+Ha az adott termék támogatása is változott, akkor persze a megfelelő rekordot javítjuk.
+Második idősor: TAMALAP tábla
+Ha a termék alapadatai nem változtak, de a támogatása igen, akkor nem készítünk új rekordot a
+TERMEK táblában,
+hanem a TAMALAP táblában lesz egy új rekord, amely ugyanarra a TERMEK rekordra
+hivatkozik.
+A TAMALAP tábla régi rekordját lezárjuk (pl. ERV_VEGE = 2015.07.31-el, az új rekordnál
+pedig ERV_KEZD= 2015.08.01 lesz)
+Minden, a régi TAMALAP rekordra hivatkozó KATEGTAM rekordot lemásolunk, hogy az új
+TAMALAP rekordra hivatkozzon, és a szükséges változásokat az új rekordokba beleírjuk.
+A webszolgáltatáson alapuló adatletöltés lehetőséget ad arra, hogy egy automatikus eljárás keretében csak
+a változásokat töltsük le. Ez a régi letöltésekhez képest egy nagyságrenddel kisebb adatforgalmat jelent,
+de ezen túl is sok előnye van, mivel az adatok feldolgozásakor is csak a változott termékekkel kell
+foglalkozni.
+A PUPHAXWS webszolgáltatás lehetőséget biztosít arra, hogy nemcsak az aktuális törzset, hanem a
+teljes időtartomány bármely adatát le lehet kérdezni. A NEAK infrastruktúrája alkalmas arra is, hogy a
+valós idejű feldolgozást támogassa, ezért sok helyen nem lesz szükség lokális terméktörzs-másolat
+kezelésére. Ennek érdekében az interfész sokoldalú szűrőrendszerrel láttuk el, hogy az éppen aktuális
+információt a leghatékonyabban lehessen letölteni.
+TB támogatásváltozással járó törzset a publikálási protokoll szerint havonta publikálunk, de egyéb
+NEAK ÁTFO PUPHAX webszolgáltatás
+PUPHAXWS v.: 1.33
+oldal 6
+adatváltozás kapcsán új törzset bármikor előállíthatunk. A havi rendszerességű, TB támogatásváltozást
+tartalmazó törzs publikálását munkaverzió közzététele előzi meg. Webszolgáltatáson keresztül le lehet
+kérdezni, hogy volt-e (mikor volt) újabb kihirdetés, melynek napi szintű automatikus lekérdezése javasolt.
+Jelenleg termékek legfontosabb azonosítója a TTT kód, mert a NEAK törzsében ez az egyetlen, a törzs
+minden elemét egyértelműen meghatározó azonosító. Az OGYÉI által törzskönyvezett gyógyszerek
+esetében használhatnánk a KOZHID (PACKSIZE_ID) paramétert is, a NEAK kiegészíti ezt az azonosítót
+az alapanyagokra, tápszerekre is, de a gyógyászati segédeszközök nincsenek ellátva ilyen azonosítóval.
+3. A webszolgáltatás általános jellemzői
+3.1. A webszolgáltatás elérhetősége
+A PUPHAXWS webszolgáltatást HTTPS protokoll segítségével a NEAK webszerverén keresztül lehet
+elérni. A SOAP hívások ún. digest authorization-t használnak, ezért felhasználói nevet és jelszót kell
+megadni a szolgáltatás eléréséhez:
+felhasználó név: PUPHAX
+jelszó: puphax
+Az URL cím:
+https://puphax.neak.gov.hu/PUPHAXWS
+A webszolgáltatás teljes definíciójának (WSDL) lekérdezése :
+https://puphax.neak.gov.hu/PUPHAXWS?wsdl
+Fontos megjegyzés:
+Belső, technikai okok miatt a visszakapott WSDL XML fájlban a
+<soap:address location="http://puphax:1958/orawsv/PUPHAX/PUPHAXWS"/>
+információ jelenik meg, amelyet le kell cserélni a webszolgáltatás valódi címére:
+<soap:address location="https://PUPHAX:puphax@puphax.neak.gov.hu/PUPHAXWS"/>
+Javasoljuk a WSDL fájl letöltését a honlapról (ld. 1. mlléklet), ebben az esetben nem kell semmit sem megváltoztatni.
+A webszolgáltatás egyetlen metódusának lekérdezése :
+https://puphax.neak.gov.hu/PUPHAXWS/<metódus név>?wsdl
+URL címmel lehetséges, ahol a <metódus név> helyén a webszolgáltatás valamelyik, a következőkben
+ismertetett metódusa állhat. A lekérdezéseknél a kapcsolat létrejöttekor a rendszer rákérdez a
+felhasználónévre és a jelszóra. Ha valamilyen böngészőt használunk, akkor megjelenik egy ablak,
+amelybe a felhasználói nevet és jelszót be kell gépelni. Lehetséges az is, hogy a webszolgáltatás hívásával
+együtt megadjuk a felhasználónevet és a jelszót, ezt javasoljuk programozott elérésekor. A digest
+authorizáció megadása ez esetben a következő módon lehetséges:
+https://PUPHAX:puphax@puphax.neak.gov.hu/PUPHAXWS?wsdl
+egy metódusnál pedig:
+NEAK ÁTFO PUPHAX webszolgáltatás
+PUPHAXWS v.: 1.33
+oldal 7
+https:// PUPHAX:puphax@puphax.neak.gov.hu/PUPHAXWS/<metódus név>?wsdl
+A válasz XML állomány alapkódolása UTF-8. A NEAK Oracle adatbázisaiban konvencionális kódolás
+EE8ISO8859P2, más elnevezéssel "ISO-8859-2". Ennek következtében a belső szöveges információk,
+mint például a gyógyszerek neve, cégek elnevezése ezzel a kódolással jelenik meg. Ezeket a kliens
+oldalon a kívánt kódolásnak megfelelően – ha másra van szükség – át kell kódolni.
+Megjegyzés:
+A teszteléshez, fejlesztéshez ajánlott SoapUI open source szoftvernél basic authorizációt kell beállítani,
+mert ott nem különböztetik meg a basic és a digest authorizátiót. (A különbség csak annyi, hogy a digest
+MD5, a basic base64 kódolást használ.)
+A webszolgáltatás megfelelő hardver/szoftver erőforrással rendelkezik a szimultán bejövő hívások
+kiszolgálására. A szerver védelme érdekében különböző, a NEAK-ban általánosan használt
+tűzfalszabályok a PUPHAX WS-re is érvényesek. Ennek megfelelően pl. a napi több millió hívást
+produkáló klienseket kitiltja a rendszer. Erre a mennyiségre soha nincs szükség, különösen, ha a 6.
+fejezetben leírtak szerint járnak el a felhasználók. Inkrementálisan, csak a változások lekérdezésével a
+kliens és szerver erőforrások igénybevételét jelentősen csökkenteni lehet, és értelmetlen is a változatlan
+adatok minden alkalommal történő lekérdezése.
+A jelenlegi tűzfalszabályok a következőek:
+ kliensenként maximum 3 végrehajtási szál indítható párhuzamosan. A negyedik szál indításakor
+csatlakozási hibát küld vissza a rendszer. Új szálat az után lehet nyitni, ha a párhuzamosan élő
+háromból legalább egyet lezárnak.
+ kliensenként a letöltés maximális sávszélessége 256kb.
+ A láthatóan végtelen ciklusban, esetleg több napon át folyamatosan ugyanazt lekérdező klienset
+kitiltjuk.
+Az elmúlt időszak tapasztalatai alapján világossá vált, hogy sok felhasználó továbbra is a teljes, 15 évet
+átfogó időszakot lekérdezi rendszeresen. A szerverkapacitás védelme érdekében ezért kitettünk a honlapra
+egy állományt, ami a 2007.04.01-től, (PUPHA/PUPHAX kezdete) 2023.03.01-ig a teljes idősoros
+törzset tartalmazza letölthető állományként. Az állomány 19 db, CSV formátumú táblát tartalmaz
+7zip-el összetömörítve. Az egyes mezők tabulator karakterrel határoltak, a szöveges mezőket kettős
+macskaköröm („”) jelöli. A táblák szerkezete megfelel a dokumentációban leírtaknak.
+Ettől fogva lehetséges, hogy a PUPHAX webszolgáltatás „csúcsforgalmi” időszakában, ami általában a
+hónap 24-től a következő hónap 5.-ig tart, letiltjuk a régi adatok lekérdezését. Ez azt jelenti, hogy csak az
+elmúlt néhány hónap adatainak lekérdezését fogja fogadni a szerver. A nagy forgalom elmúltával ismét
+lehet tetszőleges, régi adatot lekérdezni.
+3.2. A webszolgáltatás szerkezete
+Alapvetően kétféle metódus szerint lehet lekérdezni az adatokat:
+a) egész táblát visszaadó, időpont-független metódusok
+b) adott időpontban érvényes, bonyolultabb termék és támogatás adatokat visszaadó metódusok.
+Az a) pontnak megfelelő eljárások olyan adatokat kezelnek, amelyekben nem értelmes/érdemes idősort
+kezelni. Tipikusan ilyenek az alaptáblák: ATC, ISO, BNO, ... stb. tábla. Természetesen ezekben is van
+NEAK ÁTFO PUPHAX webszolgáltatás
+PUPHAXWS v.: 1.33
+oldal 8
+változás, de ezek vagy új értékek hozzáadását, vagy javítást jelentenek, tehát a legutolsó állapota a
+táblának egyben a legteljesebb, legjobb.
+Ezen metódusok mindegyike egyetlen szűrőparaméterrel rendelkezik, amely egy karaktertömbben
+megadott egyszerű XML állomány. Ebben a metódusnak megfelelő szűrőfeltételeket lehet megadni,
+jellemzően a kód, és/vagy a névmezőre egy kifejezés formájában.
+A b) pontnak megfelelő metódusok az idősor kezelésére, szűrőfeltételek megadására ún. „szúrópontot"
+kell alkalmazni. A szúrópont tetszőleges múltbéli, jövőbeli dátum lehet. Az összes adat, amit a metódus
+visszaad ezzel a szűrőfeltétel dátummal úgy értendő, hogy azok ebben az időpontban érvényes adatok.
+Logikailag az első metódus, amit ismertetnünk kell a KIHIRD. Ez visszaadja a kihirdetési időpontokat.
+Ha valaki azzal a céllal kérdezi le az adatokat, hogy lokális duplikátumot készítsen, frissítse a saját
+adatbázisát, amelyben valószínűleg a PUPHAX adattartalmán túl további adatok is szerepelnek, akkor
+elég, ha csak a kihirdetési időpontokkal kérdezi le az adatokat.
+Az online feldolgozást esetében azonban nem kell tudnunk, mikor voltak kihirdetések. A szúrópont
+mezőben ugyanis nem kell feltétlenül kihirdetési dátumot megadni, ott bármilyen időpont szerepelhet, és
+akkor a megadott pillanatban érvényes termék és támogatási adatokat kapjuk.
+3.3. Kitöltetlen mezők értéke
+Sok olyan adat van, amelyekkel az adott termék nem rendelkezik, ilyen pl. gyógyszerek esetében az ISO
+kód, vagy az OLDALISAG, gyse termékek esetében az ATC, … stb. Az érthetőség szempontjából a
+legjobb, ha ilyenkor az adat nincs kitöltve, mert bármilyen megadott érték félrevezető lehet. Az XSD
+lehetőséget ad ilyen esetekben a nillable=”true”, xsi:nil megadására, valamint arra is, hogy a
+minOccurs=0-val kihagyhassuk az adott item-et.
+Esetünkben ezek a megoldások más szolgáltatási és implementációs problémákat vethetnek fel, ezért arra
+jutottunk, hogy kitöltetlen (adatbázis: null) értékek esetében valamilyen egyezményes, a lehetőségek
+szerint legkevésbé félreérthető adatot adunk meg.
+Alapvetően három adattípussal van dolgunk:
+Dátum típusú mező esetében (xsd:date)
+egyedül a TKTORLESDAT esetében van ilyen
+ 2099-12-31
+jövőbeli dátumot adunk meg abban az esetben, ha a termék nincs törzskönyvi törlés alatt (az adatbázis
+mező null).
+String típusú mező esetében (xsd:string)
+sok mezőben előfordul, nehéz olyan értéket megadni, amely egységesen, minden item esetében
+félreérthetetlenül jelzi a kitöltetlenséget. Lehet például egy space ’ ’ is, ez sok szempontból nem
+szerencsés, vagy mínuszjel ’-’ ez pl. a keresztjelzéseknél zavaró. A jelenlegi webszolgáltatásban a
+ -/-
+karaktersort használjuk.
+Ha a string mező nincs 3 karakter hosszúságú, akkor 1 karakter esetén
+ -
+két karakter esetén
+ -/
+lesz az érték.
+Double típusú mező esetében(xsd:double)
+NEAK ÁTFO PUPHAX webszolgáltatás
+PUPHAXWS v.: 1.33
+oldal 9
+ez sok mező esetében előfordul, lehetséges előforduló értékek alapján a megoldásnak a
+ 999999999.999999
+értéket választottuk, mert ez semmiképpen nem értelmezhető érvényes értékként egyetlen terméknél ill.
+támogatásnál.
+3.4. PUPHAX törzs munkaverziójának kezelése
+A hiteles terméktörzs előállításában nagy szerepet játszik az adatok ellenőrzése, validálása. A
+visszajelzések alapján a NEAK javítja a törzset, és az így a gyártók, forgalmazók által is jóváhagyott törzs
+lép életbe. Természetesen, nagyon fontos, hogy elkülönítsük a munkaverziót a hiteles törzsektől. Mivel a
+munkaverzió életbeléptetésének dátuma mindig jövőbeli dátum, és általában legalább egy héttel a
+kihirdetési dátum előtt már véglegesítjük a munkaverziót, ezért az online feldolgozásban ez nem okozhat
+gondot, hiszen ott mindig a jelen pillanatban érvényes törzset kérdezik le. A lokális törzsmásolatok
+készítésénél, más adatbázisokba való importálásoknál viszont feltétlenül szükséges tudni, hogy a KIHIRD
+eljárás által visszaadott dátum még nem az érvényes törzsre, hanem munkaverzióra vonatkozik. Ezért
+abban az esetben, ha munkaverzió is jelen van a lekérdezett idősorban, a KIHIRD eljárás ezt jelzi a
+STATUS és a VER mezőben.
+A STATUS mező lehetséges értékei egy adott kihirdetésnél:
+ A (alapozás): a törzs frissítése zajlik, az adatok nem teljeskörűek, folyamatosan változhatnak. Ezt a
+kihirdetés semmilyen okból nem érdemes letölteni/lekérdezni,
+ M (munkaverzió):, az adatok nem véglegesek, de tájékoztató jelleggel letölthető, elemezhető az
+esetleges visszajelzések (javítanivalók) szempontjából,
+ E (éles verzió): a kihirdetés napjától ezek az adatok lesznek érvényesek. Megjegyzendő, hogy
+amennyiben fontos változás (jogszabály, befogadás, stb.) történik, ami az éles kihirdetést lekéste,
+az életbelépési dátum előtt újabb éles verzió kihirdetésére is sor kerülhet (ebben az esetben
+természetesen újabb verziószámmal.)
+(Ld. még a KIHIRD eljárás leírását.)
+Legfeljebb egy olyan kihirdetés van, amely munkaverzió, vagyis a KIHIRD.STATUS mező értéke ’M’.
+Ez minden esetben az éppen készülő, utolsó, aktuális törzsre vonatkozik, korábbi törzsek munkaverzióit
+nem tartjuk nyilván az adatbázisban.
+Az első munkaverziót általában a hónap 15. napján tesszük ki, és az utolsó, véglegesnek szánt verziót a
+hónap 20-22. napján. Munkaverzióval megjelölt törzs csak a hónap 15. és az utolsó napja között létezik,
+egyébként nem. (A dátumok néhány nappal eltolódhatnak a későbbi dátumok felé a szünnapok és
+ünnepnapok miatt.)
+A munkaverzió a KIHIRD.STATUS mező értékétől eltekintve mindenben megegyezik egy ’rendes’
+kihirdetéssel. A véglegesnek szánt (általában 3.) verzió „élesítésekor” csak annyi történik, hogy a
+megfelelő kihirdetésnél a KIHIRD.STATUS mező értékét ’M’-ről ’E’-re változtatjuk. Ebből az is
+következik, hogy ha valamelyik felhasználó a munkaverziót letöltötte, és az éles verzió verziószáma nem
+különbözik a munkaverzióétól, akkor az „éles” adatok birtokában van, fölösleges mégegyszer letöltenie
+az adatokat.
+4. A webszolgáltatás metódusai
+Először a metódusoknál általánosan használt filterezési lehetőséget, majd az alap-, ill. kódtáblák
+lekérdezését mutatjuk be. A dokumentum utolsó részében tárgyaljuk az idősort használó metódusokat. A
+teljes webszolgáltatás definíciós fájlját, a WSDL fájlt a 1. mellékletben adjuk meg.
+NEAK ÁTFO PUPHAX webszolgáltatás
+PUPHAXWS v.: 1.33
+oldal 10
+4.1. A metódusoknál általánosan használt szűrő
+A metódusok legtöbbjénél megtalálható az sXFilter paraméter, amely egy összetett szűrő. Ennek
+segítségével az adatbázisból ki lehet szűrni azokat a rekordokat, amire éppen szükség van. A szűrő egy
+karakterlánc, amely egyszerű XML szerkezetű, például:
+<alapfilter>
+<ATC>N05BA%</ATC>
+<ATCNEV>%benzodiazepin%</ATCNEV>
+<ISO>0930040312%</ISO>
+<ISONEV>%inkontinencia%</ISONEV>
+<BNOID>42938</BNOID>
+<BNO>F4300</BNO>
+<BNONEV>Akut stressz%</BNONEV>
+<BRAND>XANAX</BRAND>
+<EGYENID>21990</EGYENID>
+<NICHENEV>406</NICHENEV >
+<NICHEGYEN>%statin%</NICHEGYEN>
+<CEGID>67</CEGID>
+<CEGNEV>Pfizer%</CEGNEV>
+<FEJCID>28379</FEJCID>
+<FORGCID>67</FORGCID>
+<PECSET>12345</PECSET>
+<TERMKOD>G7</TERMKOD>
+<TNEV>XANAX</TNEV>
+<TK>OGYI-T-04617/01</TK>
+<TTT> 210038285</TTT>
+<SZKOD>38</SZKOD>
+ <SZNEV>Sportorvostan</SZNEV>
+ <TABLANEV>TabISO</TABLANEV>
+ <VALTTIP>M</VALTTIP>
+ <KATKAT>1</KATKAT>
+ <LAPOZAS>126:25</LAPOZAS>
+</alapfilter>
+A fenti beállításoknál például
+ az ATC táblából (a később ismertetett TabATC metódussal) egyetlen rekordot kapunk, amelyik a
+N05BA12 ATC kódhoz tartozik,
+ hasonlóképpen, ha ISO tábla lekérdezésére használjuk (TabISO) egy rekordot, az aktuálisan
+megadott ISO kódhoz tartozót kapjuk vissza.
+A szűrőknél nem kell feltétlenül pontos nevet ill. kódot megadni, a szűrő értékeinél lehet metakaraktereket is megadni:
+ ’%’ (százalék) karakter helyettesíthet 0 vagy több karaktert
+ ’_’ (aláhúzás) karakter helyettesít pontosan egy karaktert.
+Ilyen módon a fenti példát felhasználva,
+<ATC> N05BA%</ATC>
+szűrő az összes ATC rekordot visszaadja, ahol az ATC kód ’N05BA’-val kezdődik.
+Hasonlóan a
+<BRAND>%XANAX%</BRAND>
+szűrő minden olyan brand-et visszaad, amelyben valahol (lehet a brand név közepén, végén) előfordul a
+’XANAX’ karakterlánc.
+NEAK ÁTFO PUPHAX webszolgáltatás
+PUPHAXWS v.: 1.33
+oldal 11
+A következő szűrő
+<ATC> J01F_</ATC>
+azokat az ATC rekordokat listázza ki, amelyikek csak 5 jegyűek, és az utolsó jegye tetszőleges
+(makrolidok, linkozamidok).
+A VALTTIP szűrővel a kívánt változás típust lehet kiszűrni: ’U’ betű megadásával az újakat. a ’T’ betűvel
+a megszűnteket, a ’M’ jellel a módosítottakat, változottakat.
+A LAPOZAS szűrő lehetőséget ad arra, hogy az eredménylistának csak egy meghatározott része legyen
+az visszaadott XML-ben. Ez a szűrő a webszolgáltatást közvetlenül használó felhasználói felületeknek
+hasznos, ezzel lehet az egyes kéréseket lapokra tördelni. Ugyanakkor a nagy adatállományok
+lekérdezésénél (pl. TERMEKLISTA), amelyek szűrők megadása nélkül több tízezer rekordot adnának
+vissza, szintén hasznos lehet, hogy több hívással oldjuk meg a lekérdezést.
+Az egyes metódusoknál különböző filtereket veszünk figyelembe, ezért a filterek hatását részletesen az
+egyes metódusok leírásánál adjuk meg.
+Azokat a szűrőket (XML elemeket), amelyeket az adott metódus nem vesz figyelembe, nem érdemes
+megadni, hibát nem okoznak, de megadásuk semmilyen hatással sincs az eredményül kapott XML
+állományra. Nem mindenhol van értelme a metakarakterek használatának (pl. szakvizsgakódok), de a
+webszolgálatás minden metódusnál alkalmazza, ha ezek szerepelnek a szűrőben és a metódus figyelembe
+veszi őket. Így például a
+FEJCID>28379%</FEJCID>
+szűrő azokat fogja kiszűrni, ahol a forgalombahozatali engedély jogosultjának (cég-) azonosítója 28379-al
+kezdődik, bár a szűrő ilyen megadásának valószínűleg nem sok értelme van.
+Az sXFilter paraméter megadásakor figyelembe kell vennünk, hogy ez önmaga is egy XML kifejezés,
+ezért amikor a SOAP webszolgáltatás hívásánál az Envelop-ba belekerül, le kell védeni, hogy a
+feldolgozás során helyesen értelmeződjön. Ezt azzal tudjuk elérni, hogy CDATA-ként adjuk meg a
+paramétert, például az INKVALT metódus hívása esetén:
+<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+ <soap:Body>
+ <INKVALTOutput xmlns="http://xmlns.oracle.com/orawsv/PUPHAX/PUPHAXWS">
+ <RETURN>
+ <OBJIDLISTA>
+ <SP>2014-09-19</SP>
+ <SZURO>
+ <![CDATA[
+ <alapfilter>
+<ATC>N05BA%</ATC>
+<ISO></ISO>
+<BNO>F0600</BNO>
+<BRAND>XANAX</BRAND>
+<EGYENID>21990</EGYENID>
+<SZKOD>38</SZKOD>
+ </alapfilter>
+ ]]>
+ </SZURO>
+ <IDLIST/>
+ </OBJIDLISTA>
+ </RETURN>
+ </INKVALTOutput>
+ </soap:Body>
+</soap:Envelope>
+(A későbbiekben majd több példát is mutatunk a webszolgáltatások hívására.)
+NEAK ÁTFO PUPHAX webszolgáltatás
+PUPHAXWS v.: 1.33
+oldal 12
+A másik lehetőség, ha az XML kifejezésben kulcsfontosságú ’<’ és ’>’ jeleket a ’&lt;’ és ’&gt;’
+karakterláncokkal helyettesítjük, ahogy ezt az XML szabvány leírja:
+<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+ <soap:Body>
+ <INKVALTOutput xmlns="http://xmlns.oracle.com/orawsv/PUPHAX/PUPHAXWS">
+ <RETURN>
+ <OBJIDLISTA>
+ <SP>2014-09-19</SP>
+ <SZURO>
+ &lt;alapfilter&gt;
+&lt;ATC&gt;N05BA%&lt;/ATC&gt;
+&lt;ISO&gt;&lt;/ISO&gt;
+&lt;BNO&gt;F0600&lt;/BNO&gt;
+&lt;BRAND&gt;XANAX&lt;/BRAND&gt;
+&lt;EGYENID&gt;21990&lt;/EGYENID&gt;
+&lt;SZKOD&gt;38&lt;/SZKOD&gt;
+ &lt;/alapfilter&gt;
+ </SZURO>
+ <IDLIST/>
+ </OBJIDLISTA>
+ </RETURN>
+ </INKVALTOutput>
+ </soap:Body>
+</soap:Envelope>
+Abban a nagyon valószínűtlen esetben, ha a szűrő értékeként megadott karakterláncban ’<’ vagy ’>’ jel
+fordulna elő (pl. a gyógyszer nevében), a jeleket akkor is helyettesíteni kell a fent megadott módon a
+’&lt;’ ill. ’&gt;’ karakterláncokkal.
+Az alapfilterrel megadott szűrő teljes mérete maximálisan 256 karakter lehet.
+4.2. Alap- és kódtáblák lekérdezése
+Az alap- és kódtáblák esetében az idősor nem játszik szerepet, mindig az aktuális állapotot lehet letölteni,
+amely a korábbi állapotokhoz képest kiegészítéseket (új rekordokat) ill. javításokat tartalmaz.
+Minden ebben a pontban tárgyalt metódus hasonló szerkezetű. Minden egyes metódus egy alaptábla
+lekérdezésére szolgál, az elnevezésük is erre utal:
+ TabATC ATC tábla lekérdezése,
+ TabISO ISO tábla lekérdezése,
+ TabBNO BNO tábla lekérdezése,
+ TabBrand BRAND tábla lekérdezése,
+ TabCegek CEGEK tábla lekérdezése,
+ TabKiintOr KIINTOR tábla lekérdezése,
+ TabOSzakKep SZAKVKODOK tábla lekérdezése,
+ TabOrvKep ORVOSOK tábla lekérdezése.
+Egyetlen paramétert tartalmaznak (sXFilter), amely egy összetett szűrő. Ennek segítségével a táblából
+ki lehet szűrni azokat a rekordokat, amire éppen szükség van. (A szűrő használatát az előző fejezetben
+részleteztük.)
+A webszolgáltatás egy összetett XML-t ad vissza, amely első szinten két elemet tartalmaz:
+NEAK ÁTFO PUPHAX webszolgáltatás
+PUPHAXWS v.: 1.33
+oldal 13
+ SZURO az sXFilter-ben megadott szűrő(ket) tartalmazza, a fenti példa alapján: ’ATC: N05BA%’.
+Amennyiben több elemű szűrő kellett alkalmazni, vesszővel elválasztva adja meg ezeket: ’ATC:
+N05BA%,PECSET:, SZKOD:38’.
+ REKORDOK amely egy szekvenciában tartalmazza az összes, legyűjtött rekordot. Minden egyes
+eleme három elemből áll
+o KOD értelemszerűen a lekérdezett tábla kódját (pl. ATC, PECSETKOD), ill. az egyes
+táblák ID oszlopát (pl.: CEGEK, BRAND tábla ID oszlopát, ... stb.)
+o ELNEVEZ szöveges tartalom, megnevezés, leírás, név, ... stb.
+o MEGJEGYZ kiegészítő tartalom.
+A fenti elemek pontos tartalmát az egyes metódusoknál ismertetjük.
+A webszerviz hatékony felhasználása érdekében javasoljuk, hogy ne mindig a teljes alaptáblát kérdezzék
+le (ez egy lekérdezéssel úgysem lehetséges a kötelező szűrőfeltételek megadása miatt), hanem s később
+ismertetendő INKVALT eljárással a változásokat, majd a változott tételek adatait a TAB… eljárásokkal.
+(ld. 6.3
+4.2.1. ATC tábla lekérdezése
+TabATC metódussal történik az ATC tábla lekérdezése.
+sXFilter-nél csak az ATC, ATCNEV elemeket vesszük figyelembe, az ATCNEV (HATOANYAG
+mező) esetében kis és nagybetűt megkülönböztet a keresés.
+A szűrők nem lehetnek üresek, lealább egy szűrőt meg kell adni, legalább 3 karaktert hosszúságút.
+A visszaadott XML-ben a SZURO az sXFilter-ben megadott szűrő(ket) tartalmazza, a REKORDOK egy
+elemének tartalma:
+ KOD ATCKONYV.ATC oszlop
+ ELNEVEZ ATCKONYV. HATOANYAG oszlop
+ MEGJEGYZ ATCKONYV. MEGNEV oszlop
+A WHO-s hatóanyag-elnevezésekhez való igazodás miatt az egyes ATC kódok hatóanyagnevei
+megváltoztak. Az ATC tábla nem idősorosan kezelődik, ezért meg kellett oldanunk a régebben kiadott
+hatóanyagnevekhez való kapcsolódást. Ennek következtében az ANGOL elnevezést, amely ismereteink
+szerint nem volt érdemben használva, kihagytuk, az ELNEVEZ attribútumban az új, érvényes
+hatóanyagnév szerepel, és a MEGJEGYZ attribútumban a korábban kiadott hatóanyagnevet találják.
+Példa XML állomány a TabATC metódus hívására:
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
+xmlns:pup="http://xmlns.oracle.com/orawsv/PUPHAX/PUPHAXWS">
+ <soapenv:Header/>
+ <soapenv:Body>
+ <pup:COBJALAP-TABATCInput>
+ <pup:SXFILTER-VARCHAR2-IN>
+ <![CDATA[
+ <alapfilter>
+<ATC>N05BA%</ATC>
+<ATCNEV>loraze%</ATCNEV>
+ </alapfilter>
+ ]]>
+ </pup:SXFILTER-VARCHAR2-IN>
+ </pup:COBJALAP-TABATCInput>
+NEAK ÁTFO PUPHAX webszolgáltatás
+PUPHAXWS v.: 1.33
+oldal 14
+ </soapenv:Body>
+</soapenv:Envelope>
+A teljes POST üzenet, amely tartalmazza az authorization-t is:
+POST http://puphax.neak.gov.hu/PUPHAXWS HTTP/1.1
+Accept-Encoding: gzip,deflate
+Content-Type: text/xml;charset=UTF-8
+SOAPAction: "TABATC"
+Content-Length: 506
+Host: puphax.neak.gov.hu
+Connection: Keep-Alive
+User-Agent: Apache-HttpClient/4.1.1 (java 1.5)
+Authorization: Digest username="PUPHAX", realm="XDB",
+nonce="56F02501C21F4D108B309A61C1F435B3ECDBDB82092C2BE5", uri="/PUPHAXWS",
+response="8fd3e96154cba143c70135dc9763da83", qop=auth, nc=00000001,
+cnonce="a5bda0724e4315f75d42654c4237b451", algorithm="MD5"
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
+xmlns:pup="http://xmlns.oracle.com/orawsv/PUPHAX/PUPHAXWS">
+ <soapenv:Header/>
+ <soapenv:Body>
+ <pup:COBJALAP-TABATCInput>
+ <pup:SXFILTER-VARCHAR2-IN>
+ <![CDATA[
+ <alapfilter>
+<ATC>N05BA%</ATC>
+<ATCNEV>loraze%</ATCNEV>
+ </alapfilter>
+ ]]>
+ </pup:SXFILTER-VARCHAR2-IN>
+ </pup:COBJALAP-TABATCInput>
+ </soapenv:Body>
+</soapenv:Envelope>
+Az eredményként visszakapott üzenet:
+HTTP/1.1 200 OK
+Date: Mon, 21 Mar 2016 16:44:49 GMT
+Server: Oracle XML DB/Oracle Database
+MS-Author-Via: DAV
+DAV: 1,2,<http://www.oracle.com/xdb/webdav/props>
+Content-Type: text/xml; charset=UTF-8
+Keep-Alive: timeout=5, max=99
+Connection: Keep-Alive
+Transfer-Encoding: chunked
+Content-Language: en
+<?xml version="1.0" ?>
+<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+ <soap:Body>
+ <TABATCOutput xmlns="http://xmlns.oracle.com/orawsv/PUPHAX/PUPHAXWS">
+ <RETURN>
+ <OBJALAP>
+ <SZURO>ATC:N05BA%,ATCNEV:loraze%</SZURO>
+ <REKORDOK>
+ <OBJKODTABLA>
+ <KOD>N05BA06</KOD>
+NEAK ÁTFO PUPHAX webszolgáltatás
+PUPHAXWS v.: 1.33
+oldal 15
+ <ELNEVEZ>lorazepam</ELNEVEZ>
+ <MEGJEGYZ>lorazepam</MEGJEGYZ>
+ </OBJKODTABLA>
+ <OBJKODTABLA>
+ <KOD>N05BA56</KOD>
+ <ELNEVEZ>lorazepam, combinations</ELNEVEZ>
+ <MEGJEGYZ>lorazepam, combinations</MEGJEGYZ>
+ </OBJKODTABLA>
+ </REKORDOK>
+ </OBJALAP>
+ </RETURN>
+ </TABATCOutput>
+ </soap:Body>
+</soap:Envelope>
+4.2.2. ISO tábla lekérdezése
+TabISO metódussal történik az ISO tábla lekérdezése.
+sXFilter-nél csak az ISO, ISONEV elemeket vesszük figyelembe. Az ISONEV (MEGNEVEZES
+mező) esetén a kis-, és nagybetűket megkülönböztetjük a keresésnél.
+A szűrők nem lehetnek üresek, lealább egy szűrőt meg kell adni, legalább 3 karaktert hosszúságút.
+A visszaadott XML-ben a SZURO az sXFilter-ben megadott szűrő(ket) tartalmazza, a REKORDOK egy
+elemének tartalma:
+ KOD ISOKONYV.ISO oszlop
+ ELNEVEZ ISOKONYV.MEGNEVEZES oszlop
+ MEGJEGYZ üres
+Hívása a 4.2.1 fejezetben leírtakhoz hasonlóan történik, a hívási példát mellőzzük.
+4.2.3. BNO tábla lekérdezése
+TabBNO metódussal történik a BNO tábla lekérdezése.
+sXFilter-nél csak az BNO, BNONEV elemeket vesszük figyelembe, a BNONEV (LEIRAS mező)
+esetében a kis- és nagybetűket megkülönböztetjük.
+A visszaadott XML-ben a SZURO az sXFilter-ben megadott szűrő(ket) tartalmazza, a REKORDOK egy
+elemének tartalma:
+ KOD BNOKODOK.ID azonosító oszlop
+ ELNEVEZ BNOKODOK.KOD oszlop, a BNO karakteres kódja,
+ MEGJEGYZ BNOKODOK.LEIRAS oszlop
+Fontos megjegyezni, hogy a tábla 23-25 ezer rekordot tartalmaz. A kliens adatbázis első feltöltésénél
+valamilyen szűröt kell megadni, mert a szerver a tábla egybeni lekérdezését megtagadja a nagy
+adatállomány miatt. A későbbiekben viszont nem ezt, hanem az INKVALT eljárást kell használni,
+ugyanis a tábla ritkán és alig változik.
+Hívása a 4.2.1 fejezetben leírtakhoz hasonlóan történik, a hívási példát mellőzzük.
+4.2.4. Brand tábla lekérdezése
+NEAK ÁTFO PUPHAX webszolgáltatás
+PUPHAXWS v.: 1.33
+oldal 16
+TabBRAND metódussal történik a brand tábla lekérdezése.
+sXFilter-nél csak a BRAND elemet vesszük figyelembe.
+A szűrők nem lehetnek üresek, lealább egy szűrőt meg kell adni, legalább 3 karaktert hosszúságút.
+A visszaadott XML-ben a SZURO az sXFilter-ben megadott szűrő(ket) tartalmazza, a REKORDOK egy
+elemének tartalma:
+ KOD BRAND.ID oszlop
+ ELNEVEZ BRAND.NEV
+ MEGJEGYZ üres
+Hívása a 4.2.1 fejezetben leírtakhoz hasonlóan történik, a hívási példát mellőzzük.
+4.2.5. Cégek tábla lekérdezése
+TabCEGEK metódussal történik a cégek tábla lekérdezése. Bár ez a tábla sem idősorosan kezelődik, mivel
+a cégek alakulnak és megszűnnek szükség van arra, hogy az érvényességi időt átadjuk. Ezt a MEGJEGYZ
+mezőben tesszük meg.
+sXFilter-nél csak az CEGID, CEGNEV elemeket vesszük figyelembe. Ezekkel az adott cég
+azonosítója ill. neve alapján lehet keresni. (Ha mindkét szűrőt megadjuk, akkor az ’és’ kapcsolat miatt
+csak abban az esetben kapunk nullától különböző eredményt, ha az CEGID és a CEGNEV ugyanahhoz a
+céghez tartozik.) A CEGNEV esetében a kis és nagybetűt megkülönböztetjük a keresésnél.
+A szűrők nem lehetnek üresek, lealább egy szűrőt meg kell adni, legalább 3 karaktert hosszúságút.
+A visszaadott XML-ben a SZURO az sXFilter-ben megadott szűrő(ket) tartalmazza, a REKORDOK egy
+elemének tartalma:
+ KOD CEGEK.ID oszlop
+ ELNEVEZ CEGEK.NEV
+ MEGJEGYZ CEGEK.ERV_KEZD és CEGEK.ERV_VEGE oszlopokból képezett karakterlánc,
+amely a következő alakú: ’2009.03.21-2014.12.31’
+A MEGJEGYZ mező tartalma megmutatja, hogy az adott cég alakulásának és megszűnésének idejét.
+Amennyiben a cég még nem szűnt meg, az ERV_VEGE mezőben 2099.12.31 áll.
+Példa:
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
+xmlns:pup="http://xmlns.oracle.com/orawsv/PUPHAX/PUPHAXWS">
+ <soapenv:Header/>
+ <soapenv:Body>
+ <pup:COBJALAP-TABCEGEKInput>
+ <pup:SXFILTER-VARCHAR2-IN>
+ <![CDATA[
+ <alapfilter>
+<CEGNEV>Pfizer%</CEGNEV>
+ </alapfilter>
+ ]]>
+ </pup:SXFILTER-VARCHAR2-IN>
+ </pup:COBJALAP-TABCEGEKInput>
+ </soapenv:Body>
+</soapenv:Envelope>
+NEAK ÁTFO PUPHAX webszolgáltatás
+PUPHAXWS v.: 1.33
+oldal 17
+4.2.6. A NICHE tábla lekérdezése
+TabNICHE metódussal történik a NICHE tábla lekérdezése.
+Az sXFilter-nél csak a NICHEGYEN és a NICHENEV elemeket vesszük figyelembe, kis- és
+nagybetűt megkülönböztetjük.
+A visszaadott XML-ben a SZURO az sXFilter-ben megadott szűrő(ket) tartalmazza, a REKORDOK egy
+elemének tartalma:
+ KOD NICHE.ID oszlop
+ ELNEVEZ NICHE.EGYEN_ID oszlop
+ MEGJEGYZ NICHE.LEIRAS oszlop.
+Hívása a 4.2.1 fejezetben leírtakhoz hasonlóan történik, a hívási példát mellőzzük.
+4.2.7. Szakképesítések tábla lekérdezése
+TabOSZAKKEP metódussal történik az szakképesítések tábla lekérdezése.
+sXFilter-nél csak az SZKOD, SZNEV (SZAKVKODOK tábla KOD ill. LEARAS oszlopai)
+elemeket vesszük figyelembe, kis-, nagybetűt megkülönböztetjük.
+A szűrők nem lehetnek üresek, lealább egy szűrőt meg kell adni, legalább 3 karaktert hosszúságút.
+A visszaadott XML-ben a SZURO az sXFilter-ben megadott szűrő(ket) tartalmazza, a REKORDOK egy
+elemének tartalma:
+ KOD SZAKVKODOK.KOD oszlop
+ ELNEVEZ SZAKVKODOK.LEIRAS oszlop
+ MEGJEGYZ milyen (korábbi) szakképesítésnek felel meg, a korábbi KOD-ot tartalmazza.
+Hívása a 4.2.1 fejezetben leírtakhoz hasonlóan történik, a hívási példát mellőzzük.
+4.2.8. Orvosok és szakképesítéseik tábla lekérdezése
+TabORVKEP metódussal történik az orvosok szakképesítésinek lekérdezése.
+sXFilter-nél csak az PECSET és az SZKOD elemet vesszük figyelembe
+A visszaadott XML-ben a SZURO az sXFilter-ben megadott szűrő(ket) tartalmazza, a REKORDOK egy
+elemének tartalma:
+ KOD ORVOSOK.PECSETKOD oszlop
+ ELNEVEZ SZAKVKODOK.KOD oszlop
+ MEGJEGYZ SZAKVKODOK.LEIRAS oszlop
+ KIEGINFO ORVOSOK.TIPUS oszlop
+A korábbi XML szerkezetet
+OBJALAP < OBJTABKODTABLA < OBJKODTABLA
+ebben az új verzióban megváltoztattuk, az új XML tag-ek:
+OBJALAP2 < OBJTABKODTABLA2 < OBJKODTABLA2
+NEAK ÁTFO PUPHAX webszolgáltatás
+PUPHAXWS v.: 1.33
+oldal 18
+Hívási példa:
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
+xmlns:pup="http://xmlns.oracle.com/orawsv/PUPHAX/PUPHAXWS">
+ <soapenv:Header/>
+ <soapenv:Body>
+ <pup:COBJALAP2-TABORVKEPInput>
+ <pup:SXFILTER-VARCHAR2-IN>
+ <![CDATA[
+ <alapfilter>
+ <PECSET>61%</PECSET>
+ <SZKOD>134</SZKOD>
+ </alapfilter>
+ ]]>
+ </pup:SXFILTER-VARCHAR2-IN>
+ </pup:COBJALAP2-TABORVKEPInput>
+ </soapenv:Body>
+</soapenv:Envelope>
+Az orvoskód a NEAK rendszereiben is, az ágazatban kialakított elveknek megfelelően, 6 karakter
+hosszúságúra nőtt. A változás lényege az, hogy az orvosok pecsétkódját ún. „pecsét helyesen” kell
+megjeleníteni, vagyis az 5 jegyűeket továbbra is 5 jegyűként, vezető 0 nélkül, a 6 jegyűeket pedig 6
+jeggyel, természetesen ott nem kezdődhet 0-val. (A dokumentáció publikálásának időpontjában még nem
+jelent meg 6 jegyű orvoskód, erre nem tudunk működő példát mutatni.)
+Eredményül azokat az orvosokat kapjuk, ahol a pecsétkód 61-el kezdődik, és akiknek Belgyógyászat
+szakvizsgájuk (is) van:
+<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+ <soap:Body>
+ <TABORVKEPOutput xmlns="http://xmlns.oracle.com/orawsv/PUPHAX/PUPHAXWS">
+ <RETURN>
+ <OBJALAP2>
+ <SZURO>PECSET:061%, SZKOD:134</SZURO>
+ <REKORDOK>
+ <OBJKODTABLA2>
+ <KOD>61000</KOD>
+ <ELNEVEZ>134</ELNEVEZ>
+<MEGJEGYZ>Belgyógyászat</MEGJEGYZ>
+<KIEGINFO>1</KIEGINFO>
+ </OBJKODTABLA2>
+ <OBJKODTABLA2>
+ <KOD>61012</KOD>
+<ELNEVEZ>134</ELNEVEZ>
+<MEGJEGYZ>Belgyógyászat</MEGJEGYZ>
+<KIEGINFO>1</KIEGINFO>
+ </OBJKODTABLA2>
+...
+...
+ </REKORDOK>
+ </OBJALAP2>
+ </RETURN>
+ </TABORVKEPOutput>
+ </soap:Body>
+</soap:Envelope>
+Fontos megjegyezni, hogy a tábla közel százezer rekordot tartalmaz. A kliens adatbázis első feltöltésénél
+NEAK ÁTFO PUPHAX webszolgáltatás
+PUPHAXWS v.: 1.33
+oldal 19
+valamilyen szűrőt kell megadni (pl. pecsétkód első számjegye 0-tól 9-ig), mert a szerver a tábla egyszerre
+való lekérdezését megtagadja a nagy adatállomány miatt. A későbbiekben viszont nem ezt, hanem az
+INKVALT eljárást kell használni a frissítésre, ugyanis a tábla keveset változik.
+4.2.9. A kijelölt intézetek, kijelölt orvosok tábla lekérdezése
+TABKIINTOR metódussal történik az EÜ pontok esetén kijelölhető intézetek, orvosok lekérdezése. Ez a
+tábla sem idősorosan kezelődik, a feltöltés óta szereplő összes elem szerepel benne. Az intézetek
+átnevezéseit próbáljuk a lehető leghamarabb javítani, de itt lehetnek csúszások.
+sXFilter-nél csak az CEGID, CEGNEV elemeket vesszük figyelembe. Ezekkel az adott intézet
+kódját ill. nevét, nevének egy részletét (a fentiekben bemutatott %-jel használatával) lehet megadni. A
+kijelölt intézet kódjára hivatkozik például a TAMOGATEUPONT által visszaadott XML struktúrában a
+<FELIRHAT> .. <OBJFELIRHATOSAG> .. <KIINT_ID>
+elem. Ha mindkét szűrőt megadjuk, akkor az ’és’ kapcsolat miatt csak abban az esetben kapunk nullától
+különböző eredményt, ha az CEGID és a CEGNEV ugyanahhoz az intézethez tartozik. A CEGNEV
+esetében a kis és nagybetűt nem különböztetjük meg a keresésnél.
+A visszaadott XML-ben a SZURO az sXFilter-ben megadott szűrő(ket) tartalmazza, a REKORDOK egy
+elemének tartalma:
+ KOD KIINTOR.ID oszlop
+ ELNEVEZ KIINTOR.INTEZET és KIINTOR.EGYSEG mező tartalma összefűzve egy | (pipe)
+karakterrel,
+ MEGJEGYZ KIINTOR.PECSETKOD mező tartalma, ami az intézet kijelölt orvosának
+pecsétszáma, ha van ilyen.
+Példa:
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
+xmlns:pup="http://xmlns.oracle.com/orawsv/PUPHAX/PUPHAXWS">
+ <soapenv:Header/>
+ <soapenv:Body>
+ <pup:COBJALAP-TABKIINTORInput>
+ <pup:SXFILTER-VARCHAR2-IN>
+ <![CDATA[
+ <alapfilter>
+<CEGNEV>%Egyetem%</CEGNEV>
+ </alapfilter>
+ ]]>
+ </pup:SXFILTER-VARCHAR2-IN>
+ </pup:COBJALAP-TABKIINTORInput>
+ </soapenv:Body>
+</soapenv:Envelope>
+4.3. Idősoros adatok lekérdezése
+Az idősoros adatok lekérdezésénél a szúrópontnak van jelentős szerepe, ahogy azt a 3.2 fejezet b)
+pontjában leírtuk. A frissítések kezelésénél alapvető fontosságú, hogy tudjuk, mikor voltak frissítések,
+van-e újabb az utolsó lekérdezés után.
+NEAK ÁTFO PUPHAX webszolgáltatás
+PUPHAXWS v.: 1.33
+oldal 20
+4.3.1. Kihirdetések lekérdezése
+A kihirdetéseket, vagyis, a terméktörzs változásának időpontjait a KIHIRD metódussal lehet lekérdezni.
+Egyetlen input paramétere van a dStart dátum, amely az időpontot adja meg, amelytől fogva listázza ki
+a kihirdetéseket. Ha a megadott dátum éppen kihirdetési nap, akkor az is belekerül a listába. Frissítések
+kezelésének legegyszerűbb módja, ha a lokális adatbázis legutolsó kihirdetési dátumával lekérdezzük a
+KIHIRD webszolgáltatást. Ha ez az adott dátumon kívül egy újabbat is visszaad, akkor van frissíteni való.
+A szolgáltatás által visszaadott XML állomány két elemű:
+ KEZDET a kihirdetéseket milyen dátumtól kezdve adja vissza
+ KIHIRDETESEK az a lista, amelynek minden eleme a következő tartalmú rekordot tartalmazza:
+o ELETBELEP a kihirdetési dátumot tartalmazza. Ha munkaverzióról van szó, akkor a
+tervezett életbeléptetési dátumot adja meg. A karakterlánc formátuma: ’2015-08-01’.
+o STATUS megadja, hogy életbeléptetett ’E’ vagy munkaverzióról ’M’ van-e szó (ld. 3.4
+fejezet).
+o VER a verziószámot adja meg. Ez egy egész szám, és minden kihirdetési dátumnál elölről,
+1-el indul.
+Hívási példa ( 2015.05.01-es tesztadatok alapján):
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
+xmlns:pup="http://xmlns.oracle.com/orawsv/PUPHAX/PUPHAXWS">
+ <soapenv:Header/>
+ <soapenv:Body>
+ <pup:COBJKIHIRD-KIHIRDInput>
+ <pup:DSTART-DATE-IN>2015-02-13</pup:DSTART-DATE-IN>
+ </pup:COBJKIHIRD-KIHIRDInput>
+ </soapenv:Body>
+</soapenv:Envelope>
+Az eredmény:
+<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+ <soap:Body>
+ <KIHIRDOutput xmlns="http://xmlns.oracle.com/orawsv/PUPHAX/PUPHAXWS">
+ <RETURN>
+ <OBJKIHIRD>
+ <KEZDET>2015.02.13</KEZDET>
+ <KIHIRDETESEK>
+ <OBJKIHIRDELEM>
+ <ELETBELEP>2015-02-16</ELETBELEP>
+ <STATUS>E</STATUS>
+<VER/>
+ </OBJKIHIRDELEM>
+ <OBJKIHIRDELEM>
+ <ELETBELEP>2015-03-01</ELETBELEP>
+ <STATUS>E</STATUS>
+<VER/>
+ </OBJKIHIRDELEM>
+ <OBJKIHIRDELEM>
+ <ELETBELEP>2015-03-16</ELETBELEP>
+ <STATUS>E</STATUS>
+<VER/>
+ </OBJKIHIRDELEM>
+NEAK ÁTFO PUPHAX webszolgáltatás
+PUPHAXWS v.: 1.33
+oldal 21
+ <OBJKIHIRDELEM>
+ <ELETBELEP>2015-04-01</ELETBELEP>
+ <STATUS>E</STATUS>
+<VER/>
+ </OBJKIHIRDELEM>
+ <OBJKIHIRDELEM>
+ <ELETBELEP>2015-05-01</ELETBELEP>
+ <STATUS>M</STATUS>
+<VER>3</VER>
+ </OBJKIHIRDELEM>
+ </KIHIRDETESEK>
+ </OBJKIHIRD>
+ </RETURN>
+ </KIHIRDOutput>
+ </soap:Body>
+</soap:Envelope>
+Az utolsó kihirdetés munkaverzió volt, azon beül a 3. verzió.
+4.3.2. Termékek listájának lekérdezése
+A TERMEKLISTA webszolgáltatás szolgál arra, hogy valamilyen szempontok szerint szűrt termékek
+azonosítóját egy listában visszaadja.
+A TERMEKLISTA webszolgáltatás két paramétert tartalmaz:
+ dSP a szúrópont dátuma,
+ sXFilter amely egy összetett szűrő, hasonlóan használatos, mint ahogy azt a 4.1 fejezetben
+részletesen elírtuk. Ennek segítségével ki lehet szűrni azokat a termékeket, amelyekre éppen
+szükség van. A szűrő egy karakterlánc, amely egyszerű XML szerkezetű, jelenleg a következő
+elemeket tartalmazhatja:
+<alapfilter>
+<ATC>N05BA%</ATC>
+<ATCNEV>%benzodiazepin%</ATCNEV>
+<ISO>0930040312%</ISO>
+<ISONEV>%inkontinencia%</ISONEV >
+<BRAND>XANAX</BRAND>
+<EGYENID>21990</ EGYENID >
+<FEJCID>28379</FEJCID>
+<FORGCID>67</FORGCID>
+<TERMKOD>G7</TERMKOD >
+<TNEV>XANAX</TNEV >
+<TK>OGYI-T-04617/01</TK >
+<TTT> 210038285</TTT >
+ <LAPOZAS>126:25</ LAPOZAS>
+</alapfilter>
+Ahogy a 4.1-es fejezetben leírtuk, itt is használhatóak a metakarakterek.
+Az egyes szűrőkódok a következő jelentéssel bírnak:
+ TERMKOD: a termék típusát lehet vele szűrni. A PUPHAX törzs által jelenleg alkalmazott
+termékkódokat (TERMEK tábla,TERMEKKOD mező) a mellékletben található termekkodok.xls
+tartalmazza.
+A termék típusra való szűrés helyett használható ez arra is, hogy a támogatott ill. nem támogatott
+termékekre szűrjünk. Ha csak a támogatott termékeket akarjuk kilistázni, a szűrőbe a TAMTERM
+NEAK ÁTFO PUPHAX webszolgáltatás
+PUPHAXWS v.: 1.33
+oldal 22
+karakterláncot kell megadnunk. Ha csak a nem támogatottakat, akkor pedig a NEMTAM
+karakterláncot. Egyszerre a termékek típusára és támogatás státuszára nem lehet szűrni.
+ BRAND: azokat a termékeket adja vissza amelyek a megadott brand-hez illeszkednek,
+ TNEV: termék nevére lehet vele szűrni,
+ TK: OGYÉI által adott törzskönyvi számra lehet szűrni,
+ EGYENID: a termék egyenértékűségi kódja alapján lehet szűrni,
+ TTT: TTT kódra lehet vele szűrni,
+ ATC, ATCNEV: a termék ATC kódja/neve alapján lehet a termékeket szűrni,
+ ISO, ISONEV: a termék ISO kódja/neve alapján lehet a termékeket szűrni,
+ FEJCID: itt egy cégazonosítót (CEGEK.ID) kell megadni, és azokat a termékeket adja vissza,
+amelyek forg. eng. jogosultja az adott cég (ha a cég neve alapján akarjuk megkeresni a cég
+azonosítóját, használjuk a fentebb ismertetett TabCEGEK metódust),
+ FORGCID: itt egy cégazonosítót (CEGEK.ID) kell megadni, és azokat a termékeket adja vissza,
+amelyek forgalmazója az adott cég. (hasonlóan az előző ponthoz, ha a cég neve alapján akarjuk
+megkeresni a cég azonosítóját, használjuk a fentebb ismertetett TabCEGEK metódust).
+ LAPOZAS: az eredményül kapott azonosítók egy részét lehet ezzel kiválasztani, de nem a termék
+valamilyen tulajdonsága alapján, mint a fenti szűrőknél, hanem egyszerűen a sorszámuk alapján. A
+szűrő értékeként két számot lehet megadni ’:’-al elválasztva. Az első szám a kezdősorszámot adja
+meg, a második az elemek számát. Ez a webes alkalmazások lapozását szolgálja, az alkalmazás
+meg tudja adni, az eredménylista hányadik elemétől összesen hány elemet akarok visszakapni. A
+fenti példában a 126:25 azt jelenti, hogy a LAPOZAS szűrő nélküli listához képest az IDLIST
+lista 126. eleme lesz az első elem, amelyet még 24 követ az eredmény állományban. Mivel az
+elemek sorrendje meghatározott, ezzel biztonságosan végiglapozhatunk az állományon. (Ez
+természetesen csak akkor működik, ha az egyik hívásról a másikra nem változtatunk valamit a
+többi szűrőfeltételen. Akkor ugyanis egy másik lista megadott elemeit kapjuk vissza.) A lista
+végén, ha már nem maradt annyi elem, amennyit a második paraméter meghatároz, csak a
+maradék elemeket adja vissza.
+A LAPOZAS lehetőséget ad arra is, hogy nagy állományokat több részletben kérdezzünk le. A
+szerver abban az esetben, ha több tízezer rekordot kellene visszaadnia (>4 MB) üzenetben jelzi,
+hogy szűrőt, vagy lapozást kell használni.
+Az LAPOZAS-nál az egyszerre lekérdezhető rekordok száma – vagyis a második szám -
+maximálisan 10000. Ha ennél nagyobb számot adunk meg, a rendszer hibaüzenetet küld. A
+korábbi működéssel ellentéteben a rendszer nem állítja automatikusan 10000-re a rekordszámot,
+mert a tapasztalatok szerint a felhasználó programok ezt nem figyelik, és a következő
+kezdősorszámnál az általuk adott eredeti lapozástól akarják folytatni a lekérdezést, így hiányos
+állományt kapnak.
+Ha nem állítunk be lapozást, a rendszer automatikusan 10000-re állítja a rekordszámot. Ezt
+mindenképpen figyelni kell, mert ha 10000 rekordot kapunk vissza, akkor nagy
+valószínűséggel több is létezik, amit le akartunk kérni.
+Az egyes szűrőelemeket ki is lehet hagyni a listából, lehetnek üresek is. Fontos, hogy ha megadjuk őket,
+akkor a szűrést ÉS kapcsolatban végzi a feldolgozó program, tehát csak azokat a termékeket adja vissza,
+amelyek minden megadott szűrőfeltételnek eleget tesznek.
+A szolgáltatás visszaadott XML állománya három elemű:
+ SP a szúrópont dátuma karakterláncként ’2015.08.01’ alakban,
+ SZURO az sXFilter-ben megadott szűrő(ket) tartalmazza,
+NEAK ÁTFO PUPHAX webszolgáltatás
+PUPHAXWS v.: 1.33
+oldal 23
+ IDLIST a szűrésnek eleget tevő termékek azonosító kódjai (TERMEK.ID) egy listában. Itt fontos
+tudni, hogy egy adott termék (adott TTT) sokszor szerepelhet a termék listában a változások miatt.
+Egy adott érvényesség i.e. szúrópont mellett azonban csak legfeljebb egyszer fordulhat elő egy
+TTT. A TERMEK tábla elsődleges kulcsa (ID) ezért egyszerre azonosít egy terméket és egy
+érvényességi intervallumot. Ez a következőkben ismertetett metódusoknál fontos szerepet játszik.
+Például:
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
+xmlns:pup="http://xmlns.oracle.com/orawsv/PUPHAX/PUPHAXWS">
+ <soapenv:Header/>
+ <soapenv:Body>
+ <pup:COBJIDLISTA-TERMEKLISTAInput>
+ <pup:DSP-DATE-IN>2014-09-29</pup:DSP-DATE-IN>
+ <pup:SXFILTER-VARCHAR2-IN>
+ <![CDATA[
+ <alapfilter>
+<ATC>N05BA%</ATC>
+<BRAND>XANAX</BRAND>
+<FORGCID>67</FORGCID>
+<TERMKOD>G7</TERMKOD>
+<TNEV>XANAX%</TNEV>
+<TK>OGYI-T-04617%</TK>
+</alapfilter>
+ ]]>
+ </pup:SXFILTER-VARCHAR2-IN>
+ </pup:COBJIDLISTA-TERMEKLISTAInput>
+ </soapenv:Body>
+</soapenv:Envelope>
+Az eredmény:
+<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+ <soap:Body>
+ <TERMEKLISTAOutput xmlns="http://xmlns.oracle.com/orawsv/PUPHAX/PUPHAXWS">
+ <RETURN>
+ <OBJIDLISTA>
+ <SP>2014-09-29</SP>
+ <SZURO><![CDATA[<alapfilter>
+<ATC>N05BA%</ATC>
+<BRAND>XANAX</BRAND>
+<FORGCID>67</FORGCID>
+<TERMKOD>G7</TERMKOD>
+<TNEV>XANAX%</TNEV>
+<TK>OGYI-T-04617%</TK>
+</alapfilter>]]></SZURO>
+ <IDLIST>
+ <OBJSTRING256>
+ <SZOVEG>14714149</SZOVEG>
+ </OBJSTRING256>
+<OBJSTRING256>
+ <SZOVEG>14714187</SZOVEG>
+ </OBJSTRING256>
+ <OBJSTRING256>
+ <SZOVEG>14714188</SZOVEG>
+NEAK ÁTFO PUPHAX webszolgáltatás
+PUPHAXWS v.: 1.33
+oldal 24
+ </OBJSTRING256>
+ <OBJSTRING256>
+ <SZOVEG>14714225</SZOVEG>
+ </OBJSTRING256>
+<OBJSTRING256>
+ <SZOVEG>14714226</SZOVEG>
+ </OBJSTRING256>
+<OBJSTRING256>
+ <SZOVEG>14714227</SZOVEG>
+ </OBJSTRING256>
+ <OBJSTRING256>
+ <SZOVEG>14714228</SZOVEG>
+ </OBJSTRING256>
+ <OBJSTRING256>
+ <SZOVEG>14714229</SZOVEG>
+ </OBJSTRING256>
+ </IDLIST>
+ </OBJIDLISTA>
+ </RETURN>
+ </TERMEKLISTAOutput>
+ </soap:Body>
+</soap:Envelope>
+Az IDLIST az azonosító szám előtt egy előjelet is tartalmazhat. Ez segíti a változás feldolgozását. Ezek
+jelentése:
+ új termék, előjel: +
+ megszűnt termék, előjel: -
+ változott termékadatok, előjel nincs
+4.3.3. Termék alapadatainak lekérdezése
+A TERMEKADAT metódussal az előző eljárás által visszaadott TERMEK.ID azonosítóval megadott
+gyógyszer termék gyógyszerészeti adatait lehet lekérdezni. Segédeszközök ill. fürdőellátás adatainál ez
+ugyanúgy a termék alapadatait jelenti, amely a terméket meghatározza. Semmilyen támogatási adatot nem
+tartalmaz a visszaadott XML állomány.
+Ez a lekérdezés valójában a TERMEK tábla ID szerinti lekérdezésének felel meg.
+A metódusnak egyetlen input paramétere van nID amely egyértelműen beazonosítja a terméket és annak
+érvényességi időtartományát.
+A metódus által visszaadott szekvencia a TERMEK tábla oszlopainak felel meg (ld. PUPHAX
+dokumentációt).
+Példa ( ID=14714225):
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
+xmlns:pup="http://xmlns.oracle.com/orawsv/PUPHAX/PUPHAXWS">
+ <soapenv:Header/>
+ <soapenv:Body>
+ <pup:COBJTERMEKADAT-TERMEKADATInput>
+ <pup:NID-NUMBER-IN>14714225</pup:NID-NUMBER-IN>
+ </pup:COBJTERMEKADAT-TERMEKADATInput>
+ </soapenv:Body>
+NEAK ÁTFO PUPHAX webszolgáltatás
+PUPHAXWS v.: 1.33
+oldal 25
+</soapenv:Envelope>
+A visszakapott eredmény:
+<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+ <soap:Body>
+ <TERMEKADATOutput xmlns="http://xmlns.oracle.com/orawsv/PUPHAX/PUPHAXWS">
+ <RETURN>
+ <OBJTERMEKADAT>
+ <ID>14714225</ID>
+ <PARENT_ID>999999999.999999</PARENT_ID>
+ <ERV_KEZD>2012-04-01</ERV_KEZD>
+ <ERV_VEGE>2099-12-31</ERV_VEGE>
+ <TERMEKKOD>G7</TERMEKKOD>
+ <KOZHID>5887</KOZHID>
+ <TTT>210037069</TTT>
+ <TK>OGYI-T-04617/05</TK>
+ <TKTORLES>-/</TKTORLES>
+ <TKTORLESDAT>2099-12-31</TKTORLESDAT>
+ <EANKOD>-/-</EANKOD>
+ <BRAND_ID>50120</BRAND_ID>
+ <NEV>XANAX 0,25 MG TABLETTA</NEV>
+ <KISZNEV>100x átlátszó buborékcsomagolásban</KISZNEV>
+ <ATC>N05BA12</ATC>
+ <ISO>-/-</ISO>
+ <HATOANYAG>alprazolam</HATOANYAG>
+ <ADAGMOD>orális</ADAGMOD>
+ <GYFORMA>tabletta</GYFORMA>
+ <RENDELHET>V</RENDELHET>
+ <EGYEN_ID>24</EGYEN_ID>
+ <HELYETTESITH>999999999.999999</HELYETTESITH>
+ <POTENCIA>-/-</POTENCIA>
+ <OHATO_MENNY>25</OHATO_MENNY>
+ <HATO_MENNY>.25</HATO_MENNY>
+ <HATO_EGYS>mg</HATO_EGYS>
+ <KISZ_MENNY>100</KISZ_MENNY>
+ <KISZ_EGYS>db</KISZ_EGYS>
+ <DDD_MENNY>1</DDD_MENNY>
+ <DDD_EGYS>mg</DDD_EGYS>
+ <DDD_FAKTOR>1</DDD_FAKTOR>
+ <DOT>25</DOT>
+ <ADAG_MENNY>100</ADAG_MENNY>
+ <ADAG_EGYS>tabletta</ADAG_EGYS>
+ <EGYEDI>0</EGYEDI>
+ <OLDALISAG>999999999.999999</OLDALISAG>
+ <TOBBLGAR>999999999.999999</TOBBLGAR>
+ <PATIKA>-</PATIKA>
+ <DOBAZON>999999999.999999</DOBAZON>
+ <KERESZTJELZES>#</KERESZTJELZES>
+ <FORGENGT_ID>67</FORGENGT_ID>
+ <FORGALMAZ_ID>67</FORGALMAZ_ID>
+ <FORGALOMBAN>1</FORGALOMBAN>
+ </OBJTERMEKADAT>
+ </RETURN>
+ </TERMEKADATOutput>
+ </soap:Body>
+</soap:Envelope>
+NEAK ÁTFO PUPHAX webszolgáltatás
+PUPHAXWS v.: 1.33
+oldal 26
+4.3.4. Termék támogatási adatainak lekérdezése
+TAMOGATADAT metódussal az adott azonosítójú termék támogatásait lehet lekérdezni.
+A metódus input paraméterei:
+ dSP a szúróponti dátum,
+ nID a termék azonosítója.
+A dSP szúrópont megadásának az az oka, hogy bár az nID azonosító a termék egyértelműen
+meghatározza azt is, hogy a termék mely érvényességi intervallumban kerül lekérdezésre, a támogatási
+adatoknál alkalmazott második idősor miatt azonban szükség van a dátum pontosítására. (Ld. 2. fejezet,
+idősorok leírása.)
+A webszolgáltatás megadja az adott termék adott időpillanatban elérhető összes ár és támogatás adatát.
+Fontos itt megjegyeznünk, hogy különböző ár és ÁFA adatokat csak a támogatott termékekre tudunk
+megadni. Bár a gyógyszerek esetében nem támogatott termékek is szerepelnek a TERMEK táblában,
+ezekhez nem tartozik sem TAMALAP, sem KATEGTAM rekord, ahol az ár, ÁFA és támogatás adatokat
+rögzítjük, így az adatbázis nem is tartalmazhat ezekhez ár adatokat.
+Amennyiben EÜ pontra is írható a termék, az EÜ pontnak csak azonosítóját tartalmazza a visszaadott
+XML struktúra. Mivel a termékek egyszerre több pontra is írhatóak, a pontok azonosítóját egy
+szekvenciában adja meg. Az adott EÜ pont(ok) részletes adatait a következő, TAMOGATEUPONT
+metódussal lehet lekérdezni.
+Ez a következő táblák tartalmát olvassa ki és adja vissza XML formában:
+TAMALAP, KATEGTAM, EUHOZZAR.
+A szolgáltatás visszaadott XML állománya egy összetett struktúrát tartalmaz:
+ az első elemek a TAMALAP tábla adatainak felelnek meg,
+ TAMOGATASOK elem egy tömb, amely a KATEGTAM megfelelő rekordjait tartalmazza.
+ Ennek eleme az EUPONTAZON, amely egy tömb, és az adott támogatáshoz tartozó EÜ pontok
+azonosítóját adja meg. (Az EÜ pontok részletes adatai az azonosító alapján a következő fejezet
+metódusával lehet lekérdezni.)
+ Szintén ennek eleme az OFFLABEL: hasonlóan az előzőhöz, EÜ pontok azonosítóját adja meg, de
+csak azokét, amelyek off-label is felírhatók.
+Minta hívás az előző termékre, ugyanabban az időpontban:
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
+xmlns:pup="http://xmlns.oracle.com/orawsv/PUPHAX/PUPHAXWS">
+ <soapenv:Header/>
+ <soapenv:Body>
+ <pup:COBJTAMOGAT-TAMOGATADATInput>
+ <pup:DSP-DATE-IN>2014-09-29</pup:DSP-DATE-IN>
+ <pup:NID-NUMBER-IN>14714225</pup:NID-NUMBER-IN>
+ </pup:COBJTAMOGAT-TAMOGATADATInput>
+ </soapenv:Body>
+</soapenv:Envelope>
+Az eredmény:
+NEAK ÁTFO PUPHAX webszolgáltatás
+PUPHAXWS v.: 1.33
+oldal 27
+<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+ <soap:Body>
+ <TAMOGATADATOutput xmlns="http://xmlns.oracle.com/orawsv/PUPHAX/PUPHAXWS">
+ <RETURN>
+ <OBJTAMOGAT>
+ <ID>219356</ID>
+ <TERMEK_ID>14714225</TERMEK_ID>
+ <ERV_KEZD>2014-07-01</ERV_KEZD>
+ <ERV_VEGE>2014-09-30</ERV_VEGE>
+ <TERMAR>713</TERMAR>
+ <NKAR>759.35</NKAR>
+ <FAN>934</FAN>
+ <FAB>981</FAB>
+ <MAXFAB>0</MAXFAB>
+ <AFA>5</AFA>
+ <NTK>39.24</NTK>
+ <EGYSEGAR>39.24</EGYSEGAR>
+ <BESOROLAS>50305</BESOROLAS>
+ <PRAS_TERMEK>323</PRAS_TERMEK>
+ <NICHE_ID>999999999.999999</NICHE_ID>
+ <KEST_TERM>0</KEST_TERM>
+ <KGYKERET>2</KGYKERET>
+ <KULONL100>110</KULONL100>
+ <TAMOGATASOK>
+ <OBJKATEGTAM>
+ <ID>298260</ID>
+<KATEGORIA>1</KATEGORIA>
+<TAMTECHN>NOMIN</TAMTECHN>
+<KGYIRHATO>0</KGYIRHATO>
+<MIN_ELETKOR>999999999.999999</MIN_ELETKOR>
+<MAX_ELETKOR>999999999.999999</MAX_ELETKOR>
+<NEM>0</NEM>
+<TAMSZAZ>0</TAMSZAZ>
+<FIX_ID>999999999.999999</FIX_ID>
+<REFNTK>999999999.999999</REFNTK>
+<NTAM>0</NTAM>
+<BTAM>0</BTAM>
+<TERDIJ>981</TERDIJ>
+<NTKTD>39.24</NTKTD>
+<MIHAID>0</MIHAID>
+<MIHACEL>999999999.999999</MIHACEL>
+<MIHASTAT>0</MIHASTAT>
+<KIHI>-/-</KIHI>
+ <FELME>-/-</FELME>
+ <EUPONTAZON/>
+ </OBJKATEGTAM>
+ <OBJKATEGTAM>
+ <ID>298261</ID>
+<KATEGORIA>2</KATEGORIA>
+<TAMTECHN>HFIX</TAMTECHN>
+<KGYIRHATO>0</KGYIRHATO>
+<MIN_ELETKOR>999999999.999999</MIN_ELETKOR>
+<MAX_ELETKOR>999999999.999999</MAX_ELETKOR>
+<NEM>0</NEM>
+<TAMSZAZ>90</TAMSZAZ>
+<FIX_ID>510675</FIX_ID>
+<REFNTK>33.24</REFNTK>
+ <NTAM>606</NTAM>
+NEAK ÁTFO PUPHAX webszolgáltatás
+PUPHAXWS v.: 1.33
+oldal 28
+ <BTAM>636</BTAM>
+<TERDIJ>345</TERDIJ>
+<NTKTD>13.8</NTKTD>
+<MIHAID>999999999.999999</MIHAID>
+<MIHACEL>999999999.999999</MIHACEL>
+<MIHASTAT>999999999.999999</MIHASTAT>
+<KIHI>-/-</KIHI>
+ <FELME>-/-</FELME>
+ <EUPONTAZON>
+ <OBJSTRING256>
+ <SZOVEG>76255</SZOVEG>
+ </OBJSTRING256>
+ </EUPONTAZON>
+<OFFLABEL></OFFLABEL>
+ </OBJKATEGTAM>
+ </TAMOGATASOK>
+ </OBJTAMOGAT>
+ </RETURN>
+ </TAMOGATADATOutput>
+ </soap:Body>
+</soap:Envelope>
+4.3.5. Az EÜ pontok, és a hozzá tartozó információk lekérdezése
+TAMOGATEUPONT metódussal az adott EÜ pont részletes adatait lehet az azonosítója alapján lekérdezni.
+A metódus input paraméterei:
+ nID az EÜ pont azonosítója.
+Egy adott EÜ pontot az azonosító egyértelműen meghatároz. A támogatások változása során gyakran
+előfordul, hogy egy támogatás %-al, pont és perszámmal megadott EÜ pont ( pl.: ’EÜ70’, ’8/a’)
+valamilyen adatát (pl.: indikációs szöveg, felírhatóság, BNO-kör, ..., stb.) módosítani kell. Ilyen kor a
+pont meghatározása nem változik, ugyanúgy ’EÜ70’, ’8/a’ pont lesz a neve, de új egyedi azonosítót kap.
+Ezért az nID azonosító alkalmas arra, hogy egy EÜ pontot, és azon belül egy érvényességi időtartamot is
+azonosítson.
+A szolgáltatás visszaadott XML állománya egy összetett struktúrát tartalmaz:
+ az első elemek az EUPONTOK tábla oszlopainak felelnek meg, annak adattartalmával,
+ INDIKACIOK begy olyan tömb, amely az adott EÜ ponthoz tartozó indikációkat tartalmazza,
+struktúrája:
+o NDX az indikáció sorszáma,
+o LEIRAS az indikáció szövege,
+ FELIRBNO adja meg a felírható BNO kódokat egy tömbben,
+ FELIRHAT szintén egy tömb, amelynek minden eleme egy rekordot tartalmaz, ezek az
+EUJOGHOZZAR tábla mezőinek felel meg:
+o KATEGORIA_ID,
+o JOGOSULT_ID,
+o JIDOKORLAT
+o SZAKVKOD,
+o KIINT_ID.
+(A mezők részletes leírását ld. a PUPHAX adatbázis fizikai terv_1.21.docx dokumentumban.
+Az előző példában a XANAX a 76255-ös EÜ ponton volt felírható. Ennek lekérdezése:
+NEAK ÁTFO PUPHAX webszolgáltatás
+PUPHAXWS v.: 1.33
+oldal 29
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
+xmlns:pup="http://xmlns.oracle.com/orawsv/PUPHAX/PUPHAXWS">
+ <soapenv:Header/>
+ <soapenv:Body>
+ <pup:COBJEUPONT-TAMOGATEUPONTInput>
+ <pup:NID-NUMBER-IN>76255</pup:NID-NUMBER-IN>
+ </pup:COBJEUPONT-TAMOGATEUPONTInput>
+ </soapenv:Body>
+</soapenv:Envelope>
+Az eredmény:
+<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+ <soap:Body>
+ <TAMOGATEUPONTOutput xmlns="http://xmlns.oracle.com/orawsv/PUPHAX/PUPHAXWS">
+ <RETURN>
+ <OBJEUPONT>
+ <ID>76255</ID>
+ <PONTSZAM>7</PONTSZAM>
+ <PERJELZES>a1</PERJELZES>
+ <FELIRAS/>
+ <MEGJEGYZES/>
+ <INDIKACIOK>
+ <OBJINDIKACIO>
+ <NDX>1</NDX>
+ <LEIRAS>Hangulatzavarok, neurotikus, stresszhez társuló és szomatoform
+rendellenességek, valamint bulimia nervosa diagnózisa esetén, de kizárólag az adott
+készítmény alkalmazási előírásában szereplő javallatokban</LEIRAS>
+ </OBJINDIKACIO>
+ </INDIKACIOK>
+ <FELIRBNO>
+ <OBJSTRING256>
+ <SZOVEG>F4530</SZOVEG>
+ </OBJSTRING256>
+ <OBJSTRING256>
+ <SZOVEG>F4540</SZOVEG>
+ </OBJSTRING256>
+<OBJSTRING256>
+ <SZOVEG>F4580</SZOVEG>
+ </OBJSTRING256>
+<OBJSTRING256>
+ <SZOVEG>F4590</SZOVEG>
+ </OBJSTRING256>
+.... (itt sok BNO van még, ezeket most kihagytuk)
+ <OBJSTRING256>
+ <SZOVEG>F3150</SZOVEG>
+ </OBJSTRING256>
+ </FELIRBNO>
+ <FELIRHAT>
+ <OBJFELIRHATOSAG>
+ <KATEGORIA_ID>5</KATEGORIA_ID>
+<JOGOSULT_ID>3</JOGOSULT_ID>
+ <JIDOKORLAT>12</JIDOKORLAT>
+ <SZAKVKOD>0</SZAKVKOD>
+<KIINT_ID>1</KIINT_ID>
+ </OBJFELIRHATOSAG>
+NEAK ÁTFO PUPHAX webszolgáltatás
+PUPHAXWS v.: 1.33
+oldal 30
+ <OBJFELIRHATOSAG>
+ <KATEGORIA_ID>0</KATEGORIA_ID>
+ <JOGOSULT_ID>4</JOGOSULT_ID>
+ <JIDOKORLAT>0</JIDOKORLAT>
+<SZAKVKOD>189</SZAKVKOD>
+<KIINT_ID>1</KIINT_ID>
+ </OBJFELIRHATOSAG>
+<OBJFELIRHATOSAG>
+ <KATEGORIA_ID>4</KATEGORIA_ID>
+ <JOGOSULT_ID>4</JOGOSULT_ID>
+<JIDOKORLAT>0</JIDOKORLAT>
+<SZAKVKOD>189</SZAKVKOD>
+<KIINT_ID>1</KIINT_ID>
+ </OBJFELIRHATOSAG>
+<OBJFELIRHATOSAG>
+ <KATEGORIA_ID>0</KATEGORIA_ID>
+<JOGOSULT_ID>4</JOGOSULT_ID>
+<JIDOKORLAT>0</JIDOKORLAT>
+<SZAKVKOD>38</SZAKVKOD>
+ <KIINT_ID>1</KIINT_ID>
+ </OBJFELIRHATOSAG>
+<OBJFELIRHATOSAG>
+ <KATEGORIA_ID>4</KATEGORIA_ID>
+<JOGOSULT_ID>4</JOGOSULT_ID>
+<JIDOKORLAT>0</JIDOKORLAT>
+<SZAKVKOD>38</SZAKVKOD>
+<KIINT_ID>1</KIINT_ID>
+ </OBJFELIRHATOSAG>
+<OBJFELIRHATOSAG>
+ <KATEGORIA_ID>4</KATEGORIA_ID>
+<JOGOSULT_ID>4</JOGOSULT_ID>
+<JIDOKORLAT>0</JIDOKORLAT>
+<SZAKVKOD>1095</SZAKVKOD>
+<KIINT_ID>1</KIINT_ID>
+ </OBJFELIRHATOSAG>
+<OBJFELIRHATOSAG>
+ <KATEGORIA_ID>0</KATEGORIA_ID>
+<JOGOSULT_ID>4</JOGOSULT_ID>
+<JIDOKORLAT>0</JIDOKORLAT>
+<SZAKVKOD>1095</SZAKVKOD>
+<KIINT_ID>1</KIINT_ID>
+ </OBJFELIRHATOSAG>
+ <OBJFELIRHATOSAG>
+ <KATEGORIA_ID>0</KATEGORIA_ID>
+<JOGOSULT_ID>4</JOGOSULT_ID>
+<JIDOKORLAT>0</JIDOKORLAT>
+<SZAKVKOD>10</SZAKVKOD>
+<KIINT_ID>1</KIINT_ID>
+ </OBJFELIRHATOSAG>
+<OBJFELIRHATOSAG>
+ <KATEGORIA_ID>4</KATEGORIA_ID>
+<JOGOSULT_ID>4</JOGOSULT_ID>
+<JIDOKORLAT>0</JIDOKORLAT>
+<SZAKVKOD>10</SZAKVKOD>
+<KIINT_ID>1</KIINT_ID>
+ </OBJFELIRHATOSAG>
+ </FELIRHAT>
+ </OBJEUPONT>
+NEAK ÁTFO PUPHAX webszolgáltatás
+PUPHAXWS v.: 1.33
+oldal 31
+ </RETURN>
+ </TAMOGATEUPONTOutput>
+ </soap:Body>
+</soap:Envelope>
+4.3.6. Az inkrementális változások lekérdezése
+INKVALT metódussal lehet lekérdezni, hogy két időpont között mely termékek adatai, támogatásai, illetve
+az alaptáblák mely elemei változtak:
+A webszolgáltatás három paramétert tartalmaz:
+ dSP1 az a dátum, amikori érvényes adataink még megvannak,
+ dSP2 az a dátum, amikori érvényes adatokra kíváncsiak vagyunk (általában az aktuális dátum),
+ sXFilter amely egy összetett szűrő, ugyanúgy használatos, mint ahogy azt a 4.1, ill. 4.3.2
+fejezetben részletesen elírtuk. Ennek segítségével ki lehet szűrni azokat a termékeket, amelyek
+változásait akarjuk letölteni. A szűrő elemei közül csak azoknak van értelme, amelyek
+termékadatokra vonatkoznak (TERMKOD, BRAND, TNEV, TK, TTT, ATC, ISO, FEJCID,
+FORGCID, LAPOZAS). Ezen kívül van egy szűrőelem a TABLANEV, amelynek csak ennél a
+metódusnál van ételme. Ez kijelöli, hogy az inkrementális változásokat mely táblára adja meg. A
+szűrő lehetséges értékei az egyes tábláknak felelnek meg:
+TabATC ATC tábla inkrementális változásai, visszaadott értéke: ATC,
+TabISO ISO tábla inkrementális változásai, visszaadott értéke: ISO,
+TabBNO BNO tábla inkrementális változásai, visszaadott értéke: KOD,
+TabBrand BRAND tábla inkrementális változásai, visszaadott értéke: NEV,
+TabCegek CEGEK tábla inkrementális változásai, visszaadott értéke: NEV,
+TabOSzakKep SZAKVKODOK tábla inkrementális változásai, visszaadott értéke: KOD,
+TabOrvKep ORVOSOK tábla inkrementális változásai, visszaadott értéke: PECSETKOD.
+Ha nem szerepel a TABLANEV szűrő, akkor az alapvető termék, támogatásadatok változását adja vissza
+a metódus.
+Ha szerepel a TABLANEV szűrő, akkor mindenképpen a megjelölt táblában keresi a változásokat, és a
+többi, vele együtt megadott szűrőket nem veszi figyelembe.
+Mivel ezek a táblák nem idősorosan kezelődnek, a PUPHAX adatbázis kezdeti feltöltésekor - a PUPHA
+törzs PUPHAX-be való migrálásakor – ki kellett jelölnünk egy alapdátumot, amihez majd a
+következőkben a változásokat mérjük. Ez az alapdátum minden tábla esetében a 2016-04-01. Ez azt
+jelenti, hogy az összes alaptábla úgy viselkedik, mintha minden eleme megváltozott volna 2016.04.01-i
+kihirdetéskor. Ehhez az alapdátumhoz képest pl. az ATC tábla valószínűleg csak néhány rekordban fog
+különbözni a 2016.05.01-es kihirdetéskor, tehát a legtöbb rekordban 2016-04-01 lesz az utolsó változás
+dátuma és csak néhány rekord esetében 2016-05-01. Ezt a néhány rekordot fogja visszaadni az INKVALT
+eljárás, ha dSP1 paraméterként 2016-04-01-t és dSP2 paraméterként 2016-05-01-t adunk meg.
+A szolgáltatás által visszaadott XML állomány szerkezete megegyezik a 4.3.2-ben ismertetett
+TERMEKLISTA által visszaadott XML állományéval:
+ SP egyezik a dSP2-vel, a szúrópont dátumával, karakterláncként ábrázoljuk ’2015.08.01’ alakban,
+ SZURO az sXFilter-ben megadott szűrőt/szűrőket tartalmazza,
+NEAK ÁTFO PUPHAX webszolgáltatás
+PUPHAXWS v.: 1.33
+oldal 32
+ IDLIST a szűrésnek eleget tevő termékek azonosító kódjai (TERMEK.ID) egy listában. Ezek
+azok a termékek, amelyek valamilyen adata – lehet a hozzájuk kapcsolódó támogatási adat is –
+megváltoztak a jelzett időpont óta. Itt természetesen az új, megváltozott rekordok azonosítóját
+adja vissza a rendszer, amelynek részletes adatait lekérdezve frissíthető a törzs.
+Amennyiben szűrőfeltételként a TABLANEV is szerepelt, akkor a lista elemei a megadott tábla
+azonosítói (primary key), pl.: TabATC esetén az ATC kód (ATCKONYV.ATC), TabBNO esetén
+az KOD (BNOKOOK.KOD), ..., stb. (ld. fentebb).
+Példák:
+1. Csak a benzodiazepin-származékok változásait akarjuk megtudni, azok közül is csak azokat, amik
+forgalmazója a Pfizer (67-es):
+<alapfilter>
+<ATC>N05BA%</ATC>
+<FORGCID>67</FORGCID>
+</alapfilter>
+2. Azt szeretnénk megtudni, hogy milyen új, ill. változott ISO kódokat tartalmaz az ISO tábla:
+<alapfilter>
+ <TABLANEV>TabISO</TABLANEV>
+</alapfilter>
+Ha nem akarunk megadni semmilyen szűrőfeltételt, vagyis minden terméket be akarunk frissíteni, az
+sXFilter akkor sem lehet teljesen üres, legalább az
+<alapfilter>
+</alapfilter>
+üres, elem nélküli szűrőstruktúrának szerepelnie kell. Megjegyzendő, hogy amennyiben a törzsben
+nagyobb változások történtek, akkor a szűrő nélküli alapfilter meglehetősen sok rekordot adhat vissza.
+Megadhatunk TERMKOD szűrőt G% (csak gyógyszer), S% (csak gyse) formában, hogy kb. a felére
+csökkentsük a rekordszámot. Ha ezt nem használjuk, akkor érdemes legalább egy LAPOZAS szűrő
+megadni.
+A következő példában azt mutatjuk be, hogy ha az utolsó érvényes törzsünk 2015.02.13-i, és szeretnénk
+frissíteni a 2015.05.01-i törzsre úgy, hogy nem adunk meg szűrő feltételeket (minden terméket frissíteni
+akarunk):
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
+xmlns:pup="http://xmlns.oracle.com/orawsv/PUPHAX/PUPHAXWS">
+ <soapenv:Header/>
+ <soapenv:Body>
+ <pup:COBJIDLISTA-INKVALTInput>
+ <pup:DSP1-DATE-IN>2015-02-13</pup:DSP1-DATE-IN>
+ <pup:DSP2-DATE-IN>2015-05-01</pup:DSP2-DATE-IN>
+ <pup:SXFILTER-VARCHAR2-IN>
+ <![CDATA[
+ <alapfilter>
+ </alapfilter>
+ ]]>
+ </pup:SXFILTER-VARCHAR2-IN>
+ </pup:COBJIDLISTA-INKVALTInput>
+ </soapenv:Body>
+</soapenv:Envelope>
+Az eredményként visszakapott lista:
+NEAK ÁTFO PUPHAX webszolgáltatás
+PUPHAXWS v.: 1.33
+oldal 33
+<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+ <soap:Body>
+ <INKVALTOutput xmlns="http://xmlns.oracle.com/orawsv/PUPHAX/PUPHAXWS">
+ <RETURN>
+ <OBJIDLISTA>
+ <SP>2015-05-01</SP>
+ <SZURO>
+ <alapfilter>
+ </alapfilter>
+ </SZURO>
+ <IDLIST>
+ <OBJSTRING256>
+ <SZOVEG>28979828</SZOVEG>
+ </OBJSTRING256>
+<OBJSTRING256>
+ <SZOVEG>28979829</SZOVEG>
+ </OBJSTRING256>
+... (a lista nagyon hosszú a közbülső elemeket kihagytuk)
+ <OBJSTRING256>
+ <SZOVEG>28395232</SZOVEG>
+ </OBJSTRING256>
+ </IDLIST>
+ </OBJIDLISTA>
+ </RETURN>
+ </INKVALTOutput>
+ </soap:Body>
+</soap:Envelope>
+A következő példában azt mutatjuk be, hogy ha csak egy termékcsoportot akarunk frissíteni (G7: ‘Gyári
+gyógyszerek’ ), hogyan használhatjuk az alapfiltert:
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
+xmlns:pup="http://xmlns.oracle.com/orawsv/PUPHAX/PUPHAXWS">
+ <soapenv:Header/>
+ <soapenv:Body>
+ <pup:COBJIDLISTA-INKVALTInput>
+ <pup:DSP1-DATE-IN>2015-02-13</pup:DSP1-DATE-IN>
+ <pup:DSP2-DATE-IN>2015-05-01</pup:DSP2-DATE-IN>
+ <pup:SXFILTER-VARCHAR2-IN>
+ <![CDATA[
+ <alapfilter>
+ <TERMKOD>G7</TERMKOD>
+ </alapfilter>
+ ]]>
+ </pup:SXFILTER-VARCHAR2-IN>
+ </pup:COBJIDLISTA-INKVALTInput>
+ </soapenv:Body>
+</soapenv:Envelope>
+Az eredmény:
+<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+ <soap:Body>
+ <INKVALTOutput xmlns="http://xmlns.oracle.com/orawsv/PUPHAX/PUPHAXWS">
+ <RETURN>
+NEAK ÁTFO PUPHAX webszolgáltatás
+PUPHAXWS v.: 1.33
+oldal 34
+ <OBJIDLISTA>
+ <SP>2015-05-01</SP>
+ <SZURO>
+ <alapfilter>
+ <TERMKOD>G7</TERMKOD>
+ </alapfilter>
+ </SZURO>
+ <IDLIST>
+ <OBJSTRING256>
+ <SZOVEG>28979828</SZOVEG>
+ </OBJSTRING256>
+<OBJSTRING256>
+ <SZOVEG>28979829</SZOVEG>
+ </OBJSTRING256>
+<OBJSTRING256>
+ <SZOVEG>28980001</SZOVEG>
+ </OBJSTRING256>
+... (itt sorokat kihagytunk)
+ <OBJSTRING256>
+ <SZOVEG>27145541</SZOVEG>
+ </OBJSTRING256>
+ <OBJSTRING256>
+ <SZOVEG>26312031</SZOVEG>
+ </OBJSTRING256>
+<OBJSTRING256>
+ <SZOVEG>26312036</SZOVEG>
+ </OBJSTRING256>
+ </IDLIST>
+ </OBJIDLISTA>
+ </RETURN>
+ </INKVALTOutput>
+ </soap:Body>
+</soap:Envelope>
+5. A törzs megjelenítését segítő metódusok
+Az előző két fejezetben főleg olyan metódusokat mutattunk be, amelyek a PUPHAXWS webszolgáltatás
+segítségével egy lokális adatbázist, vagy valamilyen állományokat állítanak elő, szinkronizálnak. Ebben a
+fejezetben a webszolgáltatásra épülő felhasználói felületek, webalkalmazások támogatására szolgáló
+metódusokat tárgyaljuk. Ezek az alkalmazások bemutatják a terméktörzset, vagy annak egyes részeit a
+kiválasztott időpontban, a megfelelő szűrők alkalmazásával. Ezeknek a programoknak nem kell saját
+adatbázist felépíteniük és ott másolatban tárolni az információt, majd szükség esetén előhívni, hanem a
+webszolgáltatás segítségével közvetlenül lekérdezni és megjeleníteni a felhasználóknak pont azt, és olyan
+tartalommal, amire neki szüksége van. Ilyenek alkalmazások lehetnek az egyes információs
+szolgáltatások az egészségügy egész területén, kórházakban, rendelőintézetekben, háziorvosi
+praxisokban, de legfőképpen az emberek otthonaiban. A NEAK is fejleszt egy ilyen alkalmazást, a
+bevezetésének pontos ideje még nem ismert.
+Két metódus szolgálja ki a megjelenítést közvetlenül: a DISP_INF és a DISP_DIFF. Az első kívánt
+(szűrt) adatok megjelenítésére való, a második a változások megjelenítésére. A fő különbség az előző
+fejezetekben bemutatott és a most következő metódusok között az, hogy ezek komplexebb struktúrában,
+’egyben’ tartalmazzák a termékre, támogatásokra és az EÜ pontokra vonatkozó adatokat. Ebből
+következően ezek a metódusok csak támogatott termékeket kezelnek.
+A megjelenítő programok számára így nem kell ’többmenetes’ lekérdezéssel először a megfelelő ID-ket
+beszerezni, majd az ID-k alapján a részletes adatokat lekérdezni (ekkor ezek tárolását is meg kellene
+NEAK ÁTFO PUPHAX webszolgáltatás
+PUPHAXWS v.: 1.33
+oldal 35
+oldani, ami többfajta kapacitásproblémát is felvethet). A most bemutatandó struktúrák ugyan azokból az
+elemekből épülnek föl, mint a már tárgyaltak, csak néhány felsőbb szintű struktúra fogja össze őket.
+Kifejezetten a megjelenítést segíti az újonnan bevezetett lapozás szűrő, amelynek segítségével meg lehet
+adni, hogy a lekérdezésnél eredményül kapott rekordokból mely rekordokat adja vissza a metódus.
+A másik elem, amely a webes alkalmazásoknál fontos lehet, a visszaadott rekordszám adat, amellyel a
+felhasználót informálni lehet, hogy hány terméket kapott eredményül (mennyit kell lapozni). A
+rekordszám paramétert - hatékonysági okok miatt - a program csak akkor tölti ki, ha a lapozás
+paraméternél 1-est adunk meg, vagyis az első terméktől kérjük a listát.
+A lapozás 4.3.2 fejezetben leírtakkal megegyezik azzal a különbséggel, hogy erre az értékre
+maximálisan 100 adható meg . Ha ennél nagyobb számot adunk meg, a rendszer hibaüzenetet küld.
+Hasonlóan, ha nem adunk meg lapozást, a rendszer nem állítja automatikusan 100-ra a
+rekordszámot. Ez azt jelenti, hogy a LAPOZAS-t mindig meg kell adni.
+5.1. Termékek adatainak, támogatásának megjelenítéséhez használandó
+metódus
+A DISP_INF webszolgáltatás szolgál arra, hogy valamilyen szempontok szerint szűrt termékek
+azonosítóját egy listában visszaadja. A webszolgáltatás két paramétert tartalmaz:
+ dSP a szúrópont dátuma,
+ sXFilter, amely egy összetett szűrő, hasonlóan használatos, mint ahogy azt a 4.1 fejezetben
+részletesen elírtuk. Ennek segítségével ki lehet szűrni azokat a termékeket, amelyekre éppen
+szükség van. A szűrő egy karakterlánc, amely egyszerű XML szerkezetű, jelenleg és ugyanazokat
+az elemeket tartalmazhatja, mint a TERMEKLISTA metódus.
+Csak a DISP_INF esetén figyeli a webszolgáltatás a
+o KATKAT filtert,
+amelyben a kívánt támogatási kategóriát lehet megadni. Amennyiben ki van töltve, a
+KATEGTAM táblából csak azok a rekordok jelennek meg, amelyek KATEGORIA értéke a
+KATKAT-ban megadott szám.
+A szolgáltatás visszaadott XML állománya egy összetett struktúrát tartalmaz:
+ SP a lekérdezésnél megadott dSP paraméter
+ SZURO a lekérdezésnél megadott szűrő, sXFilter
+ REKORDSZAM a visszaadott termékek száma, csak akkor van kitöltve, ha a lapozás paraméternél a
+kezdőlap 1-es, értéke egyébként 0
+ ADATOK az egyes termékek alapadatai, támogatásai, EÜ pontjai egy komplex struktúrában,
+melynek elemei:
+ TERMEKADAT megegyezik a TERMEKADAT metódus által visszaadott struktúrával
+ TAMADAT megegyezik a TAMOGATADAT metódus által visszaadott struktúrával
+ EUPONTSTR a termék EÜ pontjait egy karakterláncban adja vissza a következő formában:
+’EÜ90 4/b1, EÜ100 57/’ ami a példában azt jelenti, hogy a termék EÜ 90-es pontok közül a
+4/b1-re írható, EÜ 100 –as pontok közül pedig az 57-es pontra, ahol nincs perszám
+ FORGENGJOG a forgalombahozatali engedély jogosultját tartalmazza, pl.: ’ Sanofi-Aventis
+Magyarország Kereskedelmi és Szolgáltató Rt.’
+ FORGALMAZO a termék forgalmazóját tartalmazza, hasonló formában, mint az előző.
+Hívási példa:
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
+xmlns:pup="http://xmlns.oracle.com/orawsv/PUPHAX/PUPHAXWS">
+NEAK ÁTFO PUPHAX webszolgáltatás
+PUPHAXWS v.: 1.33
+oldal 36
+ <soapenv:Header/>
+ <soapenv:Body>
+ <pup:COBJDISP-DISP_INFInput>
+ <pup:DSP-DATE-IN>2016-06-20</pup:DSP-DATE-IN>
+ <pup:SXFILTER-VARCHAR2-IN><![CDATA[
+ <alapfilter>
+ <TNEV>CLEXANE 4000%</TNEV>
+ <LAPOZAS>1:20</LAPOZAS>
+ </alapfilter>
+ ]]></pup:SXFILTER-VARCHAR2-IN>
+ </pup:COBJDISP-DISP_INFInput>
+ </soapenv:Body>
+</soapenv:Envelope>
+Az eredmény:
+<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+ <soap:Body>
+ <DISP_INFOutput xmlns="http://xmlns.oracle.com/orawsv/PUPHAX/PUPHAXWS">
+ <RETURN>
+ <OBJDISP>
+ <SP>2016-06-20</SP>
+ <SZURO><![CDATA[<alapfilter>
+ <TNEV>CLEXANE 4000%</TNEV>
+ <LAPOZAS>1:20</LAPOZAS>
+ </alapfilter>]]></SZURO>
+ <REKORDSZAM>2</REKORDSZAM>
+ <ADATOK>
+ <OBJDISPINF>
+ <TERMEKADAT>
+ <ID>14225184</ID>
+<PARENT_ID>999999999.999999</PARENT_ID>
+<ERV_KEZD>2012-03-01</ERV_KEZD>
+ <ERV_VEGE>2099-12-31</ERV_VEGE>
+ <TERMEKKOD>G7</TERMEKKOD>
+<KOZHID>12504</KOZHID>
+<TTT>210053895</TTT>
+<TK>OGYI-T-04097/04</TK>
+ <TKTORLES>-/</TKTORLES>
+<TKTORLESDAT>2099-12-31</TKTORLESDAT>
+ <EANKOD>-/-</EANKOD>
+ <BRAND_ID>48679</BRAND_ID>
+<NEV>CLEXANE 4000 NE/0,4 ML (40 MG) OLDATOS INJEKCIÓ ELŐRETÖLTÖTT
+FECSKENDŐBEN</NEV>
+ <KISZNEV>10x0,4ml előretöltött fecskendőben</KISZNEV>
+<ATC>B01AB05</ATC>
+<ISO>-/-</ISO>
+ <HATOANYAG>enoxaparin</HATOANYAG>
+<ADAGMOD>parenteralis</ADAGMOD>
+<GYFORMA>oldatos injekció</GYFORMA>
+<RENDELHET>V</RENDELHET>
+ <EGYEN_ID>-1</EGYEN_ID>
+ <HELYETTESITH>999999999.999999</HELYETTESITH>
+<POTENCIA>-/-</POTENCIA>
+ <OHATO_MENNY>40000</OHATO_MENNY>
+<HATO_MENNY>4000</HATO_MENNY>
+<HATO_EGYS>NE</HATO_EGYS>
+<KISZ_MENNY>10</KISZ_MENNY>
+NEAK ÁTFO PUPHAX webszolgáltatás
+PUPHAXWS v.: 1.33
+oldal 37
+ <KISZ_EGYS>adag</KISZ_EGYS>
+<DDD_MENNY>2000</DDD_MENNY>
+<DDD_EGYS>U</DDD_EGYS>
+<DDD_FAKTOR>1</DDD_FAKTOR>
+<DOT>20</DOT>
+<ADAG_MENNY>999999999.999999</ADAG_MENNY>
+<ADAG_EGYS>999999999.999999</ADAG_EGYS>
+<EGYEDI>0</EGYEDI>
+<OLDALISAG>999999999.999999</OLDALISAG>
+<TOBBLGAR>999999999.999999</TOBBLGAR>
+<PATIKA>-</PATIKA>
+<DOBAZON>999999999.999999</DOBAZON>
+ <KERESZTJELZES>+</KERESZTJELZES>
+ <FORGENGT_ID>177</FORGENGT_ID>
+<FORGALMAZ_ID>177</FORGALMAZ_ID>
+<FORGALOMBAN>1</FORGALOMBAN>
+ </TERMEKADAT>
+ <TAMADAT>
+ <ID>236016</ID>
+<TERMEK_ID>14225184</TERMEK_ID>
+<ERV_KEZD>2015-09-01</ERV_KEZD>
+ <ERV_VEGE>2099-12-31</ERV_VEGE>
+ <TERMAR>5840</TERMAR>
+<NKAR>6096.96</NKAR>
+<FAN>7087</FAN>
+<FAB>7441</FAB>
+<MAXFAB>0</MAXFAB>
+<AFA>5</AFA>
+<NTK>372.05</NTK>
+<EGYSEGAR>.186</EGYSEGAR>
+<BESOROLAS>50505</BESOROLAS>
+<PRAS_TERMEK>333</PRAS_TERMEK>
+<NICHE_ID>999999999.999999</NICHE_ID>
+<KEST_TERM>0</KEST_TERM>
+<KGYKERET>1</KGYKERET>
+<KULONL100>110</KULONL100>
+<TAMOGATASOK>
+ <OBJKATEGTAM>
+ <ID>321362</ID>
+ <KATEGORIA>1</KATEGORIA>
+ <TAMTECHN>NOMIN</TAMTECHN>
+<KGYIRHATO>1</KGYIRHATO>
+<MIN_ELETKOR>999999999.999999</MIN_ELETKOR>
+<MAX_ELETKOR>999999999.999999</MAX_ELETKOR>
+<NEM>0</NEM>
+<TAMSZAZ>25</TAMSZAZ>
+<FIX_ID>999999999.999999</FIX_ID>
+<REFNTK>999999999.999999</REFNTK>
+<NTAM>1771</NTAM>
+<BTAM>1860</BTAM>
+<TERDIJ>5581</TERDIJ>
+<NTKTD>279.05</NTKTD>
+<MIHAID>0</MIHAID>
+ <MIHACEL>999999999.999999</MIHACEL>
+ <MIHASTAT>0</MIHASTAT>
+<KIHI>-/-</KIHI>
+ <FELME>-/-</FELME>
+ <EUPONTAZON/>
+NEAK ÁTFO PUPHAX webszolgáltatás
+PUPHAXWS v.: 1.33
+oldal 38
+ </OBJKATEGTAM>
+<OBJKATEGTAM>
+ <ID>321363</ID>
+<KATEGORIA>2</KATEGORIA>
+<TAMTECHN>LFX</TAMTECHN>
+ <KGYIRHATO>1</KGYIRHATO>
+ <MIN_ELETKOR>999999999.999999</MIN_ELETKOR>
+<MAX_ELETKOR>999999999.999999</MAX_ELETKOR>
+<NEM>0</NEM>
+ <TAMSZAZ>90</TAMSZAZ>
+ <FIX_ID>999999999.999999</FIX_ID>
+<REFNTK>999999999.999999</REFNTK>
+<NTAM>6279</NTAM>
+<BTAM>6593</BTAM>
+ <TERDIJ>848</TERDIJ>
+ <NTKTD>42.4</NTKTD>
+<MIHAID>999999999.999999</MIHAID>
+<MIHACEL>999999999.999999</MIHACEL>
+<MIHASTAT>999999999.999999</MIHASTAT>
+<KIHI>-/-</KIHI>
+ <FELME>-/-</FELME>
+ <EUPONTAZON>
+ <OBJSTRING256>
+ <SZOVEG>84542</SZOVEG>
+ </OBJSTRING256>
+ </EUPONTAZON>
+ </OBJKATEGTAM>
+<OBJKATEGTAM>
+ <ID>321364</ID>
+ <KATEGORIA>3</KATEGORIA>
+ <TAMTECHN>NOMIN</TAMTECHN>
+<KGYIRHATO>1</KGYIRHATO>
+<MIN_ELETKOR>999999999.999999</MIN_ELETKOR>
+ <MAX_ELETKOR>999999999.999999</MAX_ELETKOR>
+ <NEM>0</NEM>
+<TAMSZAZ>100</TAMSZAZ>
+<FIX_ID>999999999.999999</FIX_ID>
+<REFNTK>999999999.999999</REFNTK>
+<NTAM>6801</NTAM>
+<BTAM>7141</BTAM>
+<TERDIJ>300</TERDIJ>
+<NTKTD>15</NTKTD>
+<MIHAID>999999999.999999</MIHAID>
+<MIHACEL>999999999.999999</MIHACEL>
+<MIHASTAT>999999999.999999</MIHASTAT>
+<KIHI>-/-</KIHI>
+ <FELME>-/-</FELME>
+ <EUPONTAZON>
+ <OBJSTRING256>
+ <SZOVEG>82695</SZOVEG>
+ </OBJSTRING256>
+ </EUPONTAZON>
+ </OBJKATEGTAM>
+ </TAMOGATASOK>
+ </TAMADAT>
+<EUPONTSTR>EÜ90 4/b1, EÜ100 57/</EUPONTSTR>
+<FORGENGJOG>Sanofi-Aventis Magyarország Kereskedelmi es Szolgáltató
+Rt.</FORGENGJOG>
+NEAK ÁTFO PUPHAX webszolgáltatás
+PUPHAXWS v.: 1.33
+oldal 39
+ <FORGALMAZO>Sanofi-Aventis Magyarország Kereskedelmi es Szolgáltató
+Rt.</FORGALMAZO>
+ </OBJDISPINF>
+ <OBJDISPINF>
+ <TERMEKADAT>
+ <ID>14227441</ID>
+<PARENT_ID>999999999.999999</PARENT_ID>
+<ERV_KEZD>2012-03-01</ERV_KEZD>
+ <ERV_VEGE>2099-12-31</ERV_VEGE>
+ <TERMEKKOD>G7</TERMEKKOD>
+<KOZHID>1109</KOZHID>
+<TTT>210006199</TTT>
+<TK>OGYI-T-04097/03</TK>
+ <TKTORLES>-/</TKTORLES>
+<TKTORLESDAT>2099-12-31</TKTORLESDAT>
+ <EANKOD>-/-</EANKOD>
+ <BRAND_ID>48679</BRAND_ID>
+<NEV>CLEXANE 4000 NE/0,4 ML (40 MG) OLDATOS INJEKCIÓ ELŐRETÖLTÖTT
+FECSKENDŐBEN</NEV>
+ <KISZNEV>2x0,4ml előretöltött fecskendőben</KISZNEV>
+ <ATC>B01AB05</ATC>
+ <ISO>-/-</ISO>
+ <HATOANYAG>enoxaparin</HATOANYAG>
+<ADAGMOD>parenteralis</ADAGMOD>
+<GYFORMA>oldatos injekció</GYFORMA>
+ <RENDELHET>V</RENDELHET>
+ <EGYEN_ID>-1</EGYEN_ID>
+<HELYETTESITH>999999999.999999</HELYETTESITH>
+<POTENCIA>-/-</POTENCIA>
+ <OHATO_MENNY>8000</OHATO_MENNY>
+<HATO_MENNY>4000</HATO_MENNY>
+<HATO_EGYS>NE</HATO_EGYS>
+<KISZ_MENNY>2</KISZ_MENNY>
+<KISZ_EGYS>adag</KISZ_EGYS>
+<DDD_MENNY>2000</DDD_MENNY>
+<DDD_EGYS>U</DDD_EGYS>
+<DDD_FAKTOR>1</DDD_FAKTOR>
+<DOT>4</DOT>
+<ADAG_MENNY>999999999.999999</ADAG_MENNY>
+<ADAG_EGYS>999999999.999999</ADAG_EGYS>
+<EGYEDI>0</EGYEDI>
+<OLDALISAG>999999999.999999</OLDALISAG>
+<TOBBLGAR>999999999.999999</TOBBLGAR>
+<PATIKA>-</PATIKA>
+ <DOBAZON>999999999.999999</DOBAZON>
+ <KERESZTJELZES>+</KERESZTJELZES>
+<FORGENGT_ID>177</FORGENGT_ID>
+<FORGALMAZ_ID>177</FORGALMAZ_ID>
+<FORGALOMBAN>1</FORGALOMBAN>
+ </TERMEKADAT>
+<TAMADAT>
+ <ID>236072</ID>
+<TERMEK_ID>14227441</TERMEK_ID>
+<ERV_KEZD>2015-09-01</ERV_KEZD>
+ <ERV_VEGE>2099-12-31</ERV_VEGE>
+ <TERMAR>1717</TERMAR>
+<NKAR>1802.85</NKAR>
+<FAN>2163</FAN>
+NEAK ÁTFO PUPHAX webszolgáltatás
+PUPHAXWS v.: 1.33
+oldal 40
+ <FAB>2271</FAB>
+<MAXFAB>0</MAXFAB>
+ <AFA>5</AFA>
+ <NTK>567.75</NTK>
+<EGYSEGAR>.2839</EGYSEGAR>
+<BESOROLAS>50505</BESOROLAS>
+<PRAS_TERMEK>333</PRAS_TERMEK>
+<NICHE_ID>999999999.999999</NICHE_ID>
+<KEST_TERM>0</KEST_TERM>
+<KGYKERET>1</KGYKERET>
+<KULONL100>110</KULONL100>
+<TAMOGATASOK>
+ <OBJKATEGTAM>
+ <ID>321441</ID>
+ <KATEGORIA>1</KATEGORIA>
+<TAMTECHN>NOMIN</TAMTECHN>
+<KGYIRHATO>1</KGYIRHATO>
+<MIN_ELETKOR>999999999.999999</MIN_ELETKOR>
+<MAX_ELETKOR>999999999.999999</MAX_ELETKOR>
+<NEM>0</NEM>
+<TAMSZAZ>25</TAMSZAZ>
+<FIX_ID>999999999.999999</FIX_ID>
+<REFNTK>999999999.999999</REFNTK>
+<NTAM>541</NTAM>
+<BTAM>568</BTAM>
+<TERDIJ>1703</TERDIJ>
+<NTKTD>425.75</NTKTD>
+<MIHAID>0</MIHAID>
+<MIHACEL>999999999.999999</MIHACEL>
+<MIHASTAT>0</MIHASTAT>
+<KIHI>-/-</KIHI>
+ <FELME>-/-</FELME>
+ <EUPONTAZON/>
+ </OBJKATEGTAM>
+<OBJKATEGTAM>
+ <ID>321442</ID>
+<KATEGORIA>2</KATEGORIA>
+ <TAMTECHN>LFX</TAMTECHN>
+ <KGYIRHATO>1</KGYIRHATO>
+<MIN_ELETKOR>999999999.999999</MIN_ELETKOR>
+<MAX_ELETKOR>999999999.999999</MAX_ELETKOR>
+ <NEM>0</NEM>
+ <TAMSZAZ>90</TAMSZAZ>
+<FIX_ID>999999999.999999</FIX_ID>
+<REFNTK>999999999.999999</REFNTK>
+<NTAM>1256</NTAM>
+<BTAM>1319</BTAM>
+<TERDIJ>952</TERDIJ>
+<NTKTD>238</NTKTD>
+<MIHAID>999999999.999999</MIHAID>
+<MIHACEL>999999999.999999</MIHACEL>
+<MIHASTAT>999999999.999999</MIHASTAT>
+<KIHI>-/-</KIHI>
+ <FELME>-/-</FELME>
+ <EUPONTAZON>
+ <OBJSTRING256>
+ <SZOVEG>84542</SZOVEG>
+ </OBJSTRING256>
+NEAK ÁTFO PUPHAX webszolgáltatás
+PUPHAXWS v.: 1.33
+oldal 41
+ </EUPONTAZON>
+ </OBJKATEGTAM>
+ </TAMOGATASOK>
+ </TAMADAT>
+<EUPONTSTR>EÜ90 4/b1</EUPONTSTR>
+<FORGENGJOG>Sanofi-Aventis Magyarország Kereskedelmi es Szolgáltató
+Rt.</FORGENGJOG>
+ <FORGALMAZO>Sanofi-Aventis Magyarország Kereskedelmi es Szolgáltató
+Rt.</FORGALMAZO>
+ </OBJDISPINF>
+ </ADATOK>
+ </OBJDISP>
+ </RETURN>
+ </DISP_INFOutput>
+ </soap:Body>
+</soap:Envelope>
+Következőkben adunk egy másik példát, amely a megjelenítést segítő lapozást is tartalmazza. Itt a
+lapozásnál 1:3-at adtunk meg, ezért a rekordszám ki van töltve (380) és csak 3 terméket ad vissza, hogy
+feleslegesen ne növeljük a leírást. (A webes alkalmazásoknál a megjelenítő sorok (termékek) száma
+általában 15-50 között szokott lenni, ezt a felhasználó általában beállíthatja.)
+Fontos, hogy a termékek név, kiszerelés, TTT szerint vannak sorba rendezve.
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
+xmlns:pup="http://xmlns.oracle.com/orawsv/PUPHAX/PUPHAXWS">
+ <soapenv:Header/>
+ <soapenv:Body>
+ <pup:COBJDISP-DISP_INFInput>
+ <pup:DSP-DATE-IN>2016-06-20</pup:DSP-DATE-IN>
+ <pup:SXFILTER-VARCHAR2-IN><![CDATA[
+ <alapfilter>
+ <TERMKOD>G7</TERMKOD>
+ <LAPOZAS>1:3</LAPOZAS>
+ <TNEV>C%</TNEV>
+ </alapfilter>
+ ]]></pup:SXFILTER-VARCHAR2-IN>
+ </pup:COBJDISP-DISP_INFInput>
+ </soapenv:Body>
+</soapenv:Envelope>
+Eredmény:
+<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+ <soap:Body>
+ <DISP_INFOutput xmlns="http://xmlns.oracle.com/orawsv/PUPHAX/PUPHAXWS">
+ <RETURN>
+ <OBJDISP>
+ <SP>2016-06-20</SP>
+ <SZURO><![CDATA[<alapfilter>
+ <TERMKOD>G7</TERMKOD>
+<LAPOZAS>1:3</LAPOZAS>
+ <TNEV>C%</TNEV>
+ </alapfilter>]]></SZURO>
+ <REKORDSZAM>380</REKORDSZAM>
+NEAK ÁTFO PUPHAX webszolgáltatás
+PUPHAXWS v.: 1.33
+oldal 42
+ <ADATOK>
+ <OBJDISPINF>
+ <TERMEKADAT>
+ <ID>29848852</ID>
+<PARENT_ID>999999999.999999</PARENT_ID>
+<ERV_KEZD>2015-06-01</ERV_KEZD>
+ <ERV_VEGE>2099-12-31</ERV_VEGE>
+ <TERMEKKOD>G7</TERMEKKOD>
+<KOZHID>31727</KOZHID>
+<TTT>210181698</TTT>
+<TK>EU/1/96/011/001</TK>
+<TKTORLES>-/</TKTORLES>
+ <TKTORLESDAT>2099-12-31</TKTORLESDAT>
+ <EANKOD>-/-</EANKOD>
+ <BRAND_ID>48586</BRAND_ID>
+<NEV>CAELYX 2 MG/ML KONCENTRÁTUM INFÚZIÓHOZ</NEV>
+<KISZNEV>1x10 ml</KISZNEV>
+<ATC>L01DB01</ATC>
+<ISO>-/-</ISO>
+ <HATOANYAG>doxorubicin</HATOANYAG>
+<ADAGMOD>parenteralis</ADAGMOD>
+<GYFORMA>koncentrátum oldatos infúzióhoz</GYFORMA>
+<RENDELHET>SZ</RENDELHET>
+<EGYEN_ID>-1</EGYEN_ID>
+<HELYETTESITH>999999999.999999</HELYETTESITH>
+<POTENCIA>-/-</POTENCIA>
+ <OHATO_MENNY>20</OHATO_MENNY>
+ <HATO_MENNY>20</HATO_MENNY>
+<HATO_EGYS>mg</HATO_EGYS>
+<KISZ_MENNY>1</KISZ_MENNY>
+<KISZ_EGYS>adag</KISZ_EGYS>
+<DDD_MENNY>999999999.999999</DDD_MENNY>
+<DDD_EGYS>-/-</DDD_EGYS>
+ <DDD_FAKTOR>1</DDD_FAKTOR>
+<DOT>20</DOT>
+<ADAG_MENNY>999999999.999999</ADAG_MENNY>
+<ADAG_EGYS>999999999.999999</ADAG_EGYS>
+<EGYEDI>0</EGYEDI>
+<OLDALISAG>999999999.999999</OLDALISAG>
+<TOBBLGAR>999999999.999999</TOBBLGAR>
+ <PATIKA>-</PATIKA>
+ <DOBAZON>999999999.999999</DOBAZON>
+<KERESZTJELZES>-/-</KERESZTJELZES>
+ <FORGENGT_ID>1315</FORGENGT_ID>
+<FORGALMAZ_ID>20</FORGALMAZ_ID>
+<FORGALOMBAN>0</FORGALOMBAN>
+ </TERMEKADAT>
+<TAMADAT>
+ <ID>231232</ID>
+<TERMEK_ID>29848852</TERMEK_ID>
+<ERV_KEZD>2015-06-01</ERV_KEZD>
+ <ERV_VEGE>2099-12-31</ERV_VEGE>
+ <TERMAR>132598</TERMAR>
+<NKAR>138432.31</NKAR>
+<FAN>139422</FAN>
+<FAB>146393</FAB>
+<MAXFAB>0</MAXFAB>
+<AFA>5</AFA>
+NEAK ÁTFO PUPHAX webszolgáltatás
+PUPHAXWS v.: 1.33
+oldal 43
+ <NTK>999999999.999999</NTK>
+<EGYSEGAR>7319.65</EGYSEGAR>
+<BESOROLAS>50505</BESOROLAS>
+ <PRAS_TERMEK>333</PRAS_TERMEK>
+ <NICHE_ID>999999999.999999</NICHE_ID>
+<KEST_TERM>0</KEST_TERM>
+<KGYKERET>1</KGYKERET>
+<KULONL100>010</KULONL100>
+ <TAMOGATASOK>
+ <OBJKATEGTAM>
+ <ID>314724</ID>
+<KATEGORIA>1</KATEGORIA>
+<TAMTECHN>NOMIN</TAMTECHN>
+ <KGYIRHATO>1</KGYIRHATO>
+ <MIN_ELETKOR>999999999.999999</MIN_ELETKOR>
+<MAX_ELETKOR>999999999.999999</MAX_ELETKOR>
+<NEM>0</NEM>
+<TAMSZAZ>0</TAMSZAZ>
+<FIX_ID>999999999.999999</FIX_ID>
+<REFNTK>999999999.999999</REFNTK>
+<NTAM>0</NTAM>
+<BTAM>0</BTAM>
+ <TERDIJ>146393</TERDIJ>
+ <NTKTD>7319.65</NTKTD>
+<MIHAID>0</MIHAID>
+<MIHACEL>999999999.999999</MIHACEL>
+<MIHASTAT>0</MIHASTAT>
+ <KIHI>-/-</KIHI>
+ <FELME>-/-</FELME>
+ <EUPONTAZON/>
+ </OBJKATEGTAM>
+ </TAMOGATASOK>
+ </TAMADAT>
+ <EUPONTSTR/>
+ <FORGENGJOG>JANSSEN-CILAG INTERNATIONAL NV</FORGENGJOG>
+<FORGALMAZO>Johnson &amp; Johnson Kft. Janssen Cilag
+Divízió</FORGALMAZO>
+ </OBJDISPINF>
+ <OBJDISPINF>
+ <TERMEKADAT>
+ <ID>29848853</ID>
+<PARENT_ID>999999999.999999</PARENT_ID>
+<ERV_KEZD>2015-06-01</ERV_KEZD>
+ <ERV_VEGE>2099-12-31</ERV_VEGE>
+ <TERMEKKOD>G7</TERMEKKOD>
+<KOZHID>31729</KOZHID>
+<TTT>210181703</TTT>
+<TK>EU/1/96/011/003</TK>
+<TKTORLES>-/</TKTORLES>
+ <TKTORLESDAT>2099-12-31</TKTORLESDAT>
+ <EANKOD>-/-</EANKOD>
+ <BRAND_ID>48586</BRAND_ID>
+<NEV>CAELYX 2 MG/ML KONCENTRÁTUM INFÚZIÓHOZ</NEV>
+<KISZNEV>1x25 ml</KISZNEV>
+<ATC>L01DB01</ATC>
+<ISO>-/-</ISO>
+ <HATOANYAG>doxorubicin</HATOANYAG>
+<ADAGMOD>parenteralis</ADAGMOD>
+NEAK ÁTFO PUPHAX webszolgáltatás
+PUPHAXWS v.: 1.33
+oldal 44
+ <GYFORMA>koncentrátum oldatos infúzióhoz</GYFORMA>
+<RENDELHET>SZ</RENDELHET>
+<EGYEN_ID>-1</EGYEN_ID>
+<HELYETTESITH>999999999.999999</HELYETTESITH>
+<POTENCIA>-/-</POTENCIA>
+ <OHATO_MENNY>50</OHATO_MENNY>
+ <HATO_MENNY>50</HATO_MENNY>
+<HATO_EGYS>mg</HATO_EGYS>
+<KISZ_MENNY>1</KISZ_MENNY>
+<KISZ_EGYS>adag</KISZ_EGYS>
+ <DDD_MENNY>999999999.999999</DDD_MENNY>
+ <DDD_EGYS>-/-</DDD_EGYS>
+ <DDD_FAKTOR>1</DDD_FAKTOR>
+<DOT>50</DOT>
+<ADAG_MENNY>999999999.999999</ADAG_MENNY>
+<ADAG_EGYS>999999999.999999</ADAG_EGYS>
+<EGYEDI>0</EGYEDI>
+<OLDALISAG>999999999.999999</OLDALISAG>
+<TOBBLGAR>999999999.999999</TOBBLGAR>
+ <PATIKA>-</PATIKA>
+ <DOBAZON>999999999.999999</DOBAZON>
+<KERESZTJELZES>-/-</KERESZTJELZES>
+ <FORGENGT_ID>1315</FORGENGT_ID>
+<FORGALMAZ_ID>20</FORGALMAZ_ID>
+ <FORGALOMBAN>0</FORGALOMBAN>
+ </TERMEKADAT>
+<TAMADAT>
+ <ID>231233</ID>
+<TERMEK_ID>29848853</TERMEK_ID>
+<ERV_KEZD>2015-06-01</ERV_KEZD>
+ <ERV_VEGE>2099-12-31</ERV_VEGE>
+ <TERMAR>309540</TERMAR>
+<NKAR>323159.76</NKAR>
+<FAN>324150</FAN>
+<FAB>340358</FAB>
+ <MAXFAB>0</MAXFAB>
+ <AFA>5</AFA>
+<NTK>999999999.999999</NTK>
+<EGYSEGAR>6807.16</EGYSEGAR>
+<BESOROLAS>50505</BESOROLAS>
+<PRAS_TERMEK>333</PRAS_TERMEK>
+<NICHE_ID>999999999.999999</NICHE_ID>
+<KEST_TERM>0</KEST_TERM>
+<KGYKERET>1</KGYKERET>
+<KULONL100>010</KULONL100>
+ <TAMOGATASOK>
+ <OBJKATEGTAM>
+ <ID>314725</ID>
+<KATEGORIA>1</KATEGORIA>
+<TAMTECHN>NOMIN</TAMTECHN>
+<KGYIRHATO>1</KGYIRHATO>
+<MIN_ELETKOR>999999999.999999</MIN_ELETKOR>
+<MAX_ELETKOR>999999999.999999</MAX_ELETKOR>
+<NEM>0</NEM>
+<TAMSZAZ>0</TAMSZAZ>
+<FIX_ID>999999999.999999</FIX_ID>
+<REFNTK>999999999.999999</REFNTK>
+<NTAM>0</NTAM>
+NEAK ÁTFO PUPHAX webszolgáltatás
+PUPHAXWS v.: 1.33
+oldal 45
+ <BTAM>0</BTAM>
+<TERDIJ>340358</TERDIJ>
+<NTKTD>6807.16</NTKTD>
+<MIHAID>0</MIHAID>
+<MIHACEL>999999999.999999</MIHACEL>
+<MIHASTAT>0</MIHASTAT>
+ <KIHI>-/-</KIHI>
+ <FELME>-/-</FELME>
+ <EUPONTAZON/>
+ </OBJKATEGTAM>
+ </TAMOGATASOK>
+ </TAMADAT>
+ <EUPONTSTR/>
+ <FORGENGJOG>JANSSEN-CILAG INTERNATIONAL NV</FORGENGJOG>
+<FORGALMAZO>Johnson &amp; Johnson Kft. Janssen Cilag
+Divízió</FORGALMAZO>
+ </OBJDISPINF>
+ <OBJDISPINF>
+ <TERMEKADAT>
+ <ID>30247840</ID>
+<PARENT_ID>999999999.999999</PARENT_ID>
+<ERV_KEZD>2015-08-01</ERV_KEZD>
+ <ERV_VEGE>2099-12-31</ERV_VEGE>
+ <TERMEKKOD>G7</TERMEKKOD>
+ <KOZHID>35590</KOZHID>
+<TTT>210339005</TTT>
+<TK>OGYI-T-20611/01</TK>
+ <TKTORLES>-/</TKTORLES>
+<TKTORLESDAT>2099-12-31</TKTORLESDAT>
+ <EANKOD>-/-</EANKOD>
+ <BRAND_ID>78500</BRAND_ID>
+<NEV>CALCETAT 475 MG FILMTABLETTA</NEV>
+<KISZNEV>100x buborékcsomagolásban</KISZNEV>
+<ATC>V03AE07</ATC>
+<ISO>-/-</ISO>
+ <HATOANYAG>calcium acetate</HATOANYAG>
+<ADAGMOD>orális</ADAGMOD>
+<GYFORMA>filmtabletta</GYFORMA>
+<RENDELHET>V</RENDELHET>
+<EGYEN_ID>-1</EGYEN_ID>
+<HELYETTESITH>999999999.999999</HELYETTESITH>
+<POTENCIA>-/-</POTENCIA>
+ <OHATO_MENNY>47500</OHATO_MENNY>
+<HATO_MENNY>475</HATO_MENNY>
+<HATO_EGYS>mg</HATO_EGYS>
+<KISZ_MENNY>100</KISZ_MENNY>
+<KISZ_EGYS>db</KISZ_EGYS>
+<DDD_MENNY>999999999.999999</DDD_MENNY>
+<DDD_EGYS>-/-</DDD_EGYS>
+ <DDD_FAKTOR>1</DDD_FAKTOR>
+<DOT>23.75</DOT>
+<ADAG_MENNY>100</ADAG_MENNY>
+<ADAG_EGYS>tabletta</ADAG_EGYS>
+<EGYEDI>0</EGYEDI>
+<OLDALISAG>999999999.999999</OLDALISAG>
+<TOBBLGAR>999999999.999999</TOBBLGAR>
+<PATIKA>-</PATIKA>
+ <DOBAZON>999999999.999999</DOBAZON>
+NEAK ÁTFO PUPHAX webszolgáltatás
+PUPHAXWS v.: 1.33
+oldal 46
+ <KERESZTJELZES>-/-</KERESZTJELZES>
+ <FORGENGT_ID>40</FORGENGT_ID>
+<FORGALMAZ_ID>40</FORGALMAZ_ID>
+<FORGALOMBAN>1</FORGALOMBAN>
+ </TERMEKADAT>
+<TAMADAT>
+ <ID>235562</ID>
+<TERMEK_ID>30247840</TERMEK_ID>
+<ERV_KEZD>2015-08-01</ERV_KEZD>
+ <ERV_VEGE>2099-12-31</ERV_VEGE>
+ <TERMAR>2310</TERMAR>
+<NKAR>2411.64</NKAR>
+<FAN>2894</FAN>
+<FAB>3039</FAB>
+<MAXFAB>0</MAXFAB>
+ <AFA>5</AFA>
+ <NTK>999999999.999999</NTK>
+<EGYSEGAR>.064</EGYSEGAR>
+<BESOROLAS>50505</BESOROLAS>
+<PRAS_TERMEK>333</PRAS_TERMEK>
+ <NICHE_ID>999999999.999999</NICHE_ID>
+ <KEST_TERM>0</KEST_TERM>
+<KGYKERET>1</KGYKERET>
+<KULONL100>110</KULONL100>
+<TAMOGATASOK>
+ <OBJKATEGTAM>
+ <ID>320589</ID>
+<KATEGORIA>1</KATEGORIA>
+<TAMTECHN>NOMIN</TAMTECHN>
+<KGYIRHATO>1</KGYIRHATO>
+<MIN_ELETKOR>999999999.999999</MIN_ELETKOR>
+<MAX_ELETKOR>999999999.999999</MAX_ELETKOR>
+<NEM>0</NEM>
+<TAMSZAZ>55</TAMSZAZ>
+<FIX_ID>999999999.999999</FIX_ID>
+<REFNTK>999999999.999999</REFNTK>
+<NTAM>1591</NTAM>
+<BTAM>1671</BTAM>
+<TERDIJ>1368</TERDIJ>
+ <NTKTD>57.6</NTKTD>
+ <MIHAID>0</MIHAID>
+<MIHACEL>999999999.999999</MIHACEL>
+<MIHASTAT>0</MIHASTAT>
+<KIHI>-/-</KIHI>
+ <FELME>-/-</FELME>
+ <EUPONTAZON/>
+ </OBJKATEGTAM>
+ </TAMOGATASOK>
+ </TAMADAT>
+<EUPONTSTR/>
+<FORGENGJOG>PANNONPHARMA Gyógyszergyártó Kft.</FORGENGJOG>
+<FORGALMAZO>PANNONPHARMA Gyógyszergyártó Kft.</FORGALMAZO>
+ </OBJDISPINF>
+ </ADATOK>
+ </OBJDISP>
+ </RETURN>
+ </DISP_INFOutput>
+ </soap:Body>
+NEAK ÁTFO PUPHAX webszolgáltatás
+PUPHAXWS v.: 1.33
+oldal 47
+</soap:Envelope>
+5.2. A termék- és támogatásváltozások megjelenítésére szolgáló metódus
+DISP_DIFF metódussal lehet lekérdezni, hogy két időpont között mely termékek adatai, támogatásai,
+illetve az alaptáblák mely elemei változtak meg, az INKVALT metódushoz nagyon hasonlóan. A lényeges
+különbség az, hogy míg az INKVALT csak a változottak azonosítóit adja vissza, a DISP_DIFF a
+termékek alapadatait és támogatásait is azonnal szállítja.
+A webszolgáltatás három paramétert tartalmaz:
+ dSP1 az a dátum, amihez képest keressük a változásokat,
+ dSP2 az a dátum, amikori érvényes adatokra kíváncsiak vagyunk (általában az aktuális dátum),
+sXFilter, amely egy összetett szűrő, ugyanúgy használatos, mint ahogy azt a 4.1, ill. 4.3.2 fejezetben
+részletesen elírtuk. Ennek segítségével ki lehet szűrni azokat a termékeket, amelyek változásait akarjuk
+letölteni. A szűrő elemei közül csak azoknak van értelme, amelyek termékadatokra vonatkoznak
+(TERMKOD, BRAND, TNEV, TK, TTT, ATC, ISO, FEJCID, FORGCID, LAPOZAS). (A TABLANEV
+szűrőelemet itt nem lehet használni.) A VALTTIP szűrőelemmel lehet a változások típusára szűrni, ’U’
+esetén csak az újakat, ’T’ esetén csak a törölteket, ’M’ esetén a változottakat adja vissza a metódus.
+Amennyiben nincs megadva a szűrőelem, vagy nem a fenti értékekkel szerepel, az alapértelmezésnek,
+’M’-nek megfelelően adja vissza a program a rekordokat.
+A visszaadott adatszerkezet megegyezik a DISP_INF-által visszaadottal, a részleteket ld. ott (5.1 fejezet).
+Alapvető különbség az, hogy a változások visszaadásánál (VALTTIP = M) minden termék kétszer
+szerepel a listában: a dSP1 -es és a dSP2 -es időpontban levő állapotának megfelelően. Az új (VALTTIP
+= U) ill. a törölt (VALTTIP = T) termékek listájában minden termék csak egyszer szerepel.
+Hívási példa (összesen két terméket kérünk az első lapra):
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
+xmlns:pup="http://xmlns.oracle.com/orawsv/PUPHAX/PUPHAXWS">
+ <soapenv:Header/>
+ <soapenv:Body>
+ <pup:COBJDISP-DISP_DIFFInput>
+ <pup:DSP1-DATE-IN>2014-08-15</pup:DSP1-DATE-IN>
+ <pup:DSP2-DATE-IN>2015-09-15</pup:DSP2-DATE-IN>
+ <pup:SXFILTER-VARCHAR2-IN><![CDATA[
+ <alapfilter>
+ <TERMEKKOD>G7</TERMEKKOD>
+ <TNEV>%SZUSZPENZIÓ%</TNEV>
+ <VALTTIP>M</VALTTIP>
+ <LAPOZAS>1:2</LAPOZAS>
+ </alapfilter>
+ ]]></pup:SXFILTER-VARCHAR2-IN>
+ </pup:COBJDISP-DISP_DIFFInput>
+ </soapenv:Body>
+</soapenv:Envelope>
+Eredmény (71 érintett termékből az első kettő):
+<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+ <soap:Body>
+ <DISP_DIFFOutput xmlns="http://xmlns.oracle.com/orawsv/PUPHAX/PUPHAXWS">
+ <RETURN>
+ <OBJDISP>
+ <SP>2015-09-15</SP>
+ <SZURO><![CDATA[<alapfilter>
+NEAK ÁTFO PUPHAX webszolgáltatás
+PUPHAXWS v.: 1.33
+oldal 48
+ <TERMEKKOD>G7</TERMEKKOD>
+ <TNEV>%SZUSZPENZIÓ%</TNEV>
+ <VALTTIP>M</VALTTIP>
+ <LAPOZAS>1:2</LAPOZAS>
+ </alapfilter>]]></SZURO>
+ <REKORDSZAM>71</REKORDSZAM>
+ <ADATOK>
+ <OBJDISPINF>
+ <TERMEKADAT>
+ <ID>24643589</ID>
+<PARENT_ID>999999999.999999</PARENT_ID>
+<ERV_KEZD>2014-03-01</ERV_KEZD>
+ <ERV_VEGE>2014-10-31</ERV_VEGE>
+ <TERMEKKOD>G7</TERMEKKOD>
+<KOZHID>14</KOZHID>
+<TTT>210090423</TTT>
+<TK>OGYI-T-06918/01</TK>
+ <TKTORLES>-/</TKTORLES>
+ <TKTORLESDAT>2099-12-31</TKTORLESDAT>
+ <EANKOD>-/-</EANKOD>
+ <BRAND_ID>48356</BRAND_ID>
+<NEV>ABELCET 5 MG/ML SZUSZPENZIÓS INFÚZIÓ</NEV>
+<KISZNEV>10x20 ml injekciós üvegben</KISZNEV>
+<ATC>J02AA01</ATC>
+<ISO>-/-</ISO>
+ <HATOANYAG>amfotericin</HATOANYAG>
+<ADAGMOD>parenteralis</ADAGMOD>
+<GYFORMA>szuszpenziós injekció</GYFORMA>
+<RENDELHET>I</RENDELHET>
+<EGYEN_ID>-1</EGYEN_ID>
+<HELYETTESITH>999999999.999999</HELYETTESITH>
+<POTENCIA>-/-</POTENCIA>
+ <OHATO_MENNY>1000</OHATO_MENNY>
+<HATO_MENNY>100</HATO_MENNY>
+<HATO_EGYS>mg</HATO_EGYS>
+<KISZ_MENNY>10</KISZ_MENNY>
+<KISZ_EGYS>adag</KISZ_EGYS>
+<DDD_MENNY>35</DDD_MENNY>
+<DDD_EGYS>mg</DDD_EGYS>
+<DDD_FAKTOR>1</DDD_FAKTOR>
+<DOT>28.57</DOT>
+ <ADAG_MENNY>999999999.999999</ADAG_MENNY>
+ <ADAG_EGYS>999999999.999999</ADAG_EGYS>
+<EGYEDI>0</EGYEDI>
+<OLDALISAG>999999999.999999</OLDALISAG>
+ <TOBBLGAR>999999999.999999</TOBBLGAR>
+ <PATIKA>-</PATIKA>
+<DOBAZON>999999999.999999</DOBAZON>
+<KERESZTJELZES>++</KERESZTJELZES>
+<FORGENGT_ID>30052</FORGENGT_ID>
+<FORGALMAZ_ID>30052</FORGALMAZ_ID>
+<FORGALOMBAN>1</FORGALOMBAN>
+ </TERMEKADAT>
+<TAMADAT>
+ <ID>213083</ID>
+<TERMEK_ID>24643589</TERMEK_ID>
+<ERV_KEZD>2014-03-01</ERV_KEZD>
+ <ERV_VEGE>2014-10-31</ERV_VEGE>
+NEAK ÁTFO PUPHAX webszolgáltatás
+PUPHAXWS v.: 1.33
+oldal 49
+ <TERMAR>391768</TERMAR>
+<NKAR>409005.79</NKAR>
+<FAN>409996</FAN>
+<FAB>430496</FAB>
+<MAXFAB>0</MAXFAB>
+<AFA>5</AFA>
+<NTK>15067.36</NTK>
+<EGYSEGAR>430.496</EGYSEGAR>
+ <BESOROLAS>50505</BESOROLAS>
+ <PRAS_TERMEK>333</PRAS_TERMEK>
+<NICHE_ID>999999999.999999</NICHE_ID>
+<KEST_TERM>0</KEST_TERM>
+<KGYKERET>2</KGYKERET>
+ <KULONL100>010</KULONL100>
+ <TAMOGATASOK>
+ <OBJKATEGTAM>
+ <ID>289581</ID>
+<KATEGORIA>1</KATEGORIA>
+<TAMTECHN>NOMIN</TAMTECHN>
+<KGYIRHATO>0</KGYIRHATO>
+<MIN_ELETKOR>999999999.999999</MIN_ELETKOR>
+<MAX_ELETKOR>999999999.999999</MAX_ELETKOR>
+<NEM>0</NEM>
+<TAMSZAZ>0</TAMSZAZ>
+<FIX_ID>999999999.999999</FIX_ID>
+<REFNTK>999999999.999999</REFNTK>
+<NTAM>0</NTAM>
+ <BTAM>0</BTAM>
+ <TERDIJ>430496</TERDIJ>
+<NTKTD>15067.36</NTKTD>
+<MIHAID>0</MIHAID>
+<MIHACEL>999999999.999999</MIHACEL>
+ <MIHASTAT>0</MIHASTAT>
+ <KIHI>-/-</KIHI>
+ <FELME>-/-</FELME>
+ <EUPONTAZON/>
+ </OBJKATEGTAM>
+ </TAMOGATASOK>
+ </TAMADAT>
+<EUPONTSTR/>
+<FORGENGJOG>TEVA Gyógyszergyár Zrt.</FORGENGJOG>
+<FORGALMAZO>TEVA Gyógyszergyár Zrt.</FORGALMAZO>
+ </OBJDISPINF>
+ <OBJDISPINF>
+ <TERMEKADAT>
+ <ID>27940966</ID>
+<PARENT_ID>999999999.999999</PARENT_ID>
+<ERV_KEZD>2014-11-01</ERV_KEZD>
+ <ERV_VEGE>2016-06-30</ERV_VEGE>
+ <TERMEKKOD>G7</TERMEKKOD>
+<KOZHID>14</KOZHID>
+<TTT>210090423</TTT>
+<TK>OGYI-T-06918/01</TK>
+ <TKTORLES>-/</TKTORLES>
+ <TKTORLESDAT>2099-12-31</TKTORLESDAT>
+ <EANKOD>-/-</EANKOD>
+ <BRAND_ID>48356</BRAND_ID>
+<NEV>ABELCET 5 MG/ML SZUSZPENZIÓS INFÚZIÓ</NEV>
+NEAK ÁTFO PUPHAX webszolgáltatás
+PUPHAXWS v.: 1.33
+oldal 50
+ <KISZNEV>10x20ml injekciós üvegben</KISZNEV>
+<ATC>J02AA01</ATC>
+<ISO>-/-</ISO>
+ <HATOANYAG>amfotericin</HATOANYAG>
+<ADAGMOD>parenteralis</ADAGMOD>
+ <GYFORMA>szuszpenziós injekció</GYFORMA>
+ <RENDELHET>I</RENDELHET>
+<EGYEN_ID>-1</EGYEN_ID>
+<HELYETTESITH>999999999.999999</HELYETTESITH>
+<POTENCIA>-/-</POTENCIA>
+ <OHATO_MENNY>1000</OHATO_MENNY>
+<HATO_MENNY>100</HATO_MENNY>
+<HATO_EGYS>mg</HATO_EGYS>
+<KISZ_MENNY>10</KISZ_MENNY>
+<KISZ_EGYS>adag</KISZ_EGYS>
+<DDD_MENNY>35</DDD_MENNY>
+<DDD_EGYS>mg</DDD_EGYS>
+<DDD_FAKTOR>1</DDD_FAKTOR>
+<DOT>28.57</DOT>
+<ADAG_MENNY>999999999.999999</ADAG_MENNY>
+<ADAG_EGYS>999999999.999999</ADAG_EGYS>
+<EGYEDI>0</EGYEDI>
+<OLDALISAG>999999999.999999</OLDALISAG>
+<TOBBLGAR>999999999.999999</TOBBLGAR>
+ <PATIKA>-</PATIKA>
+ <DOBAZON>999999999.999999</DOBAZON>
+<KERESZTJELZES>++</KERESZTJELZES>
+<FORGENGT_ID>30052</FORGENGT_ID>
+<FORGALMAZ_ID>30052</FORGALMAZ_ID>
+<FORGALOMBAN>1</FORGALOMBAN>
+ </TERMEKADAT>
+<TAMADAT>
+ <ID>222793</ID>
+<TERMEK_ID>27940966</TERMEK_ID>
+<ERV_KEZD>2014-11-01</ERV_KEZD>
+ <ERV_VEGE>2016-06-30</ERV_VEGE>
+ <TERMAR>391768</TERMAR>
+<NKAR>409005.79</NKAR>
+<FAN>409996</FAN>
+<FAB>430496</FAB>
+<MAXFAB>0</MAXFAB>
+<AFA>5</AFA>
+<NTK>15067.36</NTK>
+<EGYSEGAR>430.496</EGYSEGAR>
+<BESOROLAS>50505</BESOROLAS>
+ <PRAS_TERMEK>333</PRAS_TERMEK>
+ <NICHE_ID>999999999.999999</NICHE_ID>
+<KEST_TERM>0</KEST_TERM>
+<KGYKERET>2</KGYKERET>
+<KULONL100>010</KULONL100>
+ <TAMOGATASOK>
+ <OBJKATEGTAM>
+ <ID>303119</ID>
+<KATEGORIA>1</KATEGORIA>
+<TAMTECHN>NOMIN</TAMTECHN>
+<KGYIRHATO>0</KGYIRHATO>
+<MIN_ELETKOR>999999999.999999</MIN_ELETKOR>
+<MAX_ELETKOR>999999999.999999</MAX_ELETKOR>
+NEAK ÁTFO PUPHAX webszolgáltatás
+PUPHAXWS v.: 1.33
+oldal 51
+ <NEM>0</NEM>
+<TAMSZAZ>0</TAMSZAZ>
+<FIX_ID>999999999.999999</FIX_ID>
+<REFNTK>999999999.999999</REFNTK>
+<NTAM>0</NTAM>
+<BTAM>0</BTAM>
+<TERDIJ>430496</TERDIJ>
+<NTKTD>15067.36</NTKTD>
+<MIHAID>0</MIHAID>
+<MIHACEL>999999999.999999</MIHACEL>
+<MIHASTAT>0</MIHASTAT>
+ <KIHI>-/-</KIHI>
+ <FELME>-/-</FELME>
+ <EUPONTAZON/>
+ </OBJKATEGTAM>
+ </TAMOGATASOK>
+ </TAMADAT>
+ <EUPONTSTR/>
+ <FORGENGJOG>TEVA Gyógyszergyár Zrt.</FORGENGJOG>
+<FORGALMAZO>TEVA Gyógyszergyár Zrt.</FORGALMAZO>
+ </OBJDISPINF>
+<OBJDISPINF>
+ <TERMEKADAT>
+ <ID>14223894</ID>
+<PARENT_ID>999999999.999999</PARENT_ID>
+<ERV_KEZD>2012-03-01</ERV_KEZD>
+ <ERV_VEGE>2015-09-30</ERV_VEGE>
+ <TERMEKKOD>G7</TERMEKKOD>
+<KOZHID>13314</KOZHID>
+<TTT>210145561</TTT>
+<TK>OGYI-T-05063/06</TK>
+ <TKTORLES>-/</TKTORLES>
+<TKTORLESDAT>2099-12-31</TKTORLESDAT>
+ <EANKOD>-/-</EANKOD>
+ <BRAND_ID>48391</BRAND_ID>
+<NEV>AKTIL DUO 400 MG/57 MG/5 ML POR BELSŐLEGES SZUSZPENZIÓHOZ</NEV>
+<KISZNEV>1x17,5g üvegben 70 ml-hez</KISZNEV>
+ <ATC>J01CR02</ATC>
+<ISO>-/-</ISO>
+ <HATOANYAG>amoxicillin és enzim-inhibitor</HATOANYAG>
+<ADAGMOD>orális</ADAGMOD>
+<GYFORMA>por belsőleges szuszpenzióhoz</GYFORMA>
+<RENDELHET>V</RENDELHET>
+<EGYEN_ID>51</EGYEN_ID>
+<HELYETTESITH>999999999.999999</HELYETTESITH>
+<POTENCIA>-/-</POTENCIA>
+ <OHATO_MENNY>5600</OHATO_MENNY>
+ <HATO_MENNY>400</HATO_MENNY>
+<HATO_EGYS>mg</HATO_EGYS>
+<KISZ_MENNY>14</KISZ_MENNY>
+<KISZ_EGYS>adag</KISZ_EGYS>
+<DDD_MENNY>1</DDD_MENNY>
+<DDD_EGYS>g</DDD_EGYS>
+<DDD_FAKTOR>1000</DDD_FAKTOR>
+<DOT>5.6</DOT>
+<ADAG_MENNY>70</ADAG_MENNY>
+ <ADAG_EGYS>ml</ADAG_EGYS>
+ <EGYEDI>0</EGYEDI>
+NEAK ÁTFO PUPHAX webszolgáltatás
+PUPHAXWS v.: 1.33
+oldal 52
+ <OLDALISAG>999999999.999999</OLDALISAG>
+<TOBBLGAR>999999999.999999</TOBBLGAR>
+<PATIKA>-</PATIKA>
+ <DOBAZON>999999999.999999</DOBAZON>
+ <KERESZTJELZES>+</KERESZTJELZES>
+<FORGENGT_ID>53</FORGENGT_ID>
+<FORGALMAZ_ID>53</FORGALMAZ_ID>
+<FORGALOMBAN>1</FORGALOMBAN>
+ </TERMEKADAT>
+<TAMADAT>
+ <ID>219398</ID>
+<TERMEK_ID>14223894</TERMEK_ID>
+<ERV_KEZD>2014-07-01</ERV_KEZD>
+ <ERV_VEGE>2014-09-30</ERV_VEGE>
+ <TERMAR>1094</TERMAR>
+<NKAR>1159</NKAR>
+<FAN>1426</FAN>
+<FAB>1497</FAB>
+<MAXFAB>0</MAXFAB>
+ <AFA>5</AFA>
+ <NTK>267.32</NTK>
+<EGYSEGAR>.2673</EGYSEGAR>
+<BESOROLAS>10505</BESOROLAS>
+<PRAS_TERMEK>133</PRAS_TERMEK>
+<NICHE_ID>999999999.999999</NICHE_ID>
+<KEST_TERM>0</KEST_TERM>
+<KGYKERET>1</KGYKERET>
+<KULONL100>110</KULONL100>
+<TAMOGATASOK>
+ <OBJKATEGTAM>
+ <ID>298310</ID>
+<KATEGORIA>1</KATEGORIA>
+<TAMTECHN>HFIX</TAMTECHN>
+<KGYIRHATO>1</KGYIRHATO>
+<MIN_ELETKOR>999999999.999999</MIN_ELETKOR>
+<MAX_ELETKOR>999999999.999999</MAX_ELETKOR>
+<NEM>0</NEM>
+<TAMSZAZ>25</TAMSZAZ>
+<FIX_ID>510655</FIX_ID>
+<REFNTK>267.32</REFNTK>
+<NTAM>356</NTAM>
+<BTAM>374</BTAM>
+<TERDIJ>1123</TERDIJ>
+<NTKTD>200.54</NTKTD>
+<MIHAID>0</MIHAID>
+<MIHACEL>999999999.999999</MIHACEL>
+<MIHASTAT>0</MIHASTAT>
+<KIHI>-/-</KIHI>
+ <FELME>-/-</FELME>
+ <EUPONTAZON/>
+ </OBJKATEGTAM>
+ </TAMOGATASOK>
+ </TAMADAT>
+<EUPONTSTR/>
+<FORGENGJOG>Richter Gedeon Vegyészeti Gyár NyRt.</FORGENGJOG>
+<FORGALMAZO>Richter Gedeon Vegyészeti Gyár NyRt.</FORGALMAZO>
+ </OBJDISPINF>
+ <OBJDISPINF>
+NEAK ÁTFO PUPHAX webszolgáltatás
+PUPHAXWS v.: 1.33
+oldal 53
+ <TERMEKADAT>
+ <ID>14223894</ID>
+ <PARENT_ID>999999999.999999</PARENT_ID>
+ <ERV_KEZD>2012-03-01</ERV_KEZD>
+ <ERV_VEGE>2015-09-30</ERV_VEGE>
+ <TERMEKKOD>G7</TERMEKKOD>
+<KOZHID>13314</KOZHID>
+<TTT>210145561</TTT>
+<TK>OGYI-T-05063/06</TK>
+ <TKTORLES>-/</TKTORLES>
+<TKTORLESDAT>2099-12-31</TKTORLESDAT>
+ <EANKOD>-/-</EANKOD>
+ <BRAND_ID>48391</BRAND_ID>
+<NEV>AKTIL DUO 400 MG/57 MG/5 ML POR BELSŐLEGES SZUSZPENZIÓHOZ</NEV>
+<KISZNEV>1x17,5g üvegben 70 ml-hez</KISZNEV>
+<ATC>J01CR02</ATC>
+<ISO>-/-</ISO>
+ <HATOANYAG>amoxicillin és enzim-inhibitor</HATOANYAG>
+<ADAGMOD>orális</ADAGMOD>
+<GYFORMA>por belsőleges szuszpenzióhoz</GYFORMA>
+ <RENDELHET>V</RENDELHET>
+ <EGYEN_ID>51</EGYEN_ID>
+<HELYETTESITH>999999999.999999</HELYETTESITH>
+<POTENCIA>-/-</POTENCIA>
+ <OHATO_MENNY>5600</OHATO_MENNY>
+<HATO_MENNY>400</HATO_MENNY>
+<HATO_EGYS>mg</HATO_EGYS>
+<KISZ_MENNY>14</KISZ_MENNY>
+<KISZ_EGYS>adag</KISZ_EGYS>
+<DDD_MENNY>1</DDD_MENNY>
+<DDD_EGYS>g</DDD_EGYS>
+<DDD_FAKTOR>1000</DDD_FAKTOR>
+<DOT>5.6</DOT>
+<ADAG_MENNY>70</ADAG_MENNY>
+<ADAG_EGYS>ml</ADAG_EGYS>
+ <EGYEDI>0</EGYEDI>
+ <OLDALISAG>999999999.999999</OLDALISAG>
+<TOBBLGAR>999999999.999999</TOBBLGAR>
+<PATIKA>-</PATIKA>
+<DOBAZON>999999999.999999</DOBAZON>
+<KERESZTJELZES>+</KERESZTJELZES>
+<FORGENGT_ID>53</FORGENGT_ID>
+<FORGALMAZ_ID>53</FORGALMAZ_ID>
+<FORGALOMBAN>1</FORGALOMBAN>
+ </TERMEKADAT>
+<TAMADAT>
+ <ID>233358</ID>
+<TERMEK_ID>14223894</TERMEK_ID>
+<ERV_KEZD>2015-07-01</ERV_KEZD>
+ <ERV_VEGE>2015-09-30</ERV_VEGE>
+ <TERMAR>1094</TERMAR>
+ <NKAR>1159</NKAR>
+<FAN>1426</FAN>
+<FAB>1497</FAB>
+<MAXFAB>0</MAXFAB>
+<AFA>5</AFA>
+ <NTK>267.32</NTK>
+ <EGYSEGAR>.2673</EGYSEGAR>
+NEAK ÁTFO PUPHAX webszolgáltatás
+PUPHAXWS v.: 1.33
+oldal 54
+ <BESOROLAS>10505</BESOROLAS>
+<PRAS_TERMEK>133</PRAS_TERMEK>
+<NICHE_ID>999999999.999999</NICHE_ID>
+ <KEST_TERM>0</KEST_TERM>
+ <KGYKERET>1</KGYKERET>
+<KULONL100>110</KULONL100>
+<TAMOGATASOK>
+ <OBJKATEGTAM>
+ <ID>317869</ID>
+<KATEGORIA>1</KATEGORIA>
+<TAMTECHN>HFIX</TAMTECHN>
+<KGYIRHATO>1</KGYIRHATO>
+<MIN_ELETKOR>999999999.999999</MIN_ELETKOR>
+ <MAX_ELETKOR>999999999.999999</MAX_ELETKOR>
+ <NEM>0</NEM>
+<TAMSZAZ>25</TAMSZAZ>
+<FIX_ID>520139</FIX_ID>
+<REFNTK>267.32</REFNTK>
+<NTAM>356</NTAM>
+<BTAM>374</BTAM>
+<TERDIJ>1123</TERDIJ>
+<NTKTD>200.54</NTKTD>
+<MIHAID>0</MIHAID>
+ <MIHACEL>999999999.999999</MIHACEL>
+ <MIHASTAT>0</MIHASTAT>
+<KIHI>-/-</KIHI>
+ <FELME>-/-</FELME>
+ <EUPONTAZON/>
+ </OBJKATEGTAM>
+ </TAMOGATASOK>
+ </TAMADAT>
+<EUPONTSTR/>
+<FORGENGJOG>Richter Gedeon Vegyészeti Gyár NyRt.</FORGENGJOG>
+<FORGALMAZO>Richter Gedeon Vegyészeti Gyár NyRt.</FORGALMAZO>
+ </OBJDISPINF>
+ </ADATOK>
+ </OBJDISP>
+ </RETURN>
+ </DISP_DIFFOutput>
+ </soap:Body>
+</soap:Envelope>
+6. A webszolgáltatás felhasználása
+Az alábbiakban a leggyakrabban előforduló felhasználási típusokat vesszük számba, és megmutatjuk,
+hogyan támogatja a PUPHAXWS webszolgáltatás ezeket a felhasználásokat. Az alább ismertetett
+algoritmusok egyben ajánlások is, amelyek használatával a webszolgáltatás hatékonnyá tehető, és a
+szerveroldali terhelést is optimalizálni lehet.
+6.1. Saját, teljes, lokális adatbázis rendszeres szinkronizálása
+1. az egyes alaptáblákat frissíteni kell a hozzájuk tartozó metódusokkal (TabATC, TabISO,
+TabBrand, ..., stb.). Itt a hatékonyság növelése érdekében érdemes először az INKVALT metódust
+meghívni, és csak az egyes táblákban változott rekordokra hívni a tábla lekérdező metódusokat.
+NEAK ÁTFO PUPHAX webszolgáltatás
+PUPHAXWS v.: 1.33
+oldal 55
+2. az EÜ pontok adatait frissíteni kell a TamogatEUPont metódussal,
+3. az INKVALT eljárással le kell kérdezni, hogy a lokális adatbázis utolsó frissítése óta mely
+termékek adatai változtak,
+4. ezen termékekre meg kell hívni a TERMEKADAT ill. TAMOGATADAT metódusokat, amelyek az új
+termék-, ill. támogatási adatokat megadják.
+Példa az 1. pontra, ATC táblával:
+először lekérdezzük az ATC tábla változásait:
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
+xmlns:pup="http://xmlns.oracle.com/orawsv/PUPHAX/PUPHAXWS">
+ <soapenv:Header/>
+ <soapenv:Body>
+ <pup:COBJIDLISTA-INKVALTInput>
+ <pup:DSP1-DATE-IN>2025-01-01</pup:DSP1-DATE-IN>
+ <pup:DSP2-DATE-IN>2025-02-01</pup:DSP2-DATE-IN>
+ <pup:SXFILTER-VARCHAR2-IN>
+ <![CDATA[
+ <alapfilter>
+ <TABLANEV>TABATC</TABLANEV>
+ </alapfilter>
+ ]]>
+ </pup:SXFILTER-VARCHAR2-IN>
+ </pup:COBJIDLISTA-INKVALTInput>
+ </soapenv:Body>
+</soapenv:Envelope>
+az előző lekérdezés visszaadja azokat az ATC kódokat, amik újak, vagy változottak. Itt pl. három
+változás volt J07AH11, L01FX26, L04AJ01.
+Ha kellenek az ATC megnevezések, hatóanyag információk is, akkor ezeket lekérdezhetjük a
+TABATC metódussal:
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
+xmlns:pup="http://xmlns.oracle.com/orawsv/PUPHAX/PUPHAXWS">
+ <soapenv:Header/>
+ <soapenv:Body>
+ <pup:COBJALAP-TABATCInput>
+ <pup:SXFILTER-VARCHAR2-IN> <![CDATA[
+ <alapfilter>
+ <ATC>J07AH11</ATC>
+ </alapfilter>
+ ]]></pup:SXFILTER-VARCHAR2-IN>
+ </pup:COBJALAP-TABATCInput>
+ </soapenv:Body>
+</soapenv:Envelope>
+6.2. Adott termékkörre, meghatározott időszakra való adatgyűjtés
+NEAK ÁTFO PUPHAX webszolgáltatás
+PUPHAXWS v.: 1.33
+oldal 56
+Amennyiben egy múltbeli állapotnak megfelelő lokális adatbázist szeretnénk kialakítani (pl. statisztikai
+elemzésekhez), akkor figyelembe kell venni a 3.2-es pontban leírtakat. Eszerint az alaptábláknál nem
+kezelünk idősort, ezért azok nem egy múltbeli időpontnak, hanem mindenképpen a jelenlegi, legfrissebb
+állapotnak fognak megfelelni. Ez általában nem okoz problémát, mert
+ a változások javításokat tartalmaznak, az újabb adatok kevesebb hibát tartalmazhatnak,
+ amennyiben új elemek kerültek a táblákba - pl. egy új időközben belekerült ATC kód - ezekre a
+régi termékek úgysem hivatkozhatnak.
+A javasolt eljárás a következő:
+1. az egyes alaptáblákat le kell tölteni a hozzájuk tartozó metódusokkal (TabATC, TabISO,
+TabBrand, stb.), legalábbis azokat, amelyek az adott termékkörrel kapcsolatban állnak.
+2. az EÜ pontok adatait frissíteni kell a TamogatEUPont metódussal, amennyiben a lokális
+adatbázisnak ezt is tartalmaznia kell,
+3. a TERMEKLISTA eljárással - megfelelő dátum és szűrés megadásával - le kell kérdezni a termékek
+azonosítóit,
+4. ezen termékekre meg kell hívni a TERMEKADAT ill. TAMOGATADAT metódusokat, amelyek az új
+termék-, ill. támogatási adatokat megadják.
+A fölösleges lekérdezések elkerülésére javasoljuk, hogy a 3. pontban, a TERMEKLISTA eljárásnál
+használjuk a TERMKOD szűrőt a támogatott, majd egy másik hívásban a nemtámogatott termékek
+listájának lekérdezésére. Ezek után csak a támogatotti listára kérdezzünk támogatási információkat.
+Fontos megjegyezni, hogy a nemtámogatott termékek egy nagyságrenddel többen vannak, és ezekre
+fölösleges támogatást lekérdezni.
+6.3. Adott termékkörre való rendszeres szinkronizálás
+A követendő eljárás hasonló az 5.1-es alfejezetben ismertetettel, azzal a különbséggel, hogy 5. pontban,
+az alaptáblák szinkronizálásánál nem kell feltétlenül minden táblát frissíteni, csak a termékkörrel
+kapcsolatban levőket. Pl. GYSE termékek esetén nem kell az ATC táblát karbantartani. Ld. még 5.1
+alfejezet 1) pontját.
+Amennyiben EÜ pontokkal kapcsolatos adatot kellenek, a 2) pontot is végre kell hajtani.
+Az INKVALT eljárás hívásánál a megfelelő termékekre kell a szűrést megadni, itt ugyanúgy, mint 5.1-ben
+a legutolsó szinkronizálás dátumát és a jelenlegi dátumot kell megadni, az adott termékkörre le kell
+tölteni a termék, ill. támogatás adatokat (amennyiben ez is szükséges).
+6.4. Ad-hoc, online bekérdezés csak egy adott termékre, ill. támogatásra
+Ha egy konkrét termék alapadatára vagy támogatására van szükség:
+TERMEKLISTA eljárásnál megadjuk az időpontot, a megfelelő szűrőt (pl. TTT kódot, terméknevet,
+törzskönyvi számot, stb.).
+A visszakapott ID paraméterrel meghívjuk a TERMEKADAT eljárást, amely megadja a termék alapadatait.
+Ezekben az adatokban hivatkozások (azonosítók) is szerepelnek. Az azonosítók által kezelt adatokat az
+egyes Tab... táblalekérdező eljárásokkal kaphatjuk meg.
+Pl. a termékadatok között szerepel a forgalmazó cég azonosítója. Ha a cég nevére is kíváncsiak vagyunk,
+akkor a TabCEGEK eljárást meghívjuk a kapott azonosítóval, amely visszaadja a cég nevét.
+NEAK ÁTFO PUPHAX webszolgáltatás
+PUPHAXWS v.: 1.33
+oldal 57
+Amennyiben támogatásadat is szükséges, az időpont és termékazonosító megadásával meghívjuk a
+TAMOGATADAT eljárást. Ez az összes támogatással összefüggő információt tartalmazza, csak két adat
+van, amely hivatkozás: NICHE_ID és az EÜ pontok azonosítói.
+Amennyiben a NICHE egyenértékűségi ID-re, vagy a hatóanyagcsoport nevére szükség van a TabNICHE
+eljárással az azonosító alapján lekérdezhetjük.
+Ha az EÜ pontokkal összefüggő információk kellenek, hívjuk meg a TAMOGATEUPONT eljárást,
+amelynek paraméterként odaadjuk a TAMOGATASOK tömbben szereplő EÜ pont azonosítókat.
+7. Záró megjegyzések
+A legfontosabb tervezési szempont a flexibilitás volt, amely az alkalmazott webszolgáltatás ill. XML
+technikával viszonylag könnyen megvalósítható. A webszolgáltatás gyökeresen más adatközlési mód,
+mert a konkrét táblaszerkezetek helyett az adatokhoz azok logikai kapcsolataik szerint lehet hozzáférni.
+Ez egyszerűbbé teszi a különböző implementációkat, mert az eredeti (PUPHAX) adatszerkezet helyett
+más, az egyes felhasználásokhoz jobban illeszkedő táblaszerkezetet is könnyebben lehet feltölteni.
+Az átmenet megkönnyítése és a korábbi adatokhoz való kapcsolódás, a könnyebb érthetőség kedvéért, és
+az adattartalom leírása miatt a PUPHAX adatszerkezetet is publikáltuk.
+Ez csak a NEAK belső implementációjára vonatkozik, a külső felhasználóknak az adatstruktúrát
+nem kell átvenniük, ugyanis az adatokat nem táblaszerkezetben publikáljuk.
+Ennek előnyei jól ismertek, a NEAK szempontjából például az is, hogy a NEAK a PUPHAX
+táblaszerkezetet bármikor kiegészítheti, módosíthatja anélkül, hogy a külső felhasználók ezt észrevennék,
+ill. tudnának róla. Az ő számukra ugyanis teljesen mindegy milyen adatstruktúra áll a webszolgáltatás
+mögött, ha ez az interfész változatlan marad. Ilyen belső, implementációs megoldás pl. az EUHOZZAR,
+BNOHOZZAR táblák, amelyeket a webszolgáltatáson keresztül közvetlenül nem teszünk elérhetővé.
+Ugyanakkor szükség lehet az interfész megváltoztatására is. Ennek oka lehet a funkcionalitás bővítése,
+vagy hatékonysági, optimalizálási szempontok figyelembevétele. A NEAK fenntartja magának a jogot,
+hogy a PUPHAXWS interfészt megváltoztassa. Természetesen ezt csak indokolt esetben, az előnyökhátrányok mérlegelése után teszi meg, ahol fontos szempontnak tartja, hogy a belső fejlesztési
+ráfordítások mellett a külső fejlesztőknek/ felhasználóknak is át kell írniuk a programjuk egy részét, ami
+időt, energiát, pénzt emészt fel.
+NEAK ÁTFO PUPHAX webszolgáltatás
+PUPHAXWS v.: 1.33
+oldal 58
+Mellékletek
+1. PUPHAXWS_v1.27.wsdl (honlapon a PUPHAX WS WSDL alatt található a legutolsó verzió)
+2. PUPHAXWS_mintahivasok_v1.21.docx (honlapon a PUPHAX WS mintahívások alatt található a
+legutolsó verzió)
+3. PUPHAX adatbázis fizikai terv_1.21.docx wsdl (honlapon a PUPHAX WS fizikai rendszerterv alatt
+található a legutolsó verzió)
+4. Termékkódok leírása (honlapon a PUPHAX WS termékkód leírás alatt található a legutolsó verzió)

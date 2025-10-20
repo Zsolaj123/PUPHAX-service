@@ -1,8 +1,11 @@
 package com.puphax.controller;
 
 import com.puphax.model.dto.DrugSearchResponse;
+import com.puphax.model.dto.HealthStatus;
 import com.puphax.service.DrugService;
+import com.puphax.service.HealthService;
 import com.puphax.exception.PuphaxValidationException;
+import com.puphax.util.LoggingUtils;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -19,6 +22,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import jakarta.servlet.http.HttpServletRequest;
+
 /**
  * REST controller for drug search operations.
  * 
@@ -34,10 +39,12 @@ public class DrugController {
     private static final Logger logger = LoggerFactory.getLogger(DrugController.class);
     
     private final DrugService drugService;
+    private final HealthService healthService;
     
     @Autowired
-    public DrugController(DrugService drugService) {
+    public DrugController(DrugService drugService, HealthService healthService) {
         this.drugService = drugService;
+        this.healthService = healthService;
     }
     
     /**
@@ -156,24 +163,53 @@ public class DrugController {
             regexp = "^(ASC|DESC)$",
             message = "Sort direction must be ASC or DESC"
         )
-        String sortDirection
+        String sortDirection,
+        HttpServletRequest request
     ) {
         
-        logger.info("Drug search request: term='{}', manufacturer='{}', atcCode='{}', page={}, size={}, sortBy={}, sortDirection={}",
-                   term, manufacturer, atcCode, page, size, sortBy, sortDirection);
+        String correlationId = LoggingUtils.generateCorrelationId();
+        long startTime = System.currentTimeMillis();
         
-        // Validate inputs
-        validateSearchParameters(term, manufacturer, atcCode, page, size, sortBy, sortDirection);
-        
-        // Perform search
-        DrugSearchResponse response = drugService.searchDrugs(
-            term, manufacturer, atcCode, page, size, sortBy, sortDirection
-        );
-        
-        logger.info("Drug search completed: {} results found for term '{}'",
-                   response.getCurrentPageSize(), term);
-        
-        return ResponseEntity.ok(response);
+        try {
+            // Set up logging context
+            LoggingUtils.setupSearchContext(correlationId, term, manufacturer, atcCode, page, size);
+            LoggingUtils.setClientIp(getClientIpAddress(request));
+            
+            logger.info("Drug search request started: term='{}', manufacturer='{}', atcCode='{}', page={}, size={}, sortBy={}, sortDirection={}",
+                       term, manufacturer, atcCode, page, size, sortBy, sortDirection);
+            
+            // Validate inputs
+            validateSearchParameters(term, manufacturer, atcCode, page, size, sortBy, sortDirection);
+            
+            // Perform search
+            DrugSearchResponse response = drugService.searchDrugs(
+                term, manufacturer, atcCode, page, size, sortBy, sortDirection
+            );
+            
+            // Log success metrics
+            long responseTime = System.currentTimeMillis() - startTime;
+            LoggingUtils.setResponseTime(responseTime);
+            LoggingUtils.setResultCount(response.getCurrentPageSize());
+            
+            logger.info("Drug search completed successfully: {} results found for term '{}', total elements: {}, response time: {}ms",
+                       response.getCurrentPageSize(), term, response.pagination().totalElements(), responseTime);
+            
+            return ResponseEntity.ok(response);
+            
+        } catch (Exception e) {
+            long responseTime = System.currentTimeMillis() - startTime;
+            LoggingUtils.setResponseTime(responseTime);
+            LoggingUtils.setupErrorContext(correlationId, 
+                e instanceof PuphaxValidationException ? "VALIDATION_ERROR" : "SEARCH_ERROR", 
+                "drug-search");
+            
+            logger.error("Drug search failed for term '{}': {} (response time: {}ms)", 
+                        term, e.getMessage(), responseTime);
+            throw e;
+            
+        } finally {
+            LoggingUtils.clearContext();
+        }
     }
     
     /**
@@ -230,22 +266,151 @@ public class DrugController {
     }
     
     /**
-     * Health check endpoint for the drug search service.
+     * Comprehensive health check endpoint for the drug search service.
      * 
-     * @return Simple health status
+     * @return Detailed health status including PUPHAX service connectivity
      */
     @GetMapping("/health")
     @Operation(
         summary = "Check drug search service health",
-        description = "Simple health check endpoint for the drug search functionality"
+        description = "Comprehensive health check endpoint that verifies PUPHAX service connectivity and component status"
+    )
+    @ApiResponses(value = {
+        @ApiResponse(
+            responseCode = "200",
+            description = "Service is healthy or partially healthy",
+            content = @Content(
+                mediaType = MediaType.APPLICATION_JSON_VALUE,
+                schema = @Schema(implementation = HealthStatus.class)
+            )
+        ),
+        @ApiResponse(
+            responseCode = "503",
+            description = "Service is down or unavailable",
+            content = @Content(
+                mediaType = MediaType.APPLICATION_JSON_VALUE,
+                schema = @Schema(implementation = HealthStatus.class)
+            )
+        )
+    })
+    public ResponseEntity<HealthStatus> health(HttpServletRequest request) {
+        String correlationId = LoggingUtils.generateCorrelationId();
+        long startTime = System.currentTimeMillis();
+        
+        try {
+            LoggingUtils.setupHealthCheckContext(correlationId);
+            LoggingUtils.setClientIp(getClientIpAddress(request));
+            
+            logger.debug("Health check requested for drug search service");
+            
+            HealthStatus healthStatus = healthService.checkHealth();
+            
+            long responseTime = System.currentTimeMillis() - startTime;
+            LoggingUtils.setResponseTime(responseTime);
+            
+            // Return 503 Service Unavailable if the service is down
+            if ("DOWN".equals(healthStatus.status())) {
+                logger.warn("Health check failed: service is DOWN (response time: {}ms)", responseTime);
+                return ResponseEntity.status(503).body(healthStatus);
+            }
+            
+            // Return 200 OK for UP or DEGRADED status
+            logger.info("Health check completed: service status is {} (response time: {}ms)", 
+                       healthStatus.status(), responseTime);
+            return ResponseEntity.ok(healthStatus);
+            
+        } finally {
+            LoggingUtils.clearContext();
+        }
+    }
+    
+    /**
+     * Quick health check endpoint for load balancers and monitoring.
+     * 
+     * @return Simple health status
+     */
+    @GetMapping("/health/quick")
+    @Operation(
+        summary = "Quick health check",
+        description = "Lightweight health check endpoint for load balancers and monitoring systems"
     )
     @ApiResponse(
         responseCode = "200",
-        description = "Service is healthy",
+        description = "Service is operational",
         content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)
     )
-    public ResponseEntity<String> health() {
-        logger.debug("Health check requested for drug search service");
-        return ResponseEntity.ok("{\"status\":\"UP\",\"service\":\"DrugController\"}");
+    public ResponseEntity<HealthStatus> healthQuick() {
+        logger.debug("Quick health check requested");
+        
+        HealthStatus healthStatus = healthService.checkHealthQuick();
+        
+        if ("DOWN".equals(healthStatus.status())) {
+            return ResponseEntity.status(503).body(healthStatus);
+        }
+        
+        return ResponseEntity.ok(healthStatus);
+    }
+    
+    /**
+     * Simple test endpoint to verify the service is working.
+     */
+    @GetMapping("/test")
+    public ResponseEntity<String> test() {
+        logger.info("Test endpoint called");
+        return ResponseEntity.ok("{\"message\":\"DrugController is working!\",\"timestamp\":\"" + java.time.Instant.now() + "\"}");
+    }
+    
+    /**
+     * Simple search endpoint for testing without complex logic.
+     */
+    @GetMapping("/search-simple")
+    public ResponseEntity<String> searchSimple(@RequestParam("term") String term) {
+        logger.info("Simple search called with term: {}", term);
+        
+        String response = String.format("""
+            {
+                "searchTerm": "%s",
+                "drugs": [
+                    {
+                        "id": "HU001234",
+                        "name": "%s 100mg tabletta",
+                        "manufacturer": "Bayer Hungary Kft.",
+                        "atcCode": "N02BA01",
+                        "activeIngredients": ["Acetylsalicylic acid"],
+                        "prescriptionRequired": false,
+                        "reimbursable": true,
+                        "status": "ACTIVE"
+                    }
+                ],
+                "pagination": {
+                    "currentPage": 0,
+                    "pageSize": 20,
+                    "totalPages": 1,
+                    "totalElements": 1
+                }
+            }
+            """, term, term);
+        
+        return ResponseEntity.ok(response);
+    }
+    
+    /**
+     * Extracts the client IP address from the HTTP request.
+     * 
+     * @param request HTTP servlet request
+     * @return Client IP address
+     */
+    private String getClientIpAddress(HttpServletRequest request) {
+        String xForwardedFor = request.getHeader("X-Forwarded-For");
+        if (xForwardedFor != null && !xForwardedFor.isEmpty() && !"unknown".equalsIgnoreCase(xForwardedFor)) {
+            return xForwardedFor.split(",")[0].trim();
+        }
+        
+        String xRealIp = request.getHeader("X-Real-IP");
+        if (xRealIp != null && !xRealIp.isEmpty() && !"unknown".equalsIgnoreCase(xRealIp)) {
+            return xRealIp;
+        }
+        
+        return request.getRemoteAddr();
     }
 }

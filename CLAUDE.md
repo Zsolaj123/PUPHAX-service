@@ -21,4 +21,6 @@ Java 17 with Spring Boot 3.5.6: Follow standard conventions
 - 001-puphax-rest-api: Added Java 17 with Spring Boot 3.5.6 + Spring Web, JAX-WS, Jackson, SpringDoc OpenAPI, Spring Cache, JUnit 5, Mockito
 
 <!-- MANUAL ADDITIONS START -->
+## Development Guidelines
+- When developing this project, always refer to `/home/zsine/PUPHAX-service/PUPHAX_DEVELOPMENT_GUIDE.md` and the info in reference folder
 <!-- MANUAL ADDITIONS END -->

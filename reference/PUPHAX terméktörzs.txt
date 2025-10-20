@@ -1,0 +1,727 @@
+PUPHAX terméktörzs
+NEAK ÁTFO 2024.05.17. 1
+PUPHAX adatba zis fizikai terv
+ver.: 1.3
+PUPHAX terméktörzs
+NEAK ÁTFO 2024.05.17. 2
+Bevezetés
+A NEAK-ben zajló fejlesztések következtében a PUPHA törzs is megújul,
+a törzs utódját PUPHAX-nek neveztük el, mert SOAP webszolgáltatáson keresztül XML-ben lehet lekérdezni az adatokat.
+A jelen dokumentumban a törzs adatstruktúrájának leírása található.
+Ez az új PUPHAX adatbázis szolgálja majd ki a webszolgáltatás alapú,
+a NEAK-on belüli és kívüli gyógyszer-, segédeszköz-, gyógyfürdő-támogatási adatokhoz való hozzáférési igényeket
+Táblaszerkezet
+PUPHAX terméktörzs
+NEAK ÁTFO 2024.05.17. 3
+PUPHAX terméktörzs
+NEAK ÁTFO 2024.05.17. 4
+Táblák listája
+Név Megjegyzések
+ATCKONYV Hatóanyagok táblája.
+BNOHOZZAR EÜ pontok és BNO hozzárendelések táblája.
+BNOKODOK Betegségek Nemzetközi Osztályozása tábla.
+BRAND A termékek márkaneveit tartalmazó tábla.
+CEGEK A gyártók, forgalmazók neveit tartalmazó tábla.
+EUHOZZAR Az EÜ pontok és a termékekhez tartozó támogatások megfeleltetésének táblája.
+EUINDIKACIOK EÜ pontokhoz tartozó indikációk táblája.
+EUJOGHOZZAR EÜ pontok jogosultságait tartalmazá tábla.
+EUPONTOK EÜ pontok táblája.
+ISOKONYV ISO kódok táblája.
+KATEGTAM Termékek támogatásainak táblája.
+KIHIRDETES A kihirdetéseket tartalmazó tábla.
+KIINTOR EÜ pontokhoz tartozó kijelölt intézetek, orvosok táblája.
+KODSZOTAR A táblákban levő kódok és azok neveit tartalmazó kódszótár.
+NICHE A hatóanyag alapú vényfelírást segítő tábla.
+ORVOSOK Orvosok, és a szakvizsgáiknak a táblája.
+SZAKVKODOK Orvosi szakképesítések táblája.
+TAMALAP
+Termékek áradatainak és a támogatások alapadatainak táblája.
+A tábla idősorosan tartalmazza az ár és támogatási adatokat.
+Egy adott termékhez kapcsolódóan az ERV_KEZD - ERV_VEGE időtartamon belül
+az ár és támogatási adatok nem változnak.
+Ez nem csak a TAMALAP, hanem a rá hivatkozó KATEGTAM táblára is igaz,
+vagyis azok a KATEGTAM rekordok, amik a TAMALAP adott rekordjára hivatkoznak
+az ERV_KEZD - ERV_VEGE időszakon belül nem változnak.
+Egy adott TERMEK_ID esetén az ERV_KEZD - ERV_VEGE időszakok diszjunktak.
+TERMEK Termékek alapadatainak táblája.
+PUPHAX terméktörzs
+NEAK ÁTFO 2024.05.17. 5
+A tábla idősorosan tartalmazza termékek adatait.
+A ERV_KEZD - ERV_VEGE időtartamon belül, a táblában levő termék-alapadatok nem változnak.
+Egy adott termék (TTT) esetén az ERV_KEZD - ERV_VEGE időszakok diszjunktak.
+ATCKONYV Tábla
+A ATCKONYV tábla leírása
+Hatóanyagok táblája.
+ATCKONYV oszlopai
+Név Data Type Nem NULL Kulcs Hivatkozás Megjegyzések
+ATC VARCHAR2(7) X X ATC kód
+MEGNEV VARCHAR2(255 char) Magyar megnevezés
+ANGOL VARCHAR2(250) Angol megnevezés
+HATOANYAG VARCHAR2(250) ATC kódhoz tartozó hatóanyag neve (csak ha atc7, egyébként
+null)
+BNOHOZZAR Tábla
+A BNOHOZZAR tábla leírása
+EÜ pontok és BNO hozzárendelések táblája.
+BNOHOZZAR oszlopai
+Név Data Type Nem NULL Kulcs Hivatkozás Megjegyzések
+EUPONT_ID NUMBER X X X Hivatkozás - az EÜ pont rekordjára (FK)
+BNO_ID NUMBER X X X Hivatkozás – a BNO kód azonosítója (FK)
+BNOKODOK Tábla
+A BNOKODOK tábla leírása
+Betegségek Nemzetközi Osztályozása tábla.
+BNOKODOK oszlopai
+Név Data Type Nem NULL Kulcs Hivatkozás Megjegyzések
+ID NUMBER X X Elsődleges azonosító (PK)
+PUPHAX terméktörzs
+NEAK ÁTFO 2024.05.17. 6
+KOD VARCHAR2(32) X A BNO kódja, 5 hosszúságú, pl. C9000
+LEIRAS VARCHAR2(4000
+char) A BNO megnevezése
+BRAND Tábla
+A BRAND tábla leírása
+A termékek márkaneveit tartalmazó tábla.
+BRAND oszlopai
+Név Data Type Nem NULL Kulcs Hivatkozás Megjegyzések
+ID NUMBER X X PK
+NEV VARCHAR2(255 char) X Brand név
+CEGEK Tábla
+A CEGEK tábla leírása
+A gyártók, forgalmazók neveit tartalmazó tábla.
+CEGEK oszlopai
+Név Data Type Nem NULL Kulcs Hivatkozás Megjegyzések
+ID NUMBER X X PK
+NEV VARCHAR2(255 char) A cég neve
+ERV_KEZD DATE Az érvényesség kezdetének (hatálybalépésének) dátuma
+ERV_VEGE DATE X Az érvényesség végének dátuma
+EUHOZZAR Tábla
+A EUHOZZAR tábla leírása
+Az EÜ pontok és a termékekhez tartozó támogatások megfeleltetésének táblája.
+EUHOZZAR oszlopai
+Név Data Type Nem NULL Kulcs Hivatkozás Megjegyzések
+KATEGTAM_ID NUMBER X X X
+Hivatkozás - készítmények / eszközök támogatásrekordjára
+(FK)
+EUPONT_ID NUMBER X X X Hivatkozás - az EÜ pont rekordjára (FK)
+PUPHAX terméktörzs
+NEAK ÁTFO 2024.05.17. 7
+OFFLABEL NUMBER X Ha 'off label'-ként is írható, akkor értéke 1, egyébként 0
+EUINDIKACIOK Tábla
+A EUINDIKACIOK tábla leírása
+EÜ pontokhoz tartozó indikációk táblája.
+EUINDIKACIOK oszlopai
+Név Data Type Nem NULL Kulcs Hivatkozás Megjegyzések
+ID NUMBER X X Elsődleges azonosító (PK)
+EUPONT_ID NUMBER X X Melyik EÜ pontra hivatkozik (FK)
+NDX NUMBER X Hányadik indikáció
+LEIRAS VARCHAR2(4000
+char) X Az indikáció szövege, ha nincs hozzár leírás akkor '-'
+EUJOGHOZZAR Tábla
+A EUJOGHOZZAR tábla leírása
+EÜ pontok jogosultságait tartalmazá tábla.
+EUJOGHOZZAR oszlopai
+Név Data Type Nem NULL Kulcs Hivatkozás Megjegyzések
+ID NUMBER X X PK
+EUPONT_ID NUMBER X X Hivatkozás - az EÜ pont rekordjára (FK)
+KATEGORIA_ID NUMBER X
+A felírási megkötés típusának kódja,
+amely a központi kódszótárban a FELIRKAT alatt található.
+JOGOSULT_ID NUMBER X
+Felírási jogosultság kódja,
+amely a központi kódszótárban a FELIRJOG alatt található.
+JIDOKORLAT NUMBER X
+A javaslattól kezdve hány hónapig írhatja az adott orvos a
+készítményt.
+0 érték jelentése: a korlátozás nem értelmezhető (mert a
+PUPHAX terméktörzs
+NEAK ÁTFO 2024.05.17. 8
+felíró orvos végzettségénél fogva jogosult a felírásra)
+999 érték jelentése: időkorlátozás nélkül írható.
+SZAKV_ID NUMBER X X
+A szakképesítés azonosítója, amivel írható az EÜ ponton lévő
+gyógyszer
+KIINT_ID NUMBER X X
+A kijelölt intézet (vagy orvos) azonosítója, amennyiben ilyen
+van (FK).
+EUPONTOK Tábla
+A EUPONTOK tábla leírása
+EÜ pontok táblája.
+EUPONTOK oszlopai
+Név Data Type Nem NULL Kulcs Hivatkozás Megjegyzések
+ID NUMBER X X Elsődleges azonosító (PK)
+PONTSZAM NUMBER X
+Gyógyszer: Az indikáció kódja (per-jel előtti rész);
+GYSE esetében nem használatos (0)
+PERJELZES VARCHAR2(32)
+Gyógyszer: az indikáció kódja (per-jel utáni rész),
+GYSE: az ISO kód, amihez az indikáció tartozik
+FELIRAS VARCHAR2(4000
+char) Felírási megjegyzések (csak GYSE esetén)
+MEGJEGYZES VARCHAR2(4000
+char) Egyéb rendelhetőségi feltételek (csak GYSE esetén)
+ISOKONYV Tábla
+A ISOKONYV tábla leírása
+ISO kódok táblája.
+ISOKONYV oszlopai
+Név Data Type Nem NULL Kulcs Hivatkozás Megjegyzések
+PUPHAX terméktörzs
+NEAK ÁTFO 2024.05.17. 9
+ISO VARCHAR2(15) X X ISO kód
+MEGNEVEZES VARCHAR2(255 char) A kódhoz tartozó megnevezés
+OLDALISAG NUMBER
+Csak GYSE esetében használatos.
+Értelmezhető-e az oldaliság jelölése az adott eszköznél az
+elszámolás során:
+1 - oldaliság felüntetése szükséges,
+2 - testtáj feltüntetése szükséges,
+0 - nem kell a vényen rögzíteni.
+FFNO NUMBER Férfiak (0) vagy nők (1) számára készült termékcsoport
+KATEGTAM Tábla
+A KATEGTAM tábla leírása
+Termékek támogatásainak táblája.
+KATEGTAM oszlopai
+Név Data Type Nem NULL Kulcs Hivatkozás Megjegyzések
+ID NUMBER X X Elsődleges azonosító (PK)
+TAMALAP_ID NUMBER X X TAMALAP tábla rekordjára mutat (FK)
+KATEGORIA VARCHAR2(1 char) X
+Támogatás kategóriájára vonatkozó jelzés,
+a központi kódszótárban TAMKATEG alatt található.
+Jelenleg a következő kategóriákat használja a törzs:
+normatív(1), emelt(2), kiemelt(3), különkeret(7), tételes(8),
+kölcsönzés (9),
+GYSE eszköz javítása (6)
+TAMTECHN VARCHAR2(8 char) X
+A támogatás technikája: milyen eljárás alapján került
+kiszámításra a támogatási összeg.
+Lehetséges értékei:
+PUPHAX terméktörzs
+NEAK ÁTFO 2024.05.17. 10
+NOMIN: nominális,
+HFIX: hatóanyag fixesítés,
+TFX: terápiás fixesítés,
+FIX: gyse fixesítés,
+KOMBI: kombinációs szabály
+BIOL: biológiai terápia szabályai,
+LFX: LMWH szabályai
+alapján.
+KGYIRHATO NUMBER X
+Közgyógyra írhatóság:
+1 ha az eszköz közgyógy ellátott betegeknek felírható,
+0 ha nem írható.
+MIN_ELETKOR NUMBER
+Életkorfeltétel: azon betegeknek írható akik legalább ennyi
+évesek.
+Ha nincs ilyen megkötés a mező üres.
+MAX_ELETKOR NUMBER
+Életkorfeltétel: azon betegeknek írható akik legfeljebb ennyi
+évesek.
+Ha nincs ilyen megkötés a mező üres.
+NEM NUMBER X
+Nemre vonatkozó megkötés:
+0 mindenkinek írható (nincs nemre vonatkozó megkötés),
+1 csak férfiaknak írható,
+2 csak nőknek írható.
+TAMSZAZ NUMBER X
+Támogatás mértéke %-ban (pl.: normatív támogatás esetén
+lehet 0, 25, 55, 80) .
+Abban az esetben, ha
+ csomagolóanyagról,
+PUPHAX terméktörzs
+NEAK ÁTFO 2024.05.17. 11
+ javításról (rezsi óradíjról),
+ technikai térítési díjról
+van szó a mező üres marad (adatbázis null érték),
+mert nem adható meg a termékhez ill, kategóriához egy
+rögzített %-os érték,
+és elszámoláskor egy eljárás határozza meg a támogatási
+összeget.
+FIX_ID NUMBER A fixcsoport azonosítója, amennyiben fixes támogatás
+tecnikáról van szó. (GYSE esetében nem használatos)
+REFNTK NUMBER A fixcsoport referencia NTK-ja, amennyiben fixes támogatás
+tecnikáról van szó. (GYSE esetében nem használatos)
+NTAM NUMBER X
+Nettó támogatás Ft-ban megadva.
+Abban az esetben, ha
+ csomagolóanyagról,
+ javításról (rezsi óradíjról),
+ technikai térítési díjról
+van szó a mező üres marad (adatbázis null érték),
+mert nem adható meg a termékhez ill, kategóriához egy
+rögzített támogatás,
+és elszámoláskor egy eljárás határozza meg a támogatási
+összeget.
+BTAM NUMBER X
+Bruttó támogatás Ft-ban megadva.
+Abban az esetben, ha
+ csomagolóanyagról,
+ javításról (rezsi óradíjról),
+ technikai térítési díjról
+PUPHAX terméktörzs
+NEAK ÁTFO 2024.05.17. 12
+van szó a mező üres marad (adatbázis null érték),
+mert nem adható meg a termékhez ill, kategóriához egy
+rögzített támogatás,
+és elszámoláskor egy eljárás határozza meg a támogatási
+összeget.
+TERDIJ NUMBER A beteg által fizetendő térítési díj.
+NTKTD NUMBER A beteg által fizetendő térítési díj alapján kiszámított napi
+terápiás költség (GYSE esetében nem használatos)
+MIHAID NUMBER
+Minőségi és Hatékony Gyógyszerrendelési Ösztönzés -
+csoportazonosító.
+Értékei:
+0: nem értelmezett, 1: Gyomorbántalmak [3. § (1) bekezdés
+I) pontja] ,
+2: Cukorbetegség [3. § (1) bekezdés m) pontja] ,
+3: Magas vérnyomás - RAS-ra ható készítmények [3. § (1)
+bekezdés n) pontja],
+4:Szérum lipidszintet csökkentő anyagok [3. § (1) bekezdés o)
+pont].
+(GYSE esetében nem használatos)
+MIHACEL NUMBER
+Minőségi és Hatékony Gyógyszerrendelési Ösztönzés - a
+gyógyszer csoportjának célértéke, (GYSE esetében nem
+használatos,)
+MIHASTAT NUMBER
+Minőségi és Hatékony Gyógyszerrendelési Ösztönzés - a
+gyógyszer státusza:
+-1: célérték alatti vagy azonos,
+0: nem értelmezett,
+1: célérték fölötti.
+PUPHAX terméktörzs
+NEAK ÁTFO 2024.05.17. 13
+(GYSE esetében nem használatos)
+KIHI VARCHAR2(10 char) A kihordási idő. (csak GYSE esetében használatos)
+FELME VARCHAR2(10 char) A felírható mennyiség. (csak GYSE esetében használatos)
+KIHIRDETES Tábla
+A KIHIRDETES tábla leírása
+A kihirdetéseket tartalmazó tábla.
+KIHIRDETES oszlopai
+Név Data Type Nem NULL Kulcs Hivatkozás Megjegyzések
+ID NUMBER X X PK
+ERV_DATUM DATE X Érvényesség kezdőnapja
+KESZ_DATUM DATE X A készítés dátuma
+MUNKAVER NUMBER A kihirdetés verziószáma, pl: 1,2,3...
+STATUS CHAR
+E: éles verzió (életbeléptetett)
+M: munkaverzió
+KIINTOR Tábla
+A KIINTOR tábla leírása
+EÜ pontokhoz tartozó kijelölt intézetek, orvosok táblája.
+KIINTOR oszlopai
+Név Data Type Nem NULL Kulcs Hivatkozás Megjegyzések
+ID NUMBER X X Elsődleges azonosító (PK)
+JAROFEKVO VARCHAR2(20)
+Az intézmény típusa:
+J: járóbeteg-intézmény,
+F: fekvőbeteg-intézmény,
+KKC: különkeretes centrum
+PUPHAX terméktörzs
+NEAK ÁTFO 2024.05.17. 14
+M: egyéb munkahely megkötés
+MEGYE VARCHAR2(100 char) Megye
+INTKOD VARCHAR2(20)
+Az intézmény kódja,
+centrum esetén a hozzá tartozó patikakód (nem használatos)
+INTEZET VARCHAR2(255 char) Az intézmény neve
+GYFKOD VARCHAR2(20) GYF kód
+EGYSEG VARCHAR2(250) A szolgáltatási egység megnevezése.
+PECSETKOD VARCHAR2(6) A jogosult orvos pecsétkódja
+KODSZOTAR Tábla
+A KODSZOTAR tábla leírása
+A táblákban levő kódok és azok neveit tartalmazó kódszótár.
+KODSZOTAR oszlopai
+Név Data Type Nem NULL Kulcs Hivatkozás Megjegyzések
+ID NUMBER X X PK
+KATEGORIA VARCHAR2(30) Kategória
+FOTIPUS VARCHAR2(64 char) X Fő típus
+ALTIPUS VARCHAR2(64 char) X Altípus
+NDX NUMBER Sorszám
+SZOVEGKOD VARCHAR2(64 char) Kód konstans
+SZAMKOD NUMBER Konstans értéke
+DEFERTEK VARCHAR2(250) X Alapértelmezett érték
+LEIRAS VARCHAR2(255 char) Leírás
+ERV_KEZD DATE Érvényesség kezdete
+ERV_VEG DATE Érvényesség vége
+PUPHAX terméktörzs
+NEAK ÁTFO 2024.05.17. 15
+NICHE Tábla
+A NICHE tábla leírása
+A hatóanyag alapú vényfelírást segítő tábla.
+NICHE oszlopai
+Név Data Type Nem NULL Kulcs Hivatkozás Megjegyzések
+ID NUMBER X X
+Elsődleges azonosító. A vényre a nullákkal feltöltött 9 jegyű
+szám kerül, pl.: 000000321
+EGYEN_ID NUMBER Az OGYÉI által megállapított egyenértékűségi csoport
+azonosító száma.
+LEIRAS VARCHAR2(255 char) X
+A receptre nyomtatandó szöveg, ami azonosítja a rendelt
+gyógyszert,
+ez az OGYÉI által megadott egyenértékűségi csoport neve,
+pl.: rosuvastatinum 20mg filmtabletta
+A NICHE tábla megjegyzései
+A TAMALAP tábla NICHE_ID mezője segítségével a termékeket besoroljuk egy olyan csoportba,
+amely már nem tartalmaz terméknevet, de a kiváltáshoz szükséges minden információt megad,
+hatóanyag, adagolásmód, hatáserősség, kiszerelés, ... stb.
+ORVOSOK Tábla
+A ORVOSOK tábla leírása
+Orvosok, és a szakvizsgáiknak a táblája.
+ORVOSOK oszlopai
+Név Data Type Nem NULL Kulcs Hivatkozás Megjegyzések
+PECSETKOD VARCHAR2(6) X X Az orvos/szakápoló kódja
+SZAKV_ID NUMBER X X X A szakképesítés azonosítója (FK)
+TIPUS NUMBER
+Az orvos/szakápoló kód típusa. Lehetséges értékek:
+1 orvos/fogorvos
+2 gyógyszerész
+3 klinikai végzettségű egészségügyi dolgozó
+PUPHAX terméktörzs
+NEAK ÁTFO 2024.05.17. 16
+4 egészségügyi szakdolgozó
+A 2,3,4 kódok egyelőre nem használatosak, jogszabály fogja
+majd ezeket lehetővé tenni.
+SZAKVKODOK Tábla
+A SZAKVKODOK tábla leírása
+Orvosi szakképesítések táblája.
+SZAKVKODOK oszlopai
+Név Data Type Nem NULL Kulcs Hivatkozás Megjegyzések
+ID NUMBER X X Elsődleges azonosító (PK)
+KOD NUMBER X A szakképesítés kódja (OKFŐ nyilvántartás alapján)
+LEIRAS VARCHAR2(255 char) X A szakképesítés megnevezése
+MEGFELEL NUMBER
+Csak akkor van kitöltve, ha ma már nem megszerezhető,
+ekkor a ma érvényes neki megfelelő szakképesítés kódját
+tartalmazza
+TAMALAP Tábla
+A TAMALAP tábla leírása
+Termékek áradatainak és a támogatások alapadatainak táblája.
+Ebben a táblában csak azokhoz a termékekhez szerepelnek adatok, amelyek valamilyen formában támogatottak.
+A TERMEK táblában szereplő, de semmilyen formában nem támogatott termékekhez nincs ebben a táblában
+- és ennek következtében a KATEGTAM táblában sem - rekord.
+TAMALAP oszlopai
+Név Data Type Nem NULL Kulcs Hivatkozás Megjegyzések
+ID NUMBER X X Elsődleges azonosító (PK)
+TERMEK_ID NUMBER X X TERMEK tábla rekordjára mutat (FK)
+ERV_KEZD DATE X A támogatási rekord érvényességének kezdete.
+ERV_VEGE DATE X A támogatási rekord érvényességének vége.
+PUPHAX terméktörzs
+NEAK ÁTFO 2024.05.17. 17
+TERMAR NUMBER X Termelői ár (GYSE esetében nem használatos)
+NKAR NUMBER X Nagykereskedelmi ár (GYSE esetében nem használatos)
+FAN NUMBER X Fogyasztói ár nettó
+FAB NUMBER X Fogyasztói ár bruttó
+MAXFAB NUMBER X
+A maximált bruttó fogyasztói ár,
+ha a mező értéke 0, akkor nincs megadva árkorlát (ilyen az
+összes nem támogatott termék),
+ha támogatott termék és megszabott ára van (pl.: gyógyszer),
+akkor a FAB-al (bruttó fogyárral) egyezik meg,
+ha támogatott, de nincs megszabott ára (csak néhány ISO
+csoportban gyse-nél), akkor lehet, hogy
+ nincs árkorlát: ekkor a mező értéke 0,
+ van árkorlát: ekkor a maximális bruttó fogyasztói árat
+tartalmazza.
+AFA NUMBER X Áfa kulcsa
+NTK NUMBER Napi terápiás költség (GYSE esetében nem használatos)
+EGYSEGAR NUMBER HATO_EGYS-nyi hatóanyag ára (GYSE esetében nem
+használatos)
+BESOROLAS NUMBER
+Gyógyszer esetén a költséghatékonysági kategória kódja
+jogcímenként,
+GYSE esetén az ISO10 rendelhetőséget, az ellenjegyzés
+szükségességét és a támvolumen szerződés meglétét kódolja
+(ld. a tábla megjegyzését).
+PRAS_TERMEK NUMBER
+PReferált ÁrSávba (PRAS) tartozó termék jelölése, 3 jegyű
+szám:
+első jegy a normatív,
+PUPHAX terméktörzs
+NEAK ÁTFO 2024.05.17. 18
+második az EÜ emelt,
+harmadik az EÜ kiemelt jogcímre vonatkozik.
+Ha 1 a megfelelő jegy, akkor a termék preferált ársávban van
+az adott jogcímen,
+ha 2, akkor kívül esik,
+ha 3, akkor nem PRAS csoport vagy nem értelmezhető.
+NICHE_ID NUMBER X
+A NICHE tábla rekordjára mutat.
+Azt mondja meg, hogy a hatóanyagalapú felírás melyik
+eleméhez tartozik az adott termék.
+Ha nincs besorolva akkor a mező értéke null.
+KEST_TERM NUMBER
+Kedvezményezett státuszú termék jelölése:
+1 ha a termék kedvezményezett státuszú,
+0 egyébként.
+KGYKERET NUMBER X
+Közgyógy keretre írhatóság:
+1: közgyógy keret meghatározásakor figyelembe vehető,
+2: közgyógy keret meghatározásakor nem vehető
+figyelembe.
+KULONL100 VARCHAR2(8) X
+A mező a különleges, 100%-os támogatási kategóriák
+felírhatóságát tartalmazzák.
+Jelenleg az üzemi baleset, a honvédelmi és a hadirokkant
+támogatási kategóriák tartoznak ide.
+A mező értéke 3 karaktert tartalmaz:
+az első karakter az üzemi baleset,
+a második honvédelmi,
+a harmadik a hadirokkant
+PUPHAX terméktörzs
+NEAK ÁTFO 2024.05.17. 19
+írhatóságot kódolja.
+Ha a karakter a '0', akkor nem írható, ha '1' akkor írható.
+A TAMALAP tábla megjegyzései
+A) BESOROLAS mező tartalma gyógyszerek esetén:
+A gyógyszer költséghatékonysági színezésének alapjául szolgáló BESOROLAS mező értelmezése:
+A mező értéke mindhárom jogcímen (normatív, EÜ emelt, EÜ kiemelt) jogcím vonatkozásában utal a gyógyszer költséghatékonyságára.
+(PRAS a preferált referencia ársávot jelöli.)
+A normatív jogcímhez képzett kód legyen njk.
+Az EÜ emelt jogcímhez képzett kód legyen eejk.
+Az EÜ kiemelt jogcímhez képzett kód legyen ekjk.
+BESOROLAS = 10000 * njk + 100 * eejk + ekjk
+Kódok:
+1: referencia termék
+2: PRAS csoport esetében: PRAS termék,
+ egyébként: HNTK <= REFNTK , a napi terápiás költsége kisebb-egyenlő a referencia termék napi terápiás költségével
+ (zöld színkódnak felel meg)
+3: PRAS csoport esetében: a legolcsóbb reftermék NTK-nál több, mint 15%-kal, de kevesebb, mint 20%-kal drágább,
+ egyébként: NTK < 1,2 * REFNTK, a napi terápiás költsége kevesebb, mint 20%-al drágább a referencia termék napi terápiás költségénél
+ (sárga színkódnak felel meg)
+4: NTK >= 1,2 * REFNTK A napi terápiás költsége legalább 20%-al drágább a referencia termék napi terápiás költségénél
+ (piros színkódnak felel meg)
+5: nem képezhető
+6: TT (törzskönyvből törölt)
+7: PRAS körbe tartozó, PRAS -on kívüli termékek, amelyek utólag a preferált referencia ársáv szintjére csökkentették árukat
+B) BESOROLAS mező tartalma GYSE esetén:
+BESOROLAS = 10000*ellenjegyz + 100 * iso_rendeles + támvolumen
+ahol
+ellenjegyz = 1, ha az adott eszköz ártámogatással történő rendeléséhez az egészségbiztosító ellenőrző főorvosának ellenjegyzése szükséges
+a 14/2007. (III. 14.) EüM r. értelmében.
+ellenjegyz = 0 ha nem kell ellenjegyzés,
+ellenjegyz = 2 ha egyes esetekben kell, máskor nem kell, egyéb adattól is függ (pl. kezelés hosszától).
+PUPHAX terméktörzs
+NEAK ÁTFO 2024.05.17. 20
+iso_rendeles = 1 ha érvényes a termékre a 14/2007. (III. 14.) EüM r. 13. § (3a) bekezdése,
+amely alapján az eszköz megnevezése helyett a 10 jegyű ISO kódhoz tartozó eszközcsoport megnevezésével rendelhető.
+iso_rendeles = 0 ha nem érvényes.
+támvolumen = 1 ha támogatás-volumen szerződés tárgyát képező gyógyászati segédeszköz,
+támvolumen = 0 egyébként.
+TERMEK Tábla
+A TERMEK tábla leírása
+Termékek alapadatainak táblája.
+Ebben a táblában szerepelnek azok a termékek, amelyek támogatottak, és a nem támogatott termékek közül azok, amelyek
+a törzskönyvezési hivatal által törzskönyvezettek, és a törzskönyvi törlésük még nem, vagy nem régen járt le.
+TERMEK oszlopai
+Név Data Type Nem NULL Kulcs Hivatkozás Megjegyzések
+ID NUMBER X X Elsődleges azonosító (PK)
+PARENT_ID NUMBER X
+A termék elődje, ha megfeleltethető egy korábbi (más nevű)
+készítménynek (FK TERMEK)
+ERV_KEZD DATE X Az érvényesség kezdetének (hatálybalépésének) dátuma
+ERV_VEGE DATE X Az érvényesség végének dátuma
+TERMEKKOD VARCHAR2(3) X
+A készítmény / eszköz típusának kategóriája (központi
+kódszótárból)
+KOZHID NUMBER
+OGYÉI által kezelt, időben változatlan, egyedi
+termékazonosító.
+Ha az OGYÉI-ban még nem kapott ilyen azonosítót
+(centralizált törzskönyvezésnél, tápszernél fordulhat elő),
+akkor ideiglenesen egy 1000000 fölötti szám. (GYSE esetében
+nem használatos)
+TTT VARCHAR2(9) X
+A készítmény / eszköz azonosítására a NEAK által használt
+kód (TTT kód)
+TK VARCHAR2(64) A készítmény OGYÉI által kiadott törzskönyvi száma (GYSE
+PUPHAX terméktörzs
+NEAK ÁTFO 2024.05.17. 21
+esetében nem használatos)
+TKTORLES VARCHAR2(2)
+A törzskönyvből törölt készítmények megjelölésére használt
+oszlop,
+TT: törzskönyvből törölt (GYSE esetében nem használatos)
+TKTORLESDAT DATE
+A készítmény törzskönyvi törlésének dátuma.
+Ha, törölt, akkor itt a törlés dátuma szerepel.
+Ha nem törölt, a dátum 2099.12.31.
+Ha értéke 1900.01.01 akkor törölt, de a törlés dátuma
+ismeretlen
+Ha értéke null, akkor az adott terméknél TKTORLES és
+TKTORLESDAT mezőket nem használjuk vagy nem
+értelmezhető (pl. GYSE).
+EANKOD VARCHAR2(13) A termék EAN kódja
+BRAND_ID NUMBER X X
+A gyógyszer márkanevének azonosítója (GYSE esetében nem
+használatos)
+NEV VARCHAR2(255 char) X A készítmény / eszköz neve
+KISZNEV VARCHAR2(255 char) A készítmény kiszerelése / eszköz mennyiségi egysége
+ATC VARCHAR2(7) X
+A NEAK által meghatározott ATC kód (GYSE esetében nem
+használatos)
+ISO VARCHAR2(15)
+Gyógyászati segédeszköz azonosító ISO kódja.
+(csak GYSE esetében használatos)
+HATOANYAG VARCHAR2(128 char) A készítmény fő hatóanyagának neve (GYSE esetében nem
+használatos)
+ADAGMOD VARCHAR2(32 char) A készítmény adagolásmódjának azonosítója (GYSE esetében
+nem használatos)
+GYFORMA VARCHAR2(128 char) A gyógyszerforma azonosítója (GYSE esetében nem
+PUPHAX terméktörzs
+NEAK ÁTFO 2024.05.17. 22
+használatos)
+RENDELHET VARCHAR2(3)
+A készítmény rendelhetőségének azonosítója (GYSE
+esetében nem használatos):
+VN: Orvosi rendelvény nélkül is kiadható
+gyógyszerkészítmény,
+V: Kizárólag orvosi rendelvényre kiadható
+gyógyszerkészítmény,
+J: Szakorvosi/kórházi diagnózist követően járóbetegellátásban alkalmazható gyógyszerkészítmény,
+SZ vagy Sz: Szakorvosi/kórházi diagnózist követően
+folyamatos szakorvosi ellenőrzés mellett alkalmazható
+gyógyszerkészítmény,
+I: Rendelőintézeti járóbeteg-szakellátást vagy fekvőbetegszakellátást nyújtó szolgáltatók által biztosított körülmények
+között alkalmazható gyógyszerkészítmény.
+EGYEN_ID NUMBER
+Az OGYÉI által megállapított egyenértékűségi csoport
+azonosító száma.
+Ha nem tartozik egyenértékűségi csoportba, akkor értéke: -1
+(GYSE esetében nem használatos)
+HELYETTESITH NUMBER
+Helyettesíthető-e a termék az adott egyenértékűségi
+csoporton belül vagy sem.
+Csak néhány kivétel esetében nem helyettesíthető (ezeket a
+belső EGYEN_HELYHETLEN tábla tartalmazza).
+(Akkor is helyettesíthető értéket tartalmaz a tábla, ha nincs
+egyenértékűségi csoportban, vagy egyedül van ott.)
+0 : nem helyettesíthető
+1: helyettesíthető
+POTENCIA VARCHAR2(64) Potencia (homeopátiás szerek) (GYSE esetében nem
+PUPHAX terméktörzs
+NEAK ÁTFO 2024.05.17. 23
+használatos)
+OHATO_MENNY NUMBER Összes hatóanyag tartalom (GYSE esetében nem
+használatos)
+HATO_MENNY NUMBER Egy kiszerelési egységben levő hatóanyag tartalom (GYSE
+esetében nem használatos)
+HATO_EGYS VARCHAR2(50) OHATO_MENNY, HATO_MENNY mezők mennyiségi egysége
+(pl. mg) (GYSE esetében nem használatos)
+KISZ_MENNY NUMBER A termékben levő kiszerelési egységek száma (GYSE
+esetében nem használatos)
+KISZ_EGYS VARCHAR2(50) A termékben levő kiszerelési egység egységneve (pl. db)
+(GYSE esetében nem használatos)
+DDD_MENNY NUMBER DDD értéke (GYSE esetében nem használatos)
+DDD_EGYS VARCHAR2(50) DDD_MENNY mennyiségi egysége (pl. mg) (GYSE esetében
+nem használatos)
+DDD_FAKTOR NUMBER HATO_EGYS és DDD_EGYS közti átváltó szám (pl. g és mg
+esetén 1000) (GYSE esetében nem használatos)
+DOT NUMBER A kiszerelés hány napra elegendő a WHO szerint (GYSE
+esetében nem használatos)
+ADAG_MENNY NUMBER A kiszerelés hány ADAG_EGYS-nek megfelelő mennyiséget
+tartalmaz
+ADAG_EGYS VARCHAR2(50)
+Az orvos által szokásosan felírt mennyiség egysége,
+pl.: tabletta, csepp, adagolókanál, ml, borsónyi (krémeknél),
+..., stb.
+EGYEDI NUMBER
+Egyedi méretvétel alapján készül-e a termék:
+0: nem,
+1: igen.
+(csak GYSE esetében használatos)
+PUPHAX terméktörzs
+NEAK ÁTFO 2024.05.17. 24
+OLDALISAG NUMBER
+csak GYSE esetében használatos.
+Értelmezhető-e az oldaliság jelölése az adott eszköznél az
+elszámolás során:
+1 - oldaliság feltüntetése szükséges,
+2 - testtáj feltüntetése szükséges,
+0 - nem kell a vényen rögzíteni.
+TOBBLGAR NUMBER
+A mezőben két, garanciával és javíthatósággal kapcsolatos
+információt tárolunk bit-kódoltan:
+1) az eszköz gyártója vagy forgalomba hozója által önként
+vállalt, az egyes tartós fogyasztási cikkekre vonatkozó
+kötelező jótállásról szóló rendeletben foglaltaknál kedvezőbb
+jótállási feltételek megléte. Amennyiben a kötelező és az
+önként vállalt jótállás ideje együttesen eléri az eszköz
+kihordási idejét akkor az első bit 1, egyébként 0.
+2) ha az eszköz társadalombiztosítási támogatással javítható,
+akkor a második bit 1 egyébként 0. A mező a gyógyászati
+segédeszközök társadalombiztosítási támogatásba történő
+befogadásáról, támogatással történő rendeléséről,
+forgalmazásáról, javításáról és kölcsönzéséről szóló 14/2007.
+(III. 14.) EüM Rendelet 22. számú melléklete szerint
+tartalmazza a javíthatóságra vonatkozó információt. Az egyes
+eszközök tényleges javíthatósága függ annak árától, a
+kötelező, valamint a gyártó által vállalt kedvezőbb jótállási
+időtartamtól, továbbá a kiváltás óta eltelt időtől a kötelező
+egészségbiztosítás ellátásairól szóló 1997. évi LXXXIII.
+törvény végrehajtásáról szóló 217/1997. (XII. 1.) Korm.
+rendelet 8. § (1) bekezdésében és az egyes tartós fogyasztási
+cikkekre vonatkozó kötelező jótállásról szóló 151/2003. (IX.
+22.) Korm. rendeletben foglaltaknak megfelelően.
+Például a többletgaranciával rendelkező, javítható eszköz
+PUPHAX terméktörzs
+NEAK ÁTFO 2024.05.17. 25
+esetén a mező értéke 3.
+A mező lehet null is, ha nem értelmezhető (gyógyszer) vagy
+nincs adat.
+(Csak GYSE esetében használatos)
+PATIKA VARCHAR2(1)
+K: patikán kívül is kapható gyógyszer,
+I: 2021. október 31-ig: elektronikus vényen nem írható gyse
+E: elektronikus vényen írható gyse,
+null, gyógyszer esetén: patikán kívül nem kapható,
+null, gyse esetén: elektronikus vényen nem írható gyse.
+DOBAZON NUMBER
+Gyógyszernél doboz azonosítót, GYSE-nél termékazonosítót
+kötelező-e megadni:
+0: nem
+1: igen
+KERESZTJELZES VARCHAR2(32) OGYÉI hatáserősség (méregosztály) jelzése, pl. +, ++ (GYSE
+esetében nem használatos)
+FORGENGT_ID NUMBER X
+Gyógyszer: Forgalomba hozatali engedély jogosultjának
+azonosítója / GYSE: Gyártó azonosítója
+FORGALMAZ_ID NUMBER X Gyógyszer / GYSE: Forgalmazó azonosítója
+FORGALOMBAN NUMBER
+Forgalomban van-e, kódolása:
+0 – Nincs forgalomban
+1 - Forgalomban van
+Besorolás a következő információk alapján:
+– OWL szerint forgalomban (bejelentette OWL-ben és
+PUPHAX terméktörzs
+NEAK ÁTFO 2024.05.17. 26
+beküldte az első nagyker számla másolatát)
+– P@NKA Nagykereskedői Beszerzési/raktárkészlet
+adatokban szerepel (az adott PUPHA érvényességhez képest
+2 hónappal korábbi adat alapján)
+– P@NKA Nagykereskedői Kiszállítási adatokban szerepel (az
+adott rekord érvényességhez képest 2 hónappal korábbi adat
+alapján)
+– BÉVER Forgalmi adatokban szerepel (az adott rekord
+érvényességhez képest 2 hónappal korábbi adat alapján)
+– Ideiglenes ellátási hiányt jelentett a forgalmazó
+Táblahivatkozások
+Szülő-gyerek kulcsok
+Szülő tábla Szülő oszlopok Gyerek Tábla Hivatkozás oszlopok
+ATCKONYV ATC TERMEK ATC
+BNOKODOK ID BNOHOZZAR BNO_ID
+BRAND ID TERMEK BRAND_ID
+CEGEK ID TERMEK FORGENGT_ID
+CEGEK ID TERMEK FORGALMAZ_ID
+EUPONTOK ID BNOHOZZAR EUPONT_ID
+EUPONTOK ID EUHOZZAR EUPONT_ID
+EUPONTOK ID EUINDIKACIOK EUPONT_ID
+EUPONTOK ID EUJOGHOZZAR EUPONT_ID
+KATEGTAM ID EUHOZZAR KATEGTAM_ID
+KIINTOR ID EUJOGHOZZAR KIINT_ID
+NICHE ID TAMALAP NICHE_ID
+SZAKVKODOK ID EUJOGHOZZAR SZAKV_ID
+SZAKVKODOK ID ORVOSOK SZAKV_ID
+TAMALAP ID KATEGTAM TAMALAP_ID
+PUPHAX terméktörzs
+NEAK ÁTFO 2024.05.17. 27
+TERMEK ID TAMALAP TERMEK_ID
+TERMEK ID TERMEK PARENT_ID
