@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PUPHAX Drug Search - Test Interface</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🏥 PUPHAX Drug Search</h1>
+            <p>Hungarian National Health Insurance Drug Database</p>
+        </header>
+
+        <div class="search-section">
+            <form id="searchForm" class="search-form">
+                <div class="search-row">
+                    <div class="search-field">
+                        <label for="searchTerm">Drug Name *</label>
+                        <input type="text" id="searchTerm" name="term" placeholder="e.g., aspirin" required>
+                    </div>
+                    <button type="submit" class="search-button">🔍 Search</button>
+                </div>
+
+                <div class="filters-row">
+                    <div class="filter-field">
+                        <label for="manufacturer">Manufacturer</label>
+                        <input type="text" id="manufacturer" name="manufacturer" placeholder="e.g., Bayer">
+                    </div>
+                    <div class="filter-field">
+                        <label for="atcCode">ATC Code</label>
+                        <input type="text" id="atcCode" name="atcCode" placeholder="e.g., N02BA01" pattern="^[A-Z][0-9]{2}[A-Z]{2}[0-9]{2}$">
+                    </div>
+                </div>
+
+                <div class="pagination-row">
+                    <div class="pagination-field">
+                        <label for="pageSize">Results per page</label>
+                        <select id="pageSize" name="size">
+                            <option value="10">10</option>
+                            <option value="20" selected>20</option>
+                            <option value="50">50</option>
+                            <option value="100">100</option>
+                        </select>
+                    </div>
+                    <div class="pagination-field">
+                        <label for="sortBy">Sort by</label>
+                        <select id="sortBy" name="sortBy">
+                            <option value="name" selected>Name</option>
+                            <option value="manufacturer">Manufacturer</option>
+                            <option value="atcCode">ATC Code</option>
+                        </select>
+                    </div>
+                    <div class="pagination-field">
+                        <label for="sortDirection">Order</label>
+                        <select id="sortDirection" name="sortDirection">
+                            <option value="ASC" selected>A → Z</option>
+                            <option value="DESC">Z → A</option>
+                        </select>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <div class="status-section">
+            <div id="loadingSpinner" class="loading hidden">
+                <div class="spinner"></div>
+                <span>Searching PUPHAX database...</span>
+            </div>
+            
+            <div id="searchInfo" class="search-info hidden">
+                <span id="searchStats"></span>
+                <span id="searchTime"></span>
+                <span id="cacheStatus"></span>
+            </div>
+        </div>
+
+        <div class="results-section">
+            <div id="errorMessage" class="error-message hidden"></div>
+            
+            <div id="resultsContainer" class="results-container hidden">
+                <div class="results-header">
+                    <h2>Search Results</h2>
+                    <div id="paginationTop" class="pagination-controls"></div>
+                </div>
+                
+                <div id="drugsList" class="drugs-list"></div>
+                
+                <div id="paginationBottom" class="pagination-controls"></div>
+            </div>
+        </div>
+
+        <footer>
+            <div class="api-info">
+                <h3>API Endpoints</h3>
+                <p><strong>Search:</strong> <code>GET /api/v1/drugs/search</code></p>
+                <p><strong>Health:</strong> <code>GET /api/v1/drugs/health</code></p>
+                <p><strong>Documentation:</strong> <a href="/swagger-ui.html" target="_blank">Swagger UI</a></p>
+            </div>
+        </footer>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

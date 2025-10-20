@@ -1,0 +1,65 @@
+# Java
+target/
+*.class
+*.jar
+!gradle/wrapper/gradle-wrapper.jar
+!**/src/main/**/target/
+!**/src/test/**/target/
+
+# Spring Boot
+.gradle/
+build/
+*.log
+spring.log
+
+# IDE
+.vscode/
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# Maven
+.mvn/
+mvnw
+mvnw.cmd
+.flattened-pom.xml
+
+# JAX-WS Generated Files
+target/generated-sources/
+target/generated-test-sources/
+
+# Environment & Configuration
+.env*
+*.env
+application-local.yml
+application-local.properties
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Temporary Files
+*.tmp
+*.swp
+*.bak
+*~
+
+# Test Reports
+target/surefire-reports/
+target/failsafe-reports/
+
+# Coverage Reports
+target/site/
+target/jacoco/
+
+# Cache
+.cache/
+cache/
+
+# Logs
+logs/
+*.log*
+
+# Zone.Identifier files (Windows)
+*.Zone.Identifier

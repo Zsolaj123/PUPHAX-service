@@ -1,0 +1,1380 @@
+<definitions xmlns="http://schemas.xmlsoap.org/wsdl/" xmlns:tns="http://xmlns.oracle.com/orawsv/PUPHAX/PUPHAXWS" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" name="PUPHAXWS" targetNamespace="http://xmlns.oracle.com/orawsv/PUPHAX/PUPHAXWS">
+	<types>
+		<xsd:schema targetNamespace="http://xmlns.oracle.com/orawsv/PUPHAX/PUPHAXWS" elementFormDefault="qualified">
+			<xsd:element name="COBJIDLISTA-TERMEKLISTAInput">
+				<xsd:complexType>
+					<xsd:sequence>
+						<xsd:element name="DSP-DATE-IN" type="xsd:date"/>
+						<xsd:element name="SXFILTER-VARCHAR2-IN" type="xsd:string"/>
+					</xsd:sequence>
+				</xsd:complexType>
+			</xsd:element>
+			<xsd:element name="TERMEKLISTAOutput">
+				<xsd:complexType>
+					<xsd:sequence>
+						<xsd:element name="RETURN" type="tns:OBJIDLISTAType"/>
+					</xsd:sequence>
+				</xsd:complexType>
+			</xsd:element>
+			<xsd:element name="COBJTERMEKADAT-TERMEKADATInput">
+				<xsd:complexType>
+					<xsd:sequence>
+						<xsd:element name="NID-NUMBER-IN" type="xsd:double"/>
+					</xsd:sequence>
+				</xsd:complexType>
+			</xsd:element>
+			<xsd:element name="TERMEKADATOutput">
+				<xsd:complexType>
+					<xsd:sequence>
+						<xsd:element name="RETURN" type="tns:OBJTERMEKADATType"/>
+					</xsd:sequence>
+				</xsd:complexType>
+			</xsd:element>
+			<xsd:element name="COBJEUPONT-TAMOGATEUPONTInput">
+				<xsd:complexType>
+					<xsd:sequence>
+						<xsd:element name="NID-NUMBER-IN" type="xsd:double"/>
+					</xsd:sequence>
+				</xsd:complexType>
+			</xsd:element>
+			<xsd:element name="TAMOGATEUPONTOutput">
+				<xsd:complexType>
+					<xsd:sequence>
+						<xsd:element name="RETURN" type="tns:OBJEUPONTType"/>
+					</xsd:sequence>
+				</xsd:complexType>
+			</xsd:element>
+			<xsd:element name="COBJTAMOGAT-TAMOGATADATInput">
+				<xsd:complexType>
+					<xsd:sequence>
+						<xsd:element name="DSP-DATE-IN" type="xsd:date"/>
+						<xsd:element name="NID-NUMBER-IN" type="xsd:double"/>
+					</xsd:sequence>
+				</xsd:complexType>
+			</xsd:element>
+			<xsd:element name="TAMOGATADATOutput">
+				<xsd:complexType>
+					<xsd:sequence>
+						<xsd:element name="RETURN" type="tns:OBJTAMOGATType"/>
+					</xsd:sequence>
+				</xsd:complexType>
+			</xsd:element>
+			<xsd:element name="COBJALAP-TABOSZAKKEPInput">
+				<xsd:complexType>
+					<xsd:sequence>
+						<xsd:element name="SXFILTER-VARCHAR2-IN" type="xsd:string"/>
+					</xsd:sequence>
+				</xsd:complexType>
+			</xsd:element>
+			<xsd:element name="TABOSZAKKEPOutput">
+				<xsd:complexType>
+					<xsd:sequence>
+						<xsd:element name="RETURN" type="tns:OBJALAPType"/>
+					</xsd:sequence>
+				</xsd:complexType>
+			</xsd:element>
+			<xsd:element name="COBJALAP2-TABORVKEPInput">
+				<xsd:complexType>
+					<xsd:sequence>
+						<xsd:element name="SXFILTER-VARCHAR2-IN" type="xsd:string"/>
+					</xsd:sequence>
+				</xsd:complexType>
+			</xsd:element>
+			<xsd:element name="TABORVKEPOutput">
+				<xsd:complexType>
+					<xsd:sequence>
+						<xsd:element name="RETURN" type="tns:OBJALAP2Type"/>
+					</xsd:sequence>
+				</xsd:complexType>
+			</xsd:element>
+			<xsd:element name="COBJALAP-TABNICHEInput">
+				<xsd:complexType>
+					<xsd:sequence>
+						<xsd:element name="SXFILTER-VARCHAR2-IN" type="xsd:string"/>
+					</xsd:sequence>
+				</xsd:complexType>
+			</xsd:element>
+			<xsd:element name="TABNICHEOutput">
+				<xsd:complexType>
+					<xsd:sequence>
+						<xsd:element name="RETURN" type="tns:OBJALAPType"/>
+					</xsd:sequence>
+				</xsd:complexType>
+			</xsd:element>
+			<xsd:element name="COBJALAP-TABKIINTORInput">
+				<xsd:complexType>
+					<xsd:sequence>
+						<xsd:element name="SXFILTER-VARCHAR2-IN" type="xsd:string"/>
+					</xsd:sequence>
+				</xsd:complexType>
+			</xsd:element>
+			<xsd:element name="TABKIINTOROutput">
+				<xsd:complexType>
+					<xsd:sequence>
+						<xsd:element name="RETURN" type="tns:OBJALAPType"/>
+					</xsd:sequence>
+				</xsd:complexType>
+			</xsd:element>
+			<xsd:element name="COBJALAP-TABISOInput">
+				<xsd:complexType>
+					<xsd:sequence>
+						<xsd:element name="SXFILTER-VARCHAR2-IN" type="xsd:string"/>
+					</xsd:sequence>
+				</xsd:complexType>
+			</xsd:element>
+			<xsd:element name="TABISOOutput">
+				<xsd:complexType>
+					<xsd:sequence>
+						<xsd:element name="RETURN" type="tns:OBJALAPType"/>
+					</xsd:sequence>
+				</xsd:complexType>
+			</xsd:element>
+			<xsd:element name="COBJALAP-TABCEGEKInput">
+				<xsd:complexType>
+					<xsd:sequence>
+						<xsd:element name="SXFILTER-VARCHAR2-IN" type="xsd:string"/>
+					</xsd:sequence>
+				</xsd:complexType>
+			</xsd:element>
+			<xsd:element name="TABCEGEKOutput">
+				<xsd:complexType>
+					<xsd:sequence>
+						<xsd:element name="RETURN" type="tns:OBJALAPType"/>
+					</xsd:sequence>
+				</xsd:complexType>
+			</xsd:element>
+			<xsd:element name="COBJALAP-TABBRANDInput">
+				<xsd:complexType>
+					<xsd:sequence>
+						<xsd:element name="SXFILTER-VARCHAR2-IN" type="xsd:string"/>
+					</xsd:sequence>
+				</xsd:complexType>
+			</xsd:element>
+			<xsd:element name="TABBRANDOutput">
+				<xsd:complexType>
+					<xsd:sequence>
+						<xsd:element name="RETURN" type="tns:OBJALAPType"/>
+					</xsd:sequence>
+				</xsd:complexType>
+			</xsd:element>
+			<xsd:element name="COBJALAP-TABBNOInput">
+				<xsd:complexType>
+					<xsd:sequence>
+						<xsd:element name="SXFILTER-VARCHAR2-IN" type="xsd:string"/>
+					</xsd:sequence>
+				</xsd:complexType>
+			</xsd:element>
+			<xsd:element name="TABBNOOutput">
+				<xsd:complexType>
+					<xsd:sequence>
+						<xsd:element name="RETURN" type="tns:OBJALAPType"/>
+					</xsd:sequence>
+				</xsd:complexType>
+			</xsd:element>
+			<xsd:element name="COBJALAP-TABATCInput">
+				<xsd:complexType>
+					<xsd:sequence>
+						<xsd:element name="SXFILTER-VARCHAR2-IN" type="xsd:string"/>
+					</xsd:sequence>
+				</xsd:complexType>
+			</xsd:element>
+			<xsd:element name="TABATCOutput">
+				<xsd:complexType>
+					<xsd:sequence>
+						<xsd:element name="RETURN" type="tns:OBJALAPType"/>
+					</xsd:sequence>
+				</xsd:complexType>
+			</xsd:element>
+			<xsd:element name="COBJKIHIRD-KIHIRDInput">
+				<xsd:complexType>
+					<xsd:sequence>
+						<xsd:element name="DSTART-DATE-IN" type="xsd:date"/>
+					</xsd:sequence>
+				</xsd:complexType>
+			</xsd:element>
+			<xsd:element name="KIHIRDOutput">
+				<xsd:complexType>
+					<xsd:sequence>
+						<xsd:element name="RETURN" type="tns:OBJKIHIRDType"/>
+					</xsd:sequence>
+				</xsd:complexType>
+			</xsd:element>
+			<xsd:element name="COBJIDLISTA-INKVALTInput">
+				<xsd:complexType>
+					<xsd:sequence>
+						<xsd:element name="DSP1-DATE-IN" type="xsd:date"/>
+						<xsd:element name="DSP2-DATE-IN" type="xsd:date"/>
+						<xsd:element name="SXFILTER-VARCHAR2-IN" type="xsd:string"/>
+					</xsd:sequence>
+				</xsd:complexType>
+			</xsd:element>
+			<xsd:element name="INKVALTOutput">
+				<xsd:complexType>
+					<xsd:sequence>
+						<xsd:element name="RETURN" type="tns:OBJIDLISTAType"/>
+					</xsd:sequence>
+				</xsd:complexType>
+			</xsd:element>
+			<xsd:element name="COBJDISP-DISP_INFInput">
+				<xsd:complexType>
+					<xsd:sequence>
+						<xsd:element name="DSP-DATE-IN" type="xsd:date"/>
+						<xsd:element name="SXFILTER-VARCHAR2-IN" type="xsd:string"/>
+					</xsd:sequence>
+				</xsd:complexType>
+			</xsd:element>
+			<xsd:element name="DISP_INFOutput">
+				<xsd:complexType>
+					<xsd:sequence>
+						<xsd:element name="RETURN" type="tns:OBJDISPType"/>
+					</xsd:sequence>
+				</xsd:complexType>
+			</xsd:element>
+			<xsd:element name="COBJDISP-DISP_DIFFInput">
+				<xsd:complexType>
+					<xsd:sequence>
+						<xsd:element name="DSP1-DATE-IN" type="xsd:date"/>
+						<xsd:element name="DSP2-DATE-IN" type="xsd:date"/>
+						<xsd:element name="SXFILTER-VARCHAR2-IN" type="xsd:string"/>
+					</xsd:sequence>
+				</xsd:complexType>
+			</xsd:element>
+			<xsd:element name="DISP_DIFFOutput">
+				<xsd:complexType>
+					<xsd:sequence>
+						<xsd:element name="RETURN" type="tns:OBJDISPType"/>
+					</xsd:sequence>
+				</xsd:complexType>
+			</xsd:element>
+			<xsd:complexType name="OBJIDLISTAType">
+				<xsd:sequence>
+					<xsd:element name="OBJIDLISTA">
+						<xsd:complexType>
+							<xsd:sequence>
+								<xsd:element name="SP">
+									<xsd:simpleType>
+										<xsd:restriction base="xsd:string">
+											<xsd:maxLength value="10"/>
+										</xsd:restriction>
+									</xsd:simpleType>
+								</xsd:element>
+								<xsd:element name="SZURO">
+									<xsd:simpleType>
+										<xsd:restriction base="xsd:string">
+											<xsd:maxLength value="2000"/>
+										</xsd:restriction>
+									</xsd:simpleType>
+								</xsd:element>
+								<xsd:element name="IDLIST">
+									<xsd:complexType>
+										<xsd:sequence>
+											<xsd:element name="OBJSTRING256" type="tns:OBJSTRING256_IntType" maxOccurs="unbounded" minOccurs="0"/>
+										</xsd:sequence>
+									</xsd:complexType>
+								</xsd:element>
+							</xsd:sequence>
+						</xsd:complexType>
+					</xsd:element>
+				</xsd:sequence>
+			</xsd:complexType>
+			<xsd:complexType name="OBJSTRING256_IntType">
+				<xsd:sequence>
+					<xsd:element name="SZOVEG">
+						<xsd:simpleType>
+							<xsd:restriction base="xsd:string">
+								<xsd:maxLength value="256"/>
+							</xsd:restriction>
+						</xsd:simpleType>
+					</xsd:element>
+				</xsd:sequence>
+			</xsd:complexType>
+			<xsd:complexType name="OBJTERMEKADATType">
+				<xsd:sequence>
+					<xsd:element name="OBJTERMEKADAT">
+						<xsd:complexType>
+							<xsd:sequence>
+								<xsd:element name="ID" type="xsd:double"/>
+								<xsd:element name="PARENT_ID" type="xsd:double"/>
+								<xsd:element name="ERV_KEZD" type="xsd:date"/>
+								<xsd:element name="ERV_VEGE" type="xsd:date"/>
+								<xsd:element name="TERMEKKOD">
+									<xsd:simpleType>
+										<xsd:restriction base="xsd:string">
+											<xsd:maxLength value="3"/>
+										</xsd:restriction>
+									</xsd:simpleType>
+								</xsd:element>
+								<xsd:element name="KOZHID" type="xsd:double"/>
+								<xsd:element name="TTT">
+									<xsd:simpleType>
+										<xsd:restriction base="xsd:string">
+											<xsd:maxLength value="9"/>
+										</xsd:restriction>
+									</xsd:simpleType>
+								</xsd:element>
+								<xsd:element name="TK">
+									<xsd:simpleType>
+										<xsd:restriction base="xsd:string">
+											<xsd:maxLength value="64"/>
+										</xsd:restriction>
+									</xsd:simpleType>
+								</xsd:element>
+								<xsd:element name="TKTORLES">
+									<xsd:simpleType>
+										<xsd:restriction base="xsd:string">
+											<xsd:maxLength value="2"/>
+										</xsd:restriction>
+									</xsd:simpleType>
+								</xsd:element>
+								<xsd:element name="TKTORLESDAT" type="xsd:date"/>
+								<xsd:element name="EANKOD">
+									<xsd:simpleType>
+										<xsd:restriction base="xsd:string">
+											<xsd:maxLength value="13"/>
+										</xsd:restriction>
+									</xsd:simpleType>
+								</xsd:element>
+								<xsd:element name="BRAND_ID" type="xsd:double"/>
+								<xsd:element name="NEV">
+									<xsd:simpleType>
+										<xsd:restriction base="xsd:string">
+											<xsd:maxLength value="255"/>
+										</xsd:restriction>
+									</xsd:simpleType>
+								</xsd:element>
+								<xsd:element name="KISZNEV">
+									<xsd:simpleType>
+										<xsd:restriction base="xsd:string">
+											<xsd:maxLength value="255"/>
+										</xsd:restriction>
+									</xsd:simpleType>
+								</xsd:element>
+								<xsd:element name="ATC">
+									<xsd:simpleType>
+										<xsd:restriction base="xsd:string">
+											<xsd:maxLength value="7"/>
+										</xsd:restriction>
+									</xsd:simpleType>
+								</xsd:element>
+								<xsd:element name="ISO">
+									<xsd:simpleType>
+										<xsd:restriction base="xsd:string">
+											<xsd:maxLength value="15"/>
+										</xsd:restriction>
+									</xsd:simpleType>
+								</xsd:element>
+								<xsd:element name="HATOANYAG">
+									<xsd:simpleType>
+										<xsd:restriction base="xsd:string">
+											<xsd:maxLength value="128"/>
+										</xsd:restriction>
+									</xsd:simpleType>
+								</xsd:element>
+								<xsd:element name="ADAGMOD">
+									<xsd:simpleType>
+										<xsd:restriction base="xsd:string">
+											<xsd:maxLength value="32"/>
+										</xsd:restriction>
+									</xsd:simpleType>
+								</xsd:element>
+								<xsd:element name="GYFORMA">
+									<xsd:simpleType>
+										<xsd:restriction base="xsd:string">
+											<xsd:maxLength value="128"/>
+										</xsd:restriction>
+									</xsd:simpleType>
+								</xsd:element>
+								<xsd:element name="RENDELHET">
+									<xsd:simpleType>
+										<xsd:restriction base="xsd:string">
+											<xsd:maxLength value="3"/>
+										</xsd:restriction>
+									</xsd:simpleType>
+								</xsd:element>
+								<xsd:element name="EGYEN_ID" type="xsd:double"/>
+								<xsd:element name="HELYETTESITH" type="xsd:double"/>
+								<xsd:element name="POTENCIA">
+									<xsd:simpleType>
+										<xsd:restriction base="xsd:string">
+											<xsd:maxLength value="64"/>
+										</xsd:restriction>
+									</xsd:simpleType>
+								</xsd:element>
+								<xsd:element name="OHATO_MENNY" type="xsd:double"/>
+								<xsd:element name="HATO_MENNY" type="xsd:double"/>
+								<xsd:element name="HATO_EGYS">
+									<xsd:simpleType>
+										<xsd:restriction base="xsd:string">
+											<xsd:maxLength value="50"/>
+										</xsd:restriction>
+									</xsd:simpleType>
+								</xsd:element>
+								<xsd:element name="KISZ_MENNY" type="xsd:double"/>
+								<xsd:element name="KISZ_EGYS">
+									<xsd:simpleType>
+										<xsd:restriction base="xsd:string">
+											<xsd:maxLength value="50"/>
+										</xsd:restriction>
+									</xsd:simpleType>
+								</xsd:element>
+								<xsd:element name="DDD_MENNY" type="xsd:double"/>
+								<xsd:element name="DDD_EGYS">
+									<xsd:simpleType>
+										<xsd:restriction base="xsd:string">
+											<xsd:maxLength value="50"/>
+										</xsd:restriction>
+									</xsd:simpleType>
+								</xsd:element>
+								<xsd:element name="DDD_FAKTOR" type="xsd:double"/>
+								<xsd:element name="DOT" type="xsd:double"/>
+								<xsd:element name="ADAG_MENNY" type="xsd:double"/>
+								<xsd:element name="ADAG_EGYS">
+									<xsd:simpleType>
+										<xsd:restriction base="xsd:string">
+											<xsd:maxLength value="50"/>
+										</xsd:restriction>
+									</xsd:simpleType>
+								</xsd:element>
+								<xsd:element name="EGYEDI" type="xsd:double"/>
+								<xsd:element name="OLDALISAG" type="xsd:double"/>
+								<xsd:element name="TOBBLGAR" type="xsd:double"/>
+								<xsd:element name="PATIKA">
+									<xsd:simpleType>
+										<xsd:restriction base="xsd:string">
+											<xsd:maxLength value="1"/>
+										</xsd:restriction>
+									</xsd:simpleType>
+								</xsd:element>
+								<xsd:element name="DOBAZON" type="xsd:double"/>
+								<xsd:element name="KERESZTJELZES">
+									<xsd:simpleType>
+										<xsd:restriction base="xsd:string">
+											<xsd:maxLength value="32"/>
+										</xsd:restriction>
+									</xsd:simpleType>
+								</xsd:element>
+								<xsd:element name="FORGENGT_ID" type="xsd:double"/>
+								<xsd:element name="FORGALMAZ_ID" type="xsd:double"/>
+								<xsd:element name="FORGALOMBAN" type="xsd:double"/>
+							</xsd:sequence>
+						</xsd:complexType>
+					</xsd:element>
+				</xsd:sequence>
+			</xsd:complexType>
+			<xsd:complexType name="OBJEUPONTType">
+				<xsd:sequence>
+					<xsd:element name="OBJEUPONT">
+						<xsd:complexType>
+							<xsd:sequence>
+								<xsd:element name="ID" type="xsd:double"/>
+								<xsd:element name="PONTSZAM" type="xsd:double"/>
+								<xsd:element name="PERJELZES">
+									<xsd:simpleType>
+										<xsd:restriction base="xsd:string">
+											<xsd:maxLength value="32"/>
+										</xsd:restriction>
+									</xsd:simpleType>
+								</xsd:element>
+								<xsd:element name="FELIRAS">
+									<xsd:simpleType>
+										<xsd:restriction base="xsd:string">
+											<xsd:maxLength value="4000"/>
+										</xsd:restriction>
+									</xsd:simpleType>
+								</xsd:element>
+								<xsd:element name="MEGJEGYZES">
+									<xsd:simpleType>
+										<xsd:restriction base="xsd:string">
+											<xsd:maxLength value="4000"/>
+										</xsd:restriction>
+									</xsd:simpleType>
+								</xsd:element>
+								<xsd:element name="INDIKACIOK">
+									<xsd:complexType>
+										<xsd:sequence>
+											<xsd:element name="OBJINDIKACIO" type="tns:OBJINDIKACIO_IntType" maxOccurs="unbounded" minOccurs="0"/>
+										</xsd:sequence>
+									</xsd:complexType>
+								</xsd:element>
+								<xsd:element name="FELIRBNO">
+									<xsd:complexType>
+										<xsd:sequence>
+											<xsd:element name="OBJSTRING256" type="tns:OBJSTRING256_IntType" maxOccurs="unbounded" minOccurs="0"/>
+										</xsd:sequence>
+									</xsd:complexType>
+								</xsd:element>
+								<xsd:element name="FELIRHAT">
+									<xsd:complexType>
+										<xsd:sequence>
+											<xsd:element name="OBJFELIRHATOSAG" type="tns:OBJFELIRHATOSAG_IntType" maxOccurs="unbounded" minOccurs="0"/>
+										</xsd:sequence>
+									</xsd:complexType>
+								</xsd:element>
+							</xsd:sequence>
+						</xsd:complexType>
+					</xsd:element>
+				</xsd:sequence>
+			</xsd:complexType>
+			<xsd:complexType name="OBJINDIKACIO_IntType">
+				<xsd:sequence>
+					<xsd:element name="NDX" type="xsd:double"/>
+					<xsd:element name="LEIRAS">
+						<xsd:simpleType>
+							<xsd:restriction base="xsd:string">
+								<xsd:maxLength value="4000"/>
+							</xsd:restriction>
+						</xsd:simpleType>
+					</xsd:element>
+				</xsd:sequence>
+			</xsd:complexType>
+			<xsd:complexType name="OBJFELIRHATOSAG_IntType">
+				<xsd:sequence>
+					<xsd:element name="KATEGORIA_ID" type="xsd:double"/>
+					<xsd:element name="JOGOSULT_ID" type="xsd:double"/>
+					<xsd:element name="JIDOKORLAT" type="xsd:double"/>
+					<xsd:element name="SZAKVKOD" type="xsd:double"/>
+					<xsd:element name="KIINT_ID" type="xsd:double"/>
+				</xsd:sequence>
+			</xsd:complexType>
+			<xsd:complexType name="OBJTAMOGATType">
+				<xsd:sequence>
+					<xsd:element name="OBJTAMOGAT">
+						<xsd:complexType>
+							<xsd:sequence>
+								<xsd:element name="ID" type="xsd:double"/>
+								<xsd:element name="TERMEK_ID" type="xsd:double"/>
+								<xsd:element name="ERV_KEZD" type="xsd:date"/>
+								<xsd:element name="ERV_VEGE" type="xsd:date"/>
+								<xsd:element name="TERMAR" type="xsd:double"/>
+								<xsd:element name="NKAR" type="xsd:double"/>
+								<xsd:element name="FAN" type="xsd:double"/>
+								<xsd:element name="FAB" type="xsd:double"/>
+								<xsd:element name="MAXFAB" type="xsd:double"/>
+								<xsd:element name="AFA" type="xsd:double"/>
+								<xsd:element name="NTK" type="xsd:double"/>
+								<xsd:element name="EGYSEGAR" type="xsd:double"/>
+								<xsd:element name="BESOROLAS" type="xsd:double"/>
+								<xsd:element name="PRAS_TERMEK" type="xsd:double"/>
+								<xsd:element name="NICHE_ID" type="xsd:double"/>
+								<xsd:element name="KEST_TERM" type="xsd:double"/>
+								<xsd:element name="KGYKERET" type="xsd:double"/>
+								<xsd:element name="KULONL100">
+									<xsd:simpleType>
+										<xsd:restriction base="xsd:string">
+											<xsd:maxLength value="8"/>
+										</xsd:restriction>
+									</xsd:simpleType>
+								</xsd:element>
+								<xsd:element name="TAMOGATASOK">
+									<xsd:complexType>
+										<xsd:sequence>
+											<xsd:element name="OBJKATEGTAM" type="tns:OBJKATEGTAM_IntType" maxOccurs="unbounded" minOccurs="0"/>
+										</xsd:sequence>
+									</xsd:complexType>
+								</xsd:element>
+							</xsd:sequence>
+						</xsd:complexType>
+					</xsd:element>
+				</xsd:sequence>
+			</xsd:complexType>
+			<xsd:complexType name="OBJKATEGTAM_IntType">
+				<xsd:sequence>
+					<xsd:element name="ID" type="xsd:double"/>
+					<xsd:element name="KATEGORIA">
+						<xsd:simpleType>
+							<xsd:restriction base="xsd:string">
+								<xsd:maxLength value="1"/>
+							</xsd:restriction>
+						</xsd:simpleType>
+					</xsd:element>
+					<xsd:element name="TAMTECHN">
+						<xsd:simpleType>
+							<xsd:restriction base="xsd:string">
+								<xsd:maxLength value="8"/>
+							</xsd:restriction>
+						</xsd:simpleType>
+					</xsd:element>
+					<xsd:element name="KGYIRHATO" type="xsd:double"/>
+					<xsd:element name="MIN_ELETKOR" type="xsd:double"/>
+					<xsd:element name="MAX_ELETKOR" type="xsd:double"/>
+					<xsd:element name="NEM" type="xsd:double"/>
+					<xsd:element name="TAMSZAZ" type="xsd:double"/>
+					<xsd:element name="FIX_ID" type="xsd:double"/>
+					<xsd:element name="REFNTK" type="xsd:double"/>
+					<xsd:element name="NTAM" type="xsd:double"/>
+					<xsd:element name="BTAM" type="xsd:double"/>
+					<xsd:element name="TERDIJ" type="xsd:double"/>
+					<xsd:element name="NTKTD" type="xsd:double"/>
+					<xsd:element name="MIHAID" type="xsd:double"/>
+					<xsd:element name="MIHACEL" type="xsd:double"/>
+					<xsd:element name="MIHASTAT" type="xsd:double"/>
+					<xsd:element name="KIHI">
+						<xsd:simpleType>
+							<xsd:restriction base="xsd:string">
+								<xsd:maxLength value="10"/>
+							</xsd:restriction>
+						</xsd:simpleType>
+					</xsd:element>
+					<xsd:element name="FELME">
+						<xsd:simpleType>
+							<xsd:restriction base="xsd:string">
+								<xsd:maxLength value="10"/>
+							</xsd:restriction>
+						</xsd:simpleType>
+					</xsd:element>
+					<xsd:element name="EUPONTAZON">
+						<xsd:complexType>
+							<xsd:sequence>
+								<xsd:element name="OBJSTRING256" type="tns:OBJSTRING256_IntType" maxOccurs="unbounded" minOccurs="0"/>
+							</xsd:sequence>
+						</xsd:complexType>
+					</xsd:element>
+					<xsd:element name="OFFLABEL">
+						<xsd:complexType>
+							<xsd:sequence>
+								<xsd:element name="OBJSTRING256" type="tns:OBJSTRING256_IntType" maxOccurs="unbounded" minOccurs="0"/>
+							</xsd:sequence>
+						</xsd:complexType>
+					</xsd:element>
+				</xsd:sequence>
+			</xsd:complexType>
+			<xsd:complexType name="OBJALAPType">
+				<xsd:sequence>
+					<xsd:element name="OBJALAP">
+						<xsd:complexType>
+							<xsd:sequence>
+								<xsd:element name="SZURO">
+									<xsd:simpleType>
+										<xsd:restriction base="xsd:string">
+											<xsd:maxLength value="256"/>
+										</xsd:restriction>
+									</xsd:simpleType>
+								</xsd:element>
+								<xsd:element name="REKORDOK">
+									<xsd:complexType>
+										<xsd:sequence>
+											<xsd:element name="OBJKODTABLA" type="tns:OBJKODTABLA_IntType" maxOccurs="unbounded" minOccurs="0"/>
+										</xsd:sequence>
+									</xsd:complexType>
+								</xsd:element>
+							</xsd:sequence>
+						</xsd:complexType>
+					</xsd:element>
+				</xsd:sequence>
+			</xsd:complexType>
+			<xsd:complexType name="OBJKODTABLA_IntType">
+				<xsd:sequence>
+					<xsd:element name="KOD">
+						<xsd:simpleType>
+							<xsd:restriction base="xsd:string">
+								<xsd:maxLength value="64"/>
+							</xsd:restriction>
+						</xsd:simpleType>
+					</xsd:element>
+					<xsd:element name="ELNEVEZ">
+						<xsd:simpleType>
+							<xsd:restriction base="xsd:string">
+								<xsd:maxLength value="2000"/>
+							</xsd:restriction>
+						</xsd:simpleType>
+					</xsd:element>
+					<xsd:element name="MEGJEGYZ">
+						<xsd:simpleType>
+							<xsd:restriction base="xsd:string">
+								<xsd:maxLength value="2000"/>
+							</xsd:restriction>
+						</xsd:simpleType>
+					</xsd:element>
+				</xsd:sequence>
+			</xsd:complexType>
+			<xsd:complexType name="OBJALAP2Type">
+				<xsd:sequence>
+					<xsd:element name="OBJALAP2">
+						<xsd:complexType>
+							<xsd:sequence>
+								<xsd:element name="SZURO">
+									<xsd:simpleType>
+										<xsd:restriction base="xsd:string">
+											<xsd:maxLength value="256"/>
+										</xsd:restriction>
+									</xsd:simpleType>
+								</xsd:element>
+								<xsd:element name="REKORDOK">
+									<xsd:complexType>
+										<xsd:sequence>
+											<xsd:element name="OBJKODTABLA2" type="tns:OBJKODTABLA2_IntType" maxOccurs="unbounded" minOccurs="0"/>
+										</xsd:sequence>
+									</xsd:complexType>
+								</xsd:element>
+							</xsd:sequence>
+						</xsd:complexType>
+					</xsd:element>
+				</xsd:sequence>
+			</xsd:complexType>
+			<xsd:complexType name="OBJKODTABLA2_IntType">
+				<xsd:sequence>
+					<xsd:element name="KOD">
+						<xsd:simpleType>
+							<xsd:restriction base="xsd:string">
+								<xsd:maxLength value="64"/>
+							</xsd:restriction>
+						</xsd:simpleType>
+					</xsd:element>
+					<xsd:element name="ELNEVEZ">
+						<xsd:simpleType>
+							<xsd:restriction base="xsd:string">
+								<xsd:maxLength value="2000"/>
+							</xsd:restriction>
+						</xsd:simpleType>
+					</xsd:element>
+					<xsd:element name="MEGJEGYZ">
+						<xsd:simpleType>
+							<xsd:restriction base="xsd:string">
+								<xsd:maxLength value="2000"/>
+							</xsd:restriction>
+						</xsd:simpleType>
+					</xsd:element>
+					<xsd:element name="KIEGINFO">
+						<xsd:simpleType>
+							<xsd:restriction base="xsd:string">
+								<xsd:maxLength value="200"/>
+							</xsd:restriction>
+						</xsd:simpleType>
+					</xsd:element>
+				</xsd:sequence>
+			</xsd:complexType>
+			<xsd:complexType name="OBJKIHIRDType">
+				<xsd:sequence>
+					<xsd:element name="OBJKIHIRD">
+						<xsd:complexType>
+							<xsd:sequence>
+								<xsd:element name="KEZDET">
+									<xsd:simpleType>
+										<xsd:restriction base="xsd:string">
+											<xsd:maxLength value="10"/>
+										</xsd:restriction>
+									</xsd:simpleType>
+								</xsd:element>
+								<xsd:element name="KIHIRDETESEK">
+									<xsd:complexType>
+										<xsd:sequence>
+											<xsd:element name="OBJKIHIRDELEM" type="tns:OBJKIHIRDELEM_IntType" maxOccurs="unbounded" minOccurs="0"/>
+										</xsd:sequence>
+									</xsd:complexType>
+								</xsd:element>
+							</xsd:sequence>
+						</xsd:complexType>
+					</xsd:element>
+				</xsd:sequence>
+			</xsd:complexType>
+			<xsd:complexType name="OBJKIHIRDELEM_IntType">
+				<xsd:sequence>
+					<xsd:element name="ELETBELEP" type="xsd:date"/>
+					<xsd:element name="STATUS">
+						<xsd:simpleType>
+							<xsd:restriction base="xsd:string">
+								<xsd:length value="1"/>
+							</xsd:restriction>
+						</xsd:simpleType>
+					</xsd:element>
+					<xsd:element name="VER" type="xsd:double"/>
+				</xsd:sequence>
+			</xsd:complexType>
+			<xsd:complexType name="OBJDISPType">
+				<xsd:sequence>
+					<xsd:element name="OBJDISP">
+						<xsd:complexType>
+							<xsd:sequence>
+								<xsd:element name="SP">
+									<xsd:simpleType>
+										<xsd:restriction base="xsd:string">
+											<xsd:maxLength value="10"/>
+										</xsd:restriction>
+									</xsd:simpleType>
+								</xsd:element>
+								<xsd:element name="SZURO">
+									<xsd:simpleType>
+										<xsd:restriction base="xsd:string">
+											<xsd:maxLength value="2000"/>
+										</xsd:restriction>
+									</xsd:simpleType>
+								</xsd:element>
+								<xsd:element name="REKORDSZAM" type="xsd:double"/>
+								<xsd:element name="ADATOK">
+									<xsd:complexType>
+										<xsd:sequence>
+											<xsd:element name="OBJDISPINF" type="tns:OBJDISPINF_IntType" maxOccurs="unbounded" minOccurs="0"/>
+										</xsd:sequence>
+									</xsd:complexType>
+								</xsd:element>
+							</xsd:sequence>
+						</xsd:complexType>
+					</xsd:element>
+				</xsd:sequence>
+			</xsd:complexType>
+			<xsd:complexType name="OBJDISPINF_IntType">
+				<xsd:sequence>
+					<xsd:element name="TERMEKADAT" type="tns:OBJTERMEKADAT_IntType"/>
+					<xsd:element name="TAMADAT" type="tns:OBJTAMOGAT_IntType"/>
+					<xsd:element name="EUPONTSTR">
+						<xsd:simpleType>
+							<xsd:restriction base="xsd:string">
+								<xsd:maxLength value="2000"/>
+							</xsd:restriction>
+						</xsd:simpleType>
+					</xsd:element>
+					<xsd:element name="FORGENGJOG">
+						<xsd:simpleType>
+							<xsd:restriction base="xsd:string">
+								<xsd:maxLength value="255"/>
+							</xsd:restriction>
+						</xsd:simpleType>
+					</xsd:element>
+					<xsd:element name="FORGALMAZO">
+						<xsd:simpleType>
+							<xsd:restriction base="xsd:string">
+								<xsd:maxLength value="255"/>
+							</xsd:restriction>
+						</xsd:simpleType>
+					</xsd:element>
+				</xsd:sequence>
+			</xsd:complexType>
+			<xsd:complexType name="OBJTERMEKADAT_IntType">
+				<xsd:sequence>
+					<xsd:element name="ID" type="xsd:double"/>
+					<xsd:element name="PARENT_ID" type="xsd:double"/>
+					<xsd:element name="ERV_KEZD" type="xsd:date"/>
+					<xsd:element name="ERV_VEGE" type="xsd:date"/>
+					<xsd:element name="TERMEKKOD">
+						<xsd:simpleType>
+							<xsd:restriction base="xsd:string">
+								<xsd:maxLength value="3"/>
+							</xsd:restriction>
+						</xsd:simpleType>
+					</xsd:element>
+					<xsd:element name="KOZHID" type="xsd:double"/>
+					<xsd:element name="TTT">
+						<xsd:simpleType>
+							<xsd:restriction base="xsd:string">
+								<xsd:maxLength value="9"/>
+							</xsd:restriction>
+						</xsd:simpleType>
+					</xsd:element>
+					<xsd:element name="TK">
+						<xsd:simpleType>
+							<xsd:restriction base="xsd:string">
+								<xsd:maxLength value="64"/>
+							</xsd:restriction>
+						</xsd:simpleType>
+					</xsd:element>
+					<xsd:element name="TKTORLES">
+						<xsd:simpleType>
+							<xsd:restriction base="xsd:string">
+								<xsd:maxLength value="2"/>
+							</xsd:restriction>
+						</xsd:simpleType>
+					</xsd:element>
+					<xsd:element name="TKTORLESDAT" type="xsd:date"/>
+					<xsd:element name="EANKOD">
+						<xsd:simpleType>
+							<xsd:restriction base="xsd:string">
+								<xsd:maxLength value="13"/>
+							</xsd:restriction>
+						</xsd:simpleType>
+					</xsd:element>
+					<xsd:element name="BRAND_ID" type="xsd:double"/>
+					<xsd:element name="NEV">
+						<xsd:simpleType>
+							<xsd:restriction base="xsd:string">
+								<xsd:maxLength value="255"/>
+							</xsd:restriction>
+						</xsd:simpleType>
+					</xsd:element>
+					<xsd:element name="KISZNEV">
+						<xsd:simpleType>
+							<xsd:restriction base="xsd:string">
+								<xsd:maxLength value="255"/>
+							</xsd:restriction>
+						</xsd:simpleType>
+					</xsd:element>
+					<xsd:element name="ATC">
+						<xsd:simpleType>
+							<xsd:restriction base="xsd:string">
+								<xsd:maxLength value="7"/>
+							</xsd:restriction>
+						</xsd:simpleType>
+					</xsd:element>
+					<xsd:element name="ISO">
+						<xsd:simpleType>
+							<xsd:restriction base="xsd:string">
+								<xsd:maxLength value="15"/>
+							</xsd:restriction>
+						</xsd:simpleType>
+					</xsd:element>
+					<xsd:element name="HATOANYAG">
+						<xsd:simpleType>
+							<xsd:restriction base="xsd:string">
+								<xsd:maxLength value="128"/>
+							</xsd:restriction>
+						</xsd:simpleType>
+					</xsd:element>
+					<xsd:element name="ADAGMOD">
+						<xsd:simpleType>
+							<xsd:restriction base="xsd:string">
+								<xsd:maxLength value="32"/>
+							</xsd:restriction>
+						</xsd:simpleType>
+					</xsd:element>
+					<xsd:element name="GYFORMA">
+						<xsd:simpleType>
+							<xsd:restriction base="xsd:string">
+								<xsd:maxLength value="128"/>
+							</xsd:restriction>
+						</xsd:simpleType>
+					</xsd:element>
+					<xsd:element name="RENDELHET">
+						<xsd:simpleType>
+							<xsd:restriction base="xsd:string">
+								<xsd:maxLength value="3"/>
+							</xsd:restriction>
+						</xsd:simpleType>
+					</xsd:element>
+					<xsd:element name="EGYEN_ID" type="xsd:double"/>
+					<xsd:element name="HELYETTESITH" type="xsd:double"/>
+					<xsd:element name="POTENCIA">
+						<xsd:simpleType>
+							<xsd:restriction base="xsd:string">
+								<xsd:maxLength value="64"/>
+							</xsd:restriction>
+						</xsd:simpleType>
+					</xsd:element>
+					<xsd:element name="OHATO_MENNY" type="xsd:double"/>
+					<xsd:element name="HATO_MENNY" type="xsd:double"/>
+					<xsd:element name="HATO_EGYS">
+						<xsd:simpleType>
+							<xsd:restriction base="xsd:string">
+								<xsd:maxLength value="50"/>
+							</xsd:restriction>
+						</xsd:simpleType>
+					</xsd:element>
+					<xsd:element name="KISZ_MENNY" type="xsd:double"/>
+					<xsd:element name="KISZ_EGYS">
+						<xsd:simpleType>
+							<xsd:restriction base="xsd:string">
+								<xsd:maxLength value="50"/>
+							</xsd:restriction>
+						</xsd:simpleType>
+					</xsd:element>
+					<xsd:element name="DDD_MENNY" type="xsd:double"/>
+					<xsd:element name="DDD_EGYS">
+						<xsd:simpleType>
+							<xsd:restriction base="xsd:string">
+								<xsd:maxLength value="50"/>
+							</xsd:restriction>
+						</xsd:simpleType>
+					</xsd:element>
+					<xsd:element name="DDD_FAKTOR" type="xsd:double"/>
+					<xsd:element name="DOT" type="xsd:double"/>
+					<xsd:element name="ADAG_MENNY" type="xsd:double"/>
+					<xsd:element name="ADAG_EGYS">
+						<xsd:simpleType>
+							<xsd:restriction base="xsd:string">
+								<xsd:maxLength value="50"/>
+							</xsd:restriction>
+						</xsd:simpleType>
+					</xsd:element>
+					<xsd:element name="EGYEDI" type="xsd:double"/>
+					<xsd:element name="OLDALISAG" type="xsd:double"/>
+					<xsd:element name="TOBBLGAR" type="xsd:double"/>
+					<xsd:element name="PATIKA">
+						<xsd:simpleType>
+							<xsd:restriction base="xsd:string">
+								<xsd:maxLength value="1"/>
+							</xsd:restriction>
+						</xsd:simpleType>
+					</xsd:element>
+					<xsd:element name="DOBAZON" type="xsd:double"/>
+					<xsd:element name="KERESZTJELZES">
+						<xsd:simpleType>
+							<xsd:restriction base="xsd:string">
+								<xsd:maxLength value="32"/>
+							</xsd:restriction>
+						</xsd:simpleType>
+					</xsd:element>
+					<xsd:element name="FORGENGT_ID" type="xsd:double"/>
+					<xsd:element name="FORGALMAZ_ID" type="xsd:double"/>
+					<xsd:element name="FORGALOMBAN" type="xsd:double"/>
+				</xsd:sequence>
+			</xsd:complexType>
+			<xsd:complexType name="OBJTAMOGAT_IntType">
+				<xsd:sequence>
+					<xsd:element name="ID" type="xsd:double"/>
+					<xsd:element name="TERMEK_ID" type="xsd:double"/>
+					<xsd:element name="ERV_KEZD" type="xsd:date"/>
+					<xsd:element name="ERV_VEGE" type="xsd:date"/>
+					<xsd:element name="TERMAR" type="xsd:double"/>
+					<xsd:element name="NKAR" type="xsd:double"/>
+					<xsd:element name="FAN" type="xsd:double"/>
+					<xsd:element name="FAB" type="xsd:double"/>
+					<xsd:element name="MAXFAB" type="xsd:double"/>
+					<xsd:element name="AFA" type="xsd:double"/>
+					<xsd:element name="NTK" type="xsd:double"/>
+					<xsd:element name="EGYSEGAR" type="xsd:double"/>
+					<xsd:element name="BESOROLAS" type="xsd:double"/>
+					<xsd:element name="PRAS_TERMEK" type="xsd:double"/>
+					<xsd:element name="NICHE_ID" type="xsd:double"/>
+					<xsd:element name="KEST_TERM" type="xsd:double"/>
+					<xsd:element name="KGYKERET" type="xsd:double"/>
+					<xsd:element name="KULONL100">
+						<xsd:simpleType>
+							<xsd:restriction base="xsd:string">
+								<xsd:maxLength value="8"/>
+							</xsd:restriction>
+						</xsd:simpleType>
+					</xsd:element>
+					<xsd:element name="TAMOGATASOK">
+						<xsd:complexType>
+							<xsd:sequence>
+								<xsd:element name="OBJKATEGTAM" type="tns:OBJKATEGTAM_IntType" maxOccurs="unbounded" minOccurs="0"/>
+							</xsd:sequence>
+						</xsd:complexType>
+					</xsd:element>
+				</xsd:sequence>
+			</xsd:complexType>
+		</xsd:schema>
+	</types>
+	<message name="TERMEKLISTAInputMessage">
+		<part name="parameters" element="tns:COBJIDLISTA-TERMEKLISTAInput"/>
+	</message>
+	<message name="TERMEKLISTAOutputMessage">
+		<part name="parameters" element="tns:TERMEKLISTAOutput"/>
+	</message>
+	<message name="TERMEKADATInputMessage">
+		<part name="parameters" element="tns:COBJTERMEKADAT-TERMEKADATInput"/>
+	</message>
+	<message name="TERMEKADATOutputMessage">
+		<part name="parameters" element="tns:TERMEKADATOutput"/>
+	</message>
+	<message name="TAMOGATEUPONTInputMessage">
+		<part name="parameters" element="tns:COBJEUPONT-TAMOGATEUPONTInput"/>
+	</message>
+	<message name="TAMOGATEUPONTOutputMessage">
+		<part name="parameters" element="tns:TAMOGATEUPONTOutput"/>
+	</message>
+	<message name="TAMOGATADATInputMessage">
+		<part name="parameters" element="tns:COBJTAMOGAT-TAMOGATADATInput"/>
+	</message>
+	<message name="TAMOGATADATOutputMessage">
+		<part name="parameters" element="tns:TAMOGATADATOutput"/>
+	</message>
+	<message name="TABOSZAKKEPInputMessage">
+		<part name="parameters" element="tns:COBJALAP-TABOSZAKKEPInput"/>
+	</message>
+	<message name="TABOSZAKKEPOutputMessage">
+		<part name="parameters" element="tns:TABOSZAKKEPOutput"/>
+	</message>
+	<message name="TABORVKEPInputMessage">
+		<part name="parameters" element="tns:COBJALAP2-TABORVKEPInput"/>
+	</message>
+	<message name="TABORVKEPOutputMessage">
+		<part name="parameters" element="tns:TABORVKEPOutput"/>
+	</message>
+	<message name="TABNICHEInputMessage">
+		<part name="parameters" element="tns:COBJALAP-TABNICHEInput"/>
+	</message>
+	<message name="TABNICHEOutputMessage">
+		<part name="parameters" element="tns:TABNICHEOutput"/>
+	</message>
+	<message name="TABKIINTORInputMessage">
+		<part name="parameters" element="tns:COBJALAP-TABKIINTORInput"/>
+	</message>
+	<message name="TABKIINTOROutputMessage">
+		<part name="parameters" element="tns:TABKIINTOROutput"/>
+	</message>
+	<message name="TABISOInputMessage">
+		<part name="parameters" element="tns:COBJALAP-TABISOInput"/>
+	</message>
+	<message name="TABISOOutputMessage">
+		<part name="parameters" element="tns:TABISOOutput"/>
+	</message>
+	<message name="TABCEGEKInputMessage">
+		<part name="parameters" element="tns:COBJALAP-TABCEGEKInput"/>
+	</message>
+	<message name="TABCEGEKOutputMessage">
+		<part name="parameters" element="tns:TABCEGEKOutput"/>
+	</message>
+	<message name="TABBRANDInputMessage">
+		<part name="parameters" element="tns:COBJALAP-TABBRANDInput"/>
+	</message>
+	<message name="TABBRANDOutputMessage">
+		<part name="parameters" element="tns:TABBRANDOutput"/>
+	</message>
+	<message name="TABBNOInputMessage">
+		<part name="parameters" element="tns:COBJALAP-TABBNOInput"/>
+	</message>
+	<message name="TABBNOOutputMessage">
+		<part name="parameters" element="tns:TABBNOOutput"/>
+	</message>
+	<message name="TABATCInputMessage">
+		<part name="parameters" element="tns:COBJALAP-TABATCInput"/>
+	</message>
+	<message name="TABATCOutputMessage">
+		<part name="parameters" element="tns:TABATCOutput"/>
+	</message>
+	<message name="KIHIRDInputMessage">
+		<part name="parameters" element="tns:COBJKIHIRD-KIHIRDInput"/>
+	</message>
+	<message name="KIHIRDOutputMessage">
+		<part name="parameters" element="tns:KIHIRDOutput"/>
+	</message>
+	<message name="INKVALTInputMessage">
+		<part name="parameters" element="tns:COBJIDLISTA-INKVALTInput"/>
+	</message>
+	<message name="INKVALTOutputMessage">
+		<part name="parameters" element="tns:INKVALTOutput"/>
+	</message>
+	<message name="DISP_INFInputMessage">
+		<part name="parameters" element="tns:COBJDISP-DISP_INFInput"/>
+	</message>
+	<message name="DISP_INFOutputMessage">
+		<part name="parameters" element="tns:DISP_INFOutput"/>
+	</message>
+	<message name="DISP_DIFFInputMessage">
+		<part name="parameters" element="tns:COBJDISP-DISP_DIFFInput"/>
+	</message>
+	<message name="DISP_DIFFOutputMessage">
+		<part name="parameters" element="tns:DISP_DIFFOutput"/>
+	</message>
+	<portType name="PUPHAXWSPortType">
+		<operation name="TERMEKLISTA">
+			<input message="tns:TERMEKLISTAInputMessage"/>
+			<output message="tns:TERMEKLISTAOutputMessage"/>
+		</operation>
+		<operation name="TERMEKADAT">
+			<input message="tns:TERMEKADATInputMessage"/>
+			<output message="tns:TERMEKADATOutputMessage"/>
+		</operation>
+		<operation name="TAMOGATEUPONT">
+			<input message="tns:TAMOGATEUPONTInputMessage"/>
+			<output message="tns:TAMOGATEUPONTOutputMessage"/>
+		</operation>
+		<operation name="TAMOGATADAT">
+			<input message="tns:TAMOGATADATInputMessage"/>
+			<output message="tns:TAMOGATADATOutputMessage"/>
+		</operation>
+		<operation name="TABOSZAKKEP">
+			<input message="tns:TABOSZAKKEPInputMessage"/>
+			<output message="tns:TABOSZAKKEPOutputMessage"/>
+		</operation>
+		<operation name="TABORVKEP">
+			<input message="tns:TABORVKEPInputMessage"/>
+			<output message="tns:TABORVKEPOutputMessage"/>
+		</operation>
+		<operation name="TABNICHE">
+			<input message="tns:TABNICHEInputMessage"/>
+			<output message="tns:TABNICHEOutputMessage"/>
+		</operation>
+		<operation name="TABKIINTOR">
+			<input message="tns:TABKIINTORInputMessage"/>
+			<output message="tns:TABKIINTOROutputMessage"/>
+		</operation>
+		<operation name="TABISO">
+			<input message="tns:TABISOInputMessage"/>
+			<output message="tns:TABISOOutputMessage"/>
+		</operation>
+		<operation name="TABCEGEK">
+			<input message="tns:TABCEGEKInputMessage"/>
+			<output message="tns:TABCEGEKOutputMessage"/>
+		</operation>
+		<operation name="TABBRAND">
+			<input message="tns:TABBRANDInputMessage"/>
+			<output message="tns:TABBRANDOutputMessage"/>
+		</operation>
+		<operation name="TABBNO">
+			<input message="tns:TABBNOInputMessage"/>
+			<output message="tns:TABBNOOutputMessage"/>
+		</operation>
+		<operation name="TABATC">
+			<input message="tns:TABATCInputMessage"/>
+			<output message="tns:TABATCOutputMessage"/>
+		</operation>
+		<operation name="KIHIRD">
+			<input message="tns:KIHIRDInputMessage"/>
+			<output message="tns:KIHIRDOutputMessage"/>
+		</operation>
+		<operation name="INKVALT">
+			<input message="tns:INKVALTInputMessage"/>
+			<output message="tns:INKVALTOutputMessage"/>
+		</operation>
+		<operation name="DISP_INF">
+			<input message="tns:DISP_INFInputMessage"/>
+			<output message="tns:DISP_INFOutputMessage"/>
+		</operation>
+		<operation name="DISP_DIFF">
+			<input message="tns:DISP_DIFFInputMessage"/>
+			<output message="tns:DISP_DIFFOutputMessage"/>
+		</operation>
+	</portType>
+	<binding name="PUPHAXWSBinding" type="tns:PUPHAXWSPortType">
+		<soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
+		<operation name="TERMEKLISTA">
+			<soap:operation soapAction="TERMEKLISTA"/>
+			<input>
+				<soap:body parts="parameters" use="literal"/>
+			</input>
+			<output>
+				<soap:body parts="parameters" use="literal"/>
+			</output>
+		</operation>
+		<operation name="TERMEKADAT">
+			<soap:operation soapAction="TERMEKADAT"/>
+			<input>
+				<soap:body parts="parameters" use="literal"/>
+			</input>
+			<output>
+				<soap:body parts="parameters" use="literal"/>
+			</output>
+		</operation>
+		<operation name="TAMOGATEUPONT">
+			<soap:operation soapAction="TAMOGATEUPONT"/>
+			<input>
+				<soap:body parts="parameters" use="literal"/>
+			</input>
+			<output>
+				<soap:body parts="parameters" use="literal"/>
+			</output>
+		</operation>
+		<operation name="TAMOGATADAT">
+			<soap:operation soapAction="TAMOGATADAT"/>
+			<input>
+				<soap:body parts="parameters" use="literal"/>
+			</input>
+			<output>
+				<soap:body parts="parameters" use="literal"/>
+			</output>
+		</operation>
+		<operation name="TABOSZAKKEP">
+			<soap:operation soapAction="TABOSZAKKEP"/>
+			<input>
+				<soap:body parts="parameters" use="literal"/>
+			</input>
+			<output>
+				<soap:body parts="parameters" use="literal"/>
+			</output>
+		</operation>
+		<operation name="TABORVKEP">
+			<soap:operation soapAction="TABORVKEP"/>
+			<input>
+				<soap:body parts="parameters" use="literal"/>
+			</input>
+			<output>
+				<soap:body parts="parameters" use="literal"/>
+			</output>
+		</operation>
+		<operation name="TABNICHE">
+			<soap:operation soapAction="TABNICHE"/>
+			<input>
+				<soap:body parts="parameters" use="literal"/>
+			</input>
+			<output>
+				<soap:body parts="parameters" use="literal"/>
+			</output>
+		</operation>
+		<operation name="TABKIINTOR">
+			<soap:operation soapAction="TABKIINTOR"/>
+			<input>
+				<soap:body parts="parameters" use="literal"/>
+			</input>
+			<output>
+				<soap:body parts="parameters" use="literal"/>
+			</output>
+		</operation>
+		<operation name="TABISO">
+			<soap:operation soapAction="TABISO"/>
+			<input>
+				<soap:body parts="parameters" use="literal"/>
+			</input>
+			<output>
+				<soap:body parts="parameters" use="literal"/>
+			</output>
+		</operation>
+		<operation name="TABCEGEK">
+			<soap:operation soapAction="TABCEGEK"/>
+			<input>
+				<soap:body parts="parameters" use="literal"/>
+			</input>
+			<output>
+				<soap:body parts="parameters" use="literal"/>
+			</output>
+		</operation>
+		<operation name="TABBRAND">
+			<soap:operation soapAction="TABBRAND"/>
+			<input>
+				<soap:body parts="parameters" use="literal"/>
+			</input>
+			<output>
+				<soap:body parts="parameters" use="literal"/>
+			</output>
+		</operation>
+		<operation name="TABBNO">
+			<soap:operation soapAction="TABBNO"/>
+			<input>
+				<soap:body parts="parameters" use="literal"/>
+			</input>
+			<output>
+				<soap:body parts="parameters" use="literal"/>
+			</output>
+		</operation>
+		<operation name="TABATC">
+			<soap:operation soapAction="TABATC"/>
+			<input>
+				<soap:body parts="parameters" use="literal"/>
+			</input>
+			<output>
+				<soap:body parts="parameters" use="literal"/>
+			</output>
+		</operation>
+		<operation name="KIHIRD">
+			<soap:operation soapAction="KIHIRD"/>
+			<input>
+				<soap:body parts="parameters" use="literal"/>
+			</input>
+			<output>
+				<soap:body parts="parameters" use="literal"/>
+			</output>
+		</operation>
+		<operation name="INKVALT">
+			<soap:operation soapAction="INKVALT"/>
+			<input>
+				<soap:body parts="parameters" use="literal"/>
+			</input>
+			<output>
+				<soap:body parts="parameters" use="literal"/>
+			</output>
+		</operation>
+		<operation name="DISP_INF">
+			<soap:operation soapAction="DISP_INF"/>
+			<input>
+				<soap:body parts="parameters" use="literal"/>
+			</input>
+			<output>
+				<soap:body parts="parameters" use="literal"/>
+			</output>
+		</operation>
+		<operation name="DISP_DIFF">
+			<soap:operation soapAction="DISP_DIFF"/>
+			<input>
+				<soap:body parts="parameters" use="literal"/>
+			</input>
+			<output>
+				<soap:body parts="parameters" use="literal"/>
+			</output>
+		</operation>
+	</binding>
+	<service name="PUPHAXWSService">
+		<documentation>Oracle Web Service</documentation>
+		<port name="PUPHAXWSPort" binding="tns:PUPHAXWSBinding">
+			<soap:address location="https://PUPHAX:puphax@puphax.neak.gov.hu/PUPHAXWS"/>
+		</port>
+	</service>
+</definitions>

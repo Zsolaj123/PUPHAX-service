@@ -1,0 +1,98 @@
+server:
+  port: 8080
+  servlet:
+    context-path: /
+
+spring:
+  application:
+    name: puphax-rest-api
+  
+  cache:
+    caffeine:
+      spec: maximumSize=1000,expireAfterWrite=10m
+    cache-names:
+      - puphax-drugs
+      - puphax-drug-details
+  
+  mvc:
+    pathmatch:
+      matching-strategy: ant_path_matcher
+
+# PUPHAX SOAP Service Configuration
+puphax:
+  soap:
+    endpoint-url: https://puphax.neak.gov.hu/PUPHAXWS
+    connect-timeout: 30000
+    request-timeout: 60000
+    max-connections: 20
+    max-connections-per-route: 10
+    retry:
+      max-attempts: 3
+      backoff-delay: 1000
+
+# Resilience4j Configuration
+resilience4j:
+  circuitbreaker:
+    instances:
+      puphax-service:
+        register-health-indicator: true
+        sliding-window-size: 10
+        minimum-number-of-calls: 5
+        permitted-number-of-calls-in-half-open-state: 3
+        wait-duration-in-open-state: 30s
+        failure-rate-threshold: 50
+        event-consumer-buffer-size: 10
+        record-exceptions:
+          - com.puphax.exception.PuphaxServiceException
+          - java.net.SocketTimeoutException
+          - java.net.ConnectException
+        ignore-exceptions:
+          - com.puphax.exception.PuphaxValidationException
+  
+  retry:
+    instances:
+      puphax-service:
+        max-attempts: 3
+        wait-duration: 1s
+        exponential-backoff-multiplier: 2
+        retry-exceptions:
+          - java.net.SocketTimeoutException
+          - java.net.ConnectException
+  
+  timelimiter:
+    instances:
+      puphax-service:
+        timeout-duration: 30s
+        cancel-running-future: true
+
+# Management and Monitoring
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,metrics,info,prometheus
+  endpoint:
+    health:
+      show-details: always
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+
+# Logging Configuration
+logging:
+  level:
+    com.puphax: INFO
+    org.springframework.cache: DEBUG
+    jakarta.xml.ws: WARN
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+
+# OpenAPI Documentation
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    operationsSorter: method
