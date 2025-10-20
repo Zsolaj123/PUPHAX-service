@@ -111,6 +111,11 @@ public class PuphaxSoapClient {
             try {
                 configurePort();
                 
+                // Ensure authentication is set for each request
+                BindingProvider bindingProvider = (BindingProvider) puphaxPort;
+                bindingProvider.getRequestContext().put(BindingProvider.USERNAME_PROPERTY, "PUPHAX");
+                bindingProvider.getRequestContext().put(BindingProvider.PASSWORD_PROPERTY, "puphax");
+                
                 logger.debug("Searching drugs with term='{}', manufacturer='{}', atcCode='{}'", 
                            searchTerm, manufacturer, atcCode);
                 
@@ -230,6 +235,11 @@ public class PuphaxSoapClient {
                 logger.info("Calling real PUPHAX TERMEKADAT service for drug ID: {}", numericDrugId);
                 
                 try {
+                    // Ensure authentication is set for each request
+                    BindingProvider bindingProvider = (BindingProvider) puphaxPort;
+                    bindingProvider.getRequestContext().put(BindingProvider.USERNAME_PROPERTY, "PUPHAX");
+                    bindingProvider.getRequestContext().put(BindingProvider.PASSWORD_PROPERTY, "puphax");
+                    
                     // Call the real PUPHAX service
                     TERMEKADATOutput result = puphaxPort.termekadat(input);
                     
