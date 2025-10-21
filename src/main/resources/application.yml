@@ -14,10 +14,28 @@ spring:
       - drugSearchCache
       - puphax-drugs
       - puphax-drug-details
+      - gyogyszer-kereses-cache
   
   mvc:
     pathmatch:
       matching-strategy: ant_path_matcher
+  
+  # Hungarian character encoding support
+  http:
+    encoding:
+      charset: UTF-8
+      enabled: true
+      force: true
+  
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 10MB
+  
+  # Hungarian locale support
+  web:
+    locale: hu_HU
+    locale-resolver: fixed
 
 # PUPHAX SOAP Service Configuration
 puphax:
