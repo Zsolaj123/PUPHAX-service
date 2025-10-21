@@ -1,106 +1,121 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="hu">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PUPHAX Drug Search - Test Interface</title>
-    <link rel="stylesheet" href="styles.css">
+    <title>PUPHAX Gyógyszer Kereső - Magyar Egészségügyi Adatbázis</title>
+    <link rel="stylesheet" href="puphax-style.css">
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
 </head>
 <body>
     <div class="container">
         <header>
-            <h1>🏥 PUPHAX Drug Search</h1>
-            <p>Hungarian National Health Insurance Drug Database</p>
+            <div class="header-content">
+                <h1>🏥 PUPHAX Gyógyszer Kereső</h1>
+                <p class="subtitle">Magyar Egészségügyi Nyilvántartás és Engedélyezési Központ (NEAK) adatbázis</p>
+            </div>
         </header>
 
-        <div class="search-section">
-            <form id="searchForm" class="search-form">
-                <div class="search-row">
-                    <div class="search-field">
-                        <label for="searchTerm">Drug Name *</label>
-                        <input type="text" id="searchTerm" name="term" placeholder="e.g., aspirin" required>
-                    </div>
-                    <button type="submit" class="search-button">🔍 Search</button>
-                </div>
+        <main>
+            <section class="search-section">
+                <div class="search-container">
+                    <h2>Gyógyszer Keresés</h2>
+                    <form id="gyogyszer-kereses-form" class="search-form">
+                        <div class="form-group">
+                            <label for="keresett-kifejezes">Gyógyszer neve vagy hatóanyaga *</label>
+                            <input 
+                                type="text" 
+                                id="keresett-kifejezes" 
+                                name="keresett_kifejezés" 
+                                placeholder="pl: Aspirin, paracetamol, ibuprofén..."
+                                required
+                                autocomplete="off"
+                            >
+                            <small class="help-text">Írja be a gyógyszer nevét vagy a hatóanyag megnevezését</small>
+                        </div>
 
-                <div class="filters-row">
-                    <div class="filter-field">
-                        <label for="manufacturer">Manufacturer</label>
-                        <input type="text" id="manufacturer" name="manufacturer" placeholder="e.g., Bayer">
+                        <div class="form-group">
+                            <label for="gyarto">Gyártó (opcionális)</label>
+                            <input 
+                                type="text" 
+                                id="gyarto" 
+                                name="gyarto" 
+                                placeholder="pl: Richter Gedeon, Teva, Egis..."
+                                autocomplete="off"
+                            >
+                        </div>
+
+                        <div class="form-group">
+                            <label for="atc-kod">ATC kód (opcionális)</label>
+                            <input 
+                                type="text" 
+                                id="atc-kod" 
+                                name="atc_kod" 
+                                placeholder="pl: N02BA01, C09AA01..."
+                                pattern="[A-Z][0-9]{2}[A-Z]{2}[0-9]{2}"
+                                title="ATC kód formátuma: betű + 2 szám + 2 betű + 2 szám (pl: N02BA01)"
+                                autocomplete="off"
+                            >
+                            <small class="help-text">Anatómiai Terápiás Kémiai osztályozási kód</small>
+                        </div>
+
+                        <div class="form-actions">
+                            <button type="submit" class="btn btn-primary" id="kereses-gomb">
+                                <span class="btn-text">🔍 Keresés</span>
+                                <span class="btn-loader" style="display: none;">⏳ Keresés...</span>
+                            </button>
+                            <button type="reset" class="btn btn-secondary" id="torlese-gomb">
+                                🗑️ Törlés
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </section>
+
+            <section class="results-section" id="eredmenyek-szekcio" style="display: none;">
+                <div class="results-container">
+                    <div class="results-header">
+                        <h3 id="eredmenyek-cim">Keresési eredmények</h3>
+                        <div class="results-info" id="eredmenyek-info"></div>
                     </div>
-                    <div class="filter-field">
-                        <label for="atcCode">ATC Code</label>
-                        <input type="text" id="atcCode" name="atcCode" placeholder="e.g., N02BA01" pattern="^[A-Z][0-9]{2}[A-Z]{2}[0-9]{2}$">
+                    
+                    <div class="results-content" id="eredmenyek-tartalom">
+                        <!-- Dinamikusan feltöltött keresési eredmények -->
+                    </div>
+
+                    <div class="pagination" id="lapozas" style="display: none;">
+                        <!-- Dinamikusan feltöltött lapozás -->
                     </div>
                 </div>
+            </section>
 
-                <div class="pagination-row">
-                    <div class="pagination-field">
-                        <label for="pageSize">Results per page</label>
-                        <select id="pageSize" name="size">
-                            <option value="10">10</option>
-                            <option value="20" selected>20</option>
-                            <option value="50">50</option>
-                            <option value="100">100</option>
-                        </select>
-                    </div>
-                    <div class="pagination-field">
-                        <label for="sortBy">Sort by</label>
-                        <select id="sortBy" name="sortBy">
-                            <option value="name" selected>Name</option>
-                            <option value="manufacturer">Manufacturer</option>
-                            <option value="atcCode">ATC Code</option>
-                        </select>
-                    </div>
-                    <div class="pagination-field">
-                        <label for="sortDirection">Order</label>
-                        <select id="sortDirection" name="sortDirection">
-                            <option value="ASC" selected>A → Z</option>
-                            <option value="DESC">Z → A</option>
-                        </select>
+            <section class="error-section" id="hiba-szekcio" style="display: none;">
+                <div class="error-container">
+                    <div class="error-content">
+                        <h3>⚠️ Hiba történt</h3>
+                        <p id="hiba-uzenet"></p>
+                        <button class="btn btn-secondary" onclick="ujraKereses()">🔄 Újra próbálkozás</button>
                     </div>
                 </div>
-            </form>
-        </div>
-
-        <div class="status-section">
-            <div id="loadingSpinner" class="loading hidden">
-                <div class="spinner"></div>
-                <span>Searching PUPHAX database...</span>
-            </div>
-            
-            <div id="searchInfo" class="search-info hidden">
-                <span id="searchStats"></span>
-                <span id="searchTime"></span>
-                <span id="cacheStatus"></span>
-            </div>
-        </div>
-
-        <div class="results-section">
-            <div id="errorMessage" class="error-message hidden"></div>
-            
-            <div id="resultsContainer" class="results-container hidden">
-                <div class="results-header">
-                    <h2>Search Results</h2>
-                    <div id="paginationTop" class="pagination-controls"></div>
-                </div>
-                
-                <div id="drugsList" class="drugs-list"></div>
-                
-                <div id="paginationBottom" class="pagination-controls"></div>
-            </div>
-        </div>
+            </section>
+        </main>
 
         <footer>
-            <div class="api-info">
-                <h3>API Endpoints</h3>
-                <p><strong>Search:</strong> <code>GET /api/v1/drugs/search</code></p>
-                <p><strong>Health:</strong> <code>GET /api/v1/drugs/health</code></p>
-                <p><strong>Documentation:</strong> <a href="/swagger-ui.html" target="_blank">Swagger UI</a></p>
+            <div class="footer-content">
+                <p>&copy; 2024 PUPHAX Gyógyszer Kereső - Magyar Egészségügyi Adatbázis</p>
+                <p>Adatok forrása: <strong>NEAK PUPHAX Webszolgáltatás</strong></p>
+                <div class="footer-links">
+                    <a href="https://puphax.neak.gov.hu" target="_blank">PUPHAX Hivatalos Oldal</a>
+                    <span>|</span>
+                    <a href="https://neak.gov.hu" target="_blank">NEAK Weboldal</a>
+                    <span>|</span>
+                    <a href="/swagger-ui.html" target="_blank">API Dokumentáció</a>
+                </div>
             </div>
         </footer>
     </div>
 
-    <script src="app.js"></script>
+    <!-- JavaScript -->
+    <script src="puphax-frontend.js"></script>
 </body>
 </html>

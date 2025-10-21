@@ -104,6 +104,8 @@ logging:
     com.puphax: DEBUG
     org.springframework.cache: DEBUG
     jakarta.xml.ws: DEBUG
+    com.puphax.service.SimplePuphaxClient: DEBUG
+    com.puphax.service.PuphaxRealDataService: DEBUG
     root: INFO
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss} [%X{correlationId:-}] [%X{operation:-}] %-5level %logger{36} - %msg%n"

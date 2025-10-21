@@ -1,0 +1,68 @@
+# Build artifacts
+target/
+*.jar
+*.war
+
+# IDE files
+.idea/
+.vscode/
+*.iml
+*.ipr
+*.iws
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Git
+.git/
+.gitignore
+
+# Maven
+.mvn/wrapper/maven-wrapper.jar
+
+# Logs
+logs/
+*.log
+
+# Docker
+Dockerfile*
+docker-compose*
+.dockerignore
+
+# Documentation
+*.md
+docs/
+
+# Test files
+src/test/
+
+# Temporary files
+*.tmp
+*.temp
+
+# Cache
+.cache/
+
+# Node modules (if any)
+node_modules/
+
+# Environment files
+.env
+.env.local
+.env.production
+
+# Application specific
+service*.log
+app.log
+test_response.json
+
+# Reference materials
+reference/
+specs/
+puphax-client/
+
+# Archive and backup files
+*.zip
+*.tar.gz
+*.bak

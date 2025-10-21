@@ -1,0 +1,75 @@
+version: '3.8'
+
+services:
+  puphax-hungarian:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: puphax-hungarian:latest
+    container_name: puphax-hungarian-frontend
+    ports:
+      - "8080:8080"
+    environment:
+      # Spring Boot application properties
+      - SPRING_PROFILES_ACTIVE=production
+      - SERVER_PORT=8080
+      
+      # Hungarian locale settings
+      - LANG=hu_HU.UTF-8
+      - LANGUAGE=hu_HU:hu
+      - LC_ALL=hu_HU.UTF-8
+      - TZ=Europe/Budapest
+      
+      # PUPHAX service configuration
+      - PUPHAX_SOAP_ENDPOINT_URL=https://puphax.neak.gov.hu/PUPHAXWS
+      - PUPHAX_SOAP_CONNECT_TIMEOUT=30000
+      - PUPHAX_SOAP_REQUEST_TIMEOUT=60000
+      
+      # Cache configuration
+      - SPRING_CACHE_CAFFEINE_SPEC=maximumSize=1000,expireAfterWrite=10m
+      
+      # Logging configuration
+      - LOGGING_LEVEL_COM_PUPHAX=DEBUG
+      - LOGGING_LEVEL_ROOT=INFO
+      
+      # JVM options
+      - JAVA_OPTS=-Xms512m -Xmx1024m -XX:+UseG1GC -XX:+UseStringDeduplication -Dfile.encoding=UTF-8 -Duser.timezone=Europe/Budapest
+    
+    volumes:
+      # Mount logs directory for persistence
+      - puphax-logs:/app/logs
+      
+      # Mount cache directory (optional)
+      - puphax-cache:/app/cache
+    
+    restart: unless-stopped
+    
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/api/v1/gyogyszerek/egeszseg/gyors"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    
+    networks:
+      - puphax-network
+    
+    # Resource limits
+    deploy:
+      resources:
+        limits:
+          memory: 1.5G
+          cpus: '2.0'
+        reservations:
+          memory: 512M
+          cpus: '0.5'
+
+volumes:
+  puphax-logs:
+    driver: local
+  puphax-cache:
+    driver: local
+
+networks:
+  puphax-network:
+    driver: bridge

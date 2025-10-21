@@ -66,6 +66,24 @@
             <artifactId>wsdl4j</artifactId>
         </dependency>
         
+        <!-- Spring Web Services for better SOAP handling -->
+        <dependency>
+            <groupId>org.springframework.ws</groupId>
+            <artifactId>spring-ws-core</artifactId>
+        </dependency>
+        
+        <!-- Spring WS Security for authentication -->
+        <dependency>
+            <groupId>org.springframework.ws</groupId>
+            <artifactId>spring-ws-security</artifactId>
+        </dependency>
+        
+        <!-- Apache HttpClient 5 for Spring WS -->
+        <dependency>
+            <groupId>org.apache.httpcomponents.client5</groupId>
+            <artifactId>httpclient5</artifactId>
+        </dependency>
+        
         <!-- Caching -->
         <dependency>
             <groupId>com.github.ben-manes.caffeine</groupId>

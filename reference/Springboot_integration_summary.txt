@@ -1,0 +1,211 @@
+A PUPHAX Web Service Integrációjának Részletes Műszaki Jelentése Spring Boot KörnyezetbenI. A PUPHAX Rendszerarchitektúra Fundamentális ElemzéseA Nemzeti Egészségbiztosítási Alapkezelő (NEAK) által üzemeltetett PUPHAX gyógyszer-törzskönyvi adatbázis hatékony integrációja egy modern, Spring Boot alapú backend rendszerbe megköveteli a szolgáltatás mélyreható architekturális megértését. Ez a fejezet a rendszer alapvető tervezési elveit, adatmodelljét és központi működési logikáját tárgyalja, amelyek ismerete elengedhetetlen a stabil és adathelyes kliensalkalmazás kifejlesztéséhez.1.1. Rendszeráttekintés: A PUPHA-tól a PUPHAX-igA PUPHAX rendszer a korábbi, publikus gyógyszertörzs (PUPHA) modernizált utódja. A fejlesztés legfőbb célja az volt, hogy a gyógyszer-, segédeszköz- és gyógyfürdő-támogatási adatokhoz való hozzáférést egy modern, technológiai szempontból egységes platformra helyezze át.1 A legjelentősebb változás a SOAP (Simple Object Access Protocol) alapú webszolgáltatás bevezetése, amelyen keresztül az adatok strukturált XML formátumban érhetők el.1Ez az evolúciós háttér fontos következtetések levonására ad lehetőséget. A rendszer alapjául szolgáló adatmodell, amely a dokumentációban szereplő Oracle-specifikus adattípusok (VARCHAR2, NUMBER, DATE) alapján valószínűsíthetően egy meglévő adatbázisra épül, nem feltétlenül webszolgáltatás-központú tervezés eredménye.1 Az ilyen "örökölt" adatstruktúrák webszolgáltatási rétegen keresztüli elérhetővé tétele gyakran architekturális impedancia-illeszkedési problémákhoz vezet. A PUPHAX esetében ez abban nyilvánul meg, hogy egy-egy logikai entitás (pl. egy gyógyszer teljes, egy adott időpontra vonatkozó adatsora) lekérdezése több, különálló API hívást igényel. A fejlesztendő kliensalkalmazásnak fel kell készülnie erre az adatfragmentációra, és a felelőssége lesz a különböző végpontokról érkező információmorzsák helyes összeillesztése egy koherens adatszerkezetté.1.2. A Központi Adatmodell: Az Adatbázis Séma DekonstrukciójaA PUPHAX rendszer adatbázisa több mint 18, egymással szorosan összekapcsolt táblából áll, amelyek a gyógyszer-törzskönyvi adatok teljes spektrumát lefedik. A rendszer megértéséhez elengedhetetlen a legfontosabb táblák és azok kapcsolatainak ismerete.1A legkritikusabb táblák a következők:TERMEK: A termékek (gyógyszerek, segédeszközök) alapadatait tartalmazó központi tábla. Ez a tábla definiálja magát a terméket, olyan attribútumokkal, mint a NEAK által használt egyedi azonosító (TTT kód), a név, a kiszerelés és a hatóanyag.1TAMALAP: A termékek ár- és támogatási alapadatainak táblája. Kizárólag a valamilyen formában támogatott termékekhez tartalmaz rekordokat. Ez a tábla köti össze a terméket annak pénzügyi és támogatási attribútumaival, mint például a fogyasztói ár, az ÁFA-kulcs és a napi terápiás költség (NTK).1KATEGTAM: A termékekhez tartozó konkrét támogatási kategóriákat (pl. normatív, emelt, kiemelt) és azok részleteit (támogatás mértéke, összege) tartalmazza. Minden rekordja a TAMALAP egy rekordjára hivatkozik.1EUPONTOK: Az ún. EÜ pontok táblája, amelyek a felírási jogosultságokhoz és indikációkhoz kapcsolódó speciális feltételrendszereket definiálják.1EUJOGHOZZAR: Az EÜ pontokhoz tartozó felírási jogosultságokat részletező tábla. Meghatározza, hogy egy adott EÜ ponton ki (pl. háziorvos, szakorvos), milyen feltételekkel (pl. javaslatra, időkorláttal) írhat fel egy készítményt.1KODSZOTAR: Egy központi kódszótár, amely a rendszer számos táblájában használt numerikus vagy szöveges kódok ember által értelmezhető leírását tartalmazza. Nélkülözhetetlen a válaszok helyes interpretálásához.1A PUPHAX terméktörzs.txt dokumentum "Táblahivatkozások" szakasza pontosan leírja a táblák közötti idegenkulcs-kapcsolatokat.1 Amennyiben a backend alkalmazás egy lokális adatbázis-másolatot tart karban, ezen relációkat pontosan le kell képezni a perzisztencia rétegben (pl. JPA entitások @ManyToOne és @OneToMany annotációival).1.3. A Rendszer Sarokköve: A Kettős Idősoros ÉrvényességA PUPHAX rendszer legfontosabb és egyben legkomplexebb architekturális jellemzője a kettős idősoros adatkezelés. Ez a koncepció alapjaiban határozza meg az adatok lekérdezésének és értelmezésének módját. A rendszer két, egymástól elkülönülő, de egymásra ható érvényességi idősort kezel.1Termék Érvényességi Idősor (a TERMEK táblában): Egy termék alapvető, azonosító attribútumai (pl. név, TTT kód, OGYÉI törzskönyvi szám) egy meghatározott időintervallumon belül, az ERV_KEZD (érvényesség kezdete) és ERV_VEGE (érvényesség vége) dátumok között konstansok. Ha ezen adatok bármelyike megváltozik (pl. egy termék új nevet kap), a rendszer nem a meglévő rekordot módosítja, hanem lezárja a régit (az ERV_VEGE dátum beállításával), és egy teljesen új rekordot hoz létre a TERMEK táblában az új adatokkal és az új érvényességi időszak kezdetével.1Támogatási Érvényességi Idősor (a TAMALAP táblában): Hasonlóképpen, egy termék árára és támogatási alapadatára vonatkozó információk is csak egy adott ERV_KEZD és ERV_VEGE közötti időszakra érvényesek. Ha egy termék támogatása változik (pl. árcsökkenés vagy a támogatás mértékének módosulása), de a termék alapadatai nem, akkor a TERMEK rekord változatlan marad. Ehelyett a TAMALAP táblában jön létre egy új rekord, amely ugyanarra a TERMEK rekordra hivatkozik, de egy új érvényességi időszakot definiál a megváltozott támogatási adatokkal.1Ez a kettős idősoros modell alapvető következményekkel jár a kliensalkalmazás tervezésére nézve. Egy termék állapota nem azonosítható be egyértelműen és kizárólag annak TTT kódja alapján. A teljes és konzisztens adatképhez elengedhetetlen egy TTT kód és egy konkrét dátum, az úgynevezett "szúrópont" (dSP - date Snapshot Point) együttes használata. A webszolgáltatás idősoros adatokat visszaadó metódusai (TERMEKLISTA, TAMOGATADAT, INKVALT) következetesen megkövetelik ennek a szúrópont dátumnak a megadását.1A fejlesztés során a legmagasabb prioritást annak kell élveznie, hogy a logikailag összetartozó adatok lekérdezése során (pl. egy termék alap- és támogatási adatainak lekérése) a kliens minden API hívásban ugyanazt a szúrópont dátumot használja. Ennek elmulasztása súlyos adatkonzisztencia-hibákhoz vezethet, például egy korábbi érvényességi periódusból származó terméknév párosulhat egy későbbi periódusból származó, már megváltozott árhoz. Ez a megkötés mélyen befolyásolja mind a lokális adatbázis-szinkronizációs logika, mind az ad-hoc lekérdezéseket végző szolgáltatási réteg tervezését.II. Biztonságos Kapcsolat Létesítése a PUPHAX Web SzolgáltatássalA PUPHAX rendszerrel való integráció első és legkritikusabb technikai lépése a sikeres és hitelesített kapcsolat felépítése. Ez a fejezet gyakorlati, kód-orientált útmutatót nyújt a kapcsolódási végpontok, a hitelesítési protokoll és a Spring Boot környezetben szükséges konfigurációk pontos beállításához.2.1. Kapcsolódási Végpontok és a WSDL ElérhetőségA PUPHAX webszolgáltatással való kommunikációhoz az alábbi, a hivatalos dokumentációban rögzített végpontokat kell használni 1:Szolgáltatás URL címe: $https://puphax.neak.gov.hu/PUPHAXWS$WSDL definíció URL címe: $https://puphax.neak.gov.hu/PUPHAXWS?wsdl$A fejlesztés során egy rendkívül fontos, könnyen figyelmen kívül hagyható technikai részletre kell odafigyelni. A NEAK dokumentációja explicit módon figyelmeztet, hogy a WSDL fájl letöltésekor a benne található <soap:address> elem egy belső, a publikus hálózaton nem elérhető URL-t tartalmaz ($http://puphax:1958/orawsv/PUPHAX/PUPHAXWS$).1 A szabványos SOAP kliensgeneráló eszközök (mint például a Maven jaxb2-maven-plugin) ezt a címet használják alapértelmezett végpontként, ami azonnali kapcsolódási hibához vezet.Ennek a problémának a megelőzésére két megbízható stratégia létezik:Manuális WSDL korrekció: A WSDL fájlt le kell tölteni a fejlesztői környezetbe, és egy szövegszerkesztővel manuálisan át kell írni a <soap:address location="..."> attribútum értékét a helyes, publikus URL-re. A kliensgenerálást ezután a lokálisan módosított fájlból kell futtatni.Programmatikus felülbírálás (Javasolt): A Spring WebServiceTemplate konfigurációja során lehetőség van a végponti cím explicit megadására. A setDefaultUri metódus használatával a kliens figyelmen kívül hagyja a WSDL-ben szereplő hibás címet, és mindig a programkódban definiált, helyes URL-t használja. Ez a megközelítés robusztusabb, mivel függetleníti az alkalmazást a WSDL fájl tartalmának esetleges jövőbeli változásaitól.2.2. Hitelesítési Protokoll: Digest AuthenticationA PUPHAX webszolgáltatás a biztonságos kommunikáció érdekében nem a szélesebb körben elterjedt Basic Authenticationt, hanem a Digest Authentication sémát használja. A hitelesítéshez szükséges adatok a következők 1:Hitelesítés típusa: Digest AuthorizationFelhasználónév: PUPHAXJelszó: puphaxA Digest hitelesítés egy "kérdés-felelet" alapú mechanizmus, amely biztonságosabb a Basic sémánál, mivel a jelszó soha nem utazik nyílt szövegként a hálózaton.2 Ez a technológiai választás közvetlen hatással van a Spring Boot alkalmazásban használt HTTP kliens könyvtárra. A Spring Web Services alapértelmezett üzenetküldő rétege, a HttpUrlConnectionMessageSender, amely a Java beépített HttpURLConnection osztályára épül, nem rendelkezik natív, egyszerűen konfigurálható támogatással a Digest hitelesítéshez.A megbízható és ipari szabványoknak megfelelő megoldás az Apache HttpClient könyvtár használata, amely teljes körűen támogatja a különböző HTTP hitelesítési sémákat, beleértve a Digest-et is.3 A Spring Web Services keretrendszer biztosít egy integrációs réteget, a HttpComponentsMessageSender osztályt, amely lehetővé teszi a WebServiceTemplate számára, hogy a háttérben az Apache HttpClient-t használja a HTTP kommunikációhoz.5A helyes architekturális döntés tehát egy olyan WebServiceTemplate bean konfigurálása, amely egy HttpComponentsMessageSender-t használ. Ezt az üzenetküldőt pedig egy olyan Apache HttpClient példánnyal kell ellátni, amely előre konfigurálva van a Digest hitelesítéshez a fent megadott PUPHAX/puphax kredenciálisokkal. A dokumentáció a SoapUI szoftver használatát is említi teszteléshez, ahol a Digest hitelesítést a "Basic" beállítás alatt kell konfigurálni.12.3. Spring Boot Konfiguráció a Hitelesített WebServiceTemplate-hezAz alábbi Java konfigurációs osztály bemutatja, hogyan hozható létre egy teljes körűen működő, Digest hitelesítéssel ellátott WebServiceTemplate bean egy Spring Boot alkalmazásban. Ez a konfiguráció magában foglalja az Apache HttpClient beállítását, a kredenciálisok megadását és a Spring-WS komponensek összekapcsolását.Javaimport org.apache.http.HttpHost;
+import org.apache.http.auth.AuthScope;
+import org.apache.http.auth.UsernamePasswordCredentials;
+import org.apache.http.client.CredentialsProvider;
+import org.apache.http.impl.client.BasicCredentialsProvider;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClientBuilder;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.ws.client.core.WebServiceTemplate;
+import org.springframework.ws.transport.http.HttpComponentsMessageSender;
+
+@Configuration
+public class SoapClientConfig {
+
+    private static final String PUPHAX_SERVICE_URL = "https://puphax.neak.gov.hu/PUPHAXWS";
+    private static final String PUPHAX_USERNAME = "PUPHAX";
+    private static final String PUPHAX_PASSWORD = "puphax";
+
+    @Bean
+    public WebServiceTemplate webServiceTemplate() {
+        WebServiceTemplate webServiceTemplate = new WebServiceTemplate();
+        webServiceTemplate.setMessageSender(httpComponentsMessageSender());
+        // A WSDL-ben lévő hibás URL felülbírálása
+        webServiceTemplate.setDefaultUri(PUPHAX_SERVICE_URL);
+        return webServiceTemplate;
+    }
+
+    @Bean
+    public HttpComponentsMessageSender httpComponentsMessageSender() {
+        HttpComponentsMessageSender messageSender = new HttpComponentsMessageSender();
+        messageSender.setHttpClient(httpClient());
+        return messageSender;
+    }
+
+    @Bean
+    public CloseableHttpClient httpClient() {
+        return HttpClientBuilder.create()
+               .setDefaultCredentialsProvider(credentialsProvider())
+               .build();
+    }
+
+    @Bean
+    public CredentialsProvider credentialsProvider() {
+        CredentialsProvider provider = new BasicCredentialsProvider();
+        UsernamePasswordCredentials credentials = new UsernamePasswordCredentials(PUPHAX_USERNAME, PUPHAX_PASSWORD);
+        
+        // A Digest hitelesítéshez az AuthScope.ANY használata javasolt,
+        // mivel a szerver "realm" értéke változhat.
+        provider.setCredentials(AuthScope.ANY, credentials);
+        return provider;
+    }
+}
+Ez a konfiguráció egy robusztus alapot biztosít a PUPHAX webszolgáltatással való kommunikációhoz, megoldva a végpont-cím és a hitelesítés kihívásait.III. A Java SOAP Kliens Felépítése: WSDL-től az ObjektumokigA biztonságos kapcsolat konfigurálása után a következő lépés a webszolgáltatás által definiált műveletek és adatszerkezetek leképezése Java osztályokra. Ez a folyamat automatizálható a Maven build eszköz és a megfelelő pluginok segítségével, ami jelentősen felgyorsítja a fejlesztést és csökkenti a hibalehetőségeket.3.1. Maven Konfiguráció: A jaxb2-maven-pluginA WSDL (Web Services Definition Language) fájlból a JAXB (Java Architecture for XML Binding) annotációkkal ellátott Java osztályok (DTO-k) és a szolgáltatási interfészek generálására az egyik legelterjedtebb eszköz a jaxb2-maven-plugin.6 Ez a plugin integrálódik a Maven build életciklusába, és a generate-sources fázisban automatikusan létrehozza a szükséges forráskódokat.A helyes működéshez a pom.xml fájl <build> szekciójába az alábbi <plugin> definíciót kell beilleszteni. A konfiguráció több, a PUPHAX WSDL-hez specifikus beállítást tartalmaz, amelyek elengedhetetlenek a sikeres generáláshoz.XML<build>
+    <plugins>
+        <plugin>
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>jaxb2-maven-plugin</artifactId>
+            <version>2.5.0</version> <executions>
+                <execution>
+                    <id>xjc</id>
+                    <goals>
+                        <goal>xjc</goal>
+                    </goals>
+                </execution>
+            </executions>
+            <configuration>
+                <packageName>hu.neak.puphax.ws.client.gen</packageName>
+
+                <schemaDirectory>${project.basedir}/src/main/resources/wsdl</schemaDirectory>
+                <schemaFiles>PUPHAXWS_v1.27.wsdl</schemaFiles>
+
+                <sourceType>wsdl</sourceType> <xmlschema>false</xmlschema>
+
+                <outputDirectory>${project.build.directory}/generated-sources/jaxb</outputDirectory>
+
+                <readOnly>false</readOnly>
+
+                <noGeneratedHeaderComments>true</noGeneratedHeaderComments>
+            </configuration>
+        </plugin>
+    </plugins>
+</build>
+A konfigurációban különös figyelmet érdemel a sourceType (vagy régebbi verziókban a <wsdl>true</wsdl>) és az <xmlschema>false</xmlschema> páros. Ezek a direktívák jelzik a plugin számára, hogy a bemenet egy WSDL dokumentum, és nem kell különálló XSD sémákat keresnie a schemaDirectory-ban. Ezen beállítások hiánya gyakori hibaforrás, mivel a plugin alapértelmezetten XSD fájlokat próbál feldolgozni, ami a WSDL esetében hibás működéshez vezet.63.2. A Generált Artefaktumok EllenőrzéseA mvn generate-sources (vagy egy teljes mvn clean install) parancs lefutása után a target/generated-sources/jaxb könyvtárban megjelennek a generált Java fájlok. A sikeres generálás eredményeképpen a következő típusú osztályok jönnek létre:Szolgáltatási Végpont Interfész: Egy Java interfész, amely a WSDL <portType> definíciójának felel meg. Ez tartalmazza a webszolgáltatás által kínált összes metódus szignatúráját (pl. termeLista, tamogatAdat).Request/Response Objektumok: Minden webszolgáltatási művelethez tartozik egy bemeneti (...Input) és egy kimeneti (...Output) osztály. Ezek a SOAP Envelope Body részének tartalmát modellezik. Például a TERMEKLISTA metódushoz a COBJIDLISTATERMEKLISTAInput és TERMEKLISTAOutput osztályok generálódhatnak.Komplex Típusok (DTO-k): A WSDL-ben definiált komplex adatszerkezetek, amelyek a PUPHAX adatbázis tábláinak (pl. TERMEK, TAMALAP) mezőit reprezentálják. Ilyen osztályok például az OBJTERMEKADAT vagy az OBJKATEGTAM. Ezek az osztályok tartalmazzák a JAXB annotációkat (@XmlRootElement, @XmlElement stb.), amelyek az XML és a Java objektumok közötti konverziót (marshalling/unmarshalling) vezérlik.ObjectFactory: Egy segédosztály, amely a JAXB kontextus számára lehetővé teszi a generált osztályok példányosítását.Ezen osztályok létrejötte igazolja, hogy a WSDL feldolgozása sikeres volt, és a backend alkalmazás rendelkezik a típusbiztos kommunikációhoz szükséges összes adatszerkezettel.IV. Fejlesztői Útmutató a PUPHAX AdatmodellhezA sikeres integrációhoz nem elegendő a webszolgáltatás technikai elérése; elengedhetetlen a visszakapott adatok üzleti jelentésének és strukturális összefüggéseinek mélyreható ismerete. Ez a fejezet gyakorlati adatszótárként szolgál, amely hidat képez a nyers adatbázisséma és a fejlesztő által használt Java objektumok között.4.1. Kulcsfontosságú Adattáblák és Java MegfelelőikAz alábbiakban a PUPHAX adatmodell legfontosabb tábláinak részletes elemzése következik, a generált JAXB osztályok kontextusában. Minden táblánál kiemelésre kerülnek a legkritikusabb mezők, azok adattípusa és a hivatalos dokumentációból származó magyar nyelvű leírásuk.1TERMEK Tábla (OBJTERMEKADAT objektum)Ez a tábla a termék alapvető, időben változó attribútumait tartalmazza.ID (NUMBER): A rekord egyedi, elsődleges azonosítója.TTT (VARCHAR2(9)): A készítmény/eszköz azonosítására a NEAK által használt egyedi kód (TTT kód). Ez a termék üzleti azonosítója.NEV (VARCHAR2(255 char)): A készítmény/eszköz neve.KISZNEV (VARCHAR2(255 char)): A készítmény kiszerelése vagy az eszköz mennyiségi egysége.TERMEKKOD (VARCHAR2(3)): A termék típusának kategóriája, amely a KODSZOTAR-ból fejthető vissza.ERV_KEZD (DATE): Az érvényesség kezdetének dátuma.ERV_VEGE (DATE): Az érvényesség végének dátuma.TAMALAP Tábla (az OBJTAMOGAT objektum része)Ez a tábla a támogatott termékek ár- és támogatási alapadatainak idősorát kezeli.ID (NUMBER): A támogatási rekord egyedi azonosítója.TERMEK_ID (NUMBER): Hivatkozás a TERMEK tábla rekordjára (idegenkulcs).FAB (NUMBER): Fogyasztói ár, bruttó.AFA (NUMBER): Az ÁFA kulcsa százalékban.ERV_KEZD (DATE): A támogatási rekord érvényességének kezdete.ERV_VEGE (DATE): A támogatási rekord érvényességének vége.KATEGTAM Tábla (OBJKATEGTAM objektum)Ez a tábla a TAMALAP-hoz kapcsolódó konkrét támogatási kategóriákat részletezi.ID (NUMBER): A kategória-támogatási rekord egyedi azonosítója.TAMALAP_ID (NUMBER): Hivatkozás a TAMALAP tábla rekordjára (idegenkulcs).KATEGORIA (VARCHAR2(1 char)): A támogatás kategóriájára vonatkozó jelzés, amely a KODSZOTAR TAMKATEG csoportjából fejthető vissza.TAMSZAZ (NUMBER): A támogatás mértéke százalékban (pl. 0, 25, 55, 80).BTAM (NUMBER): Bruttó támogatás forintban megadva.TERDIJ (NUMBER): A beteg által fizetendő térítési díj.EUPONTOK és EUJOGHOZZAR Táblák (az OBJEUPONT objektum részei)Ezek a táblák a komplex felírási szabályokat definiálják.EUPONTOK.ID (NUMBER): Az EÜ pont egyedi azonosítója.EUPONTOK.PONTSZAM (NUMBER): Az indikáció kódjának per-jel előtti része (gyógyszereknél).EUJOGHOZZAR.KATEGORIA_ID (NUMBER): A felírási megkötés típusának kódja (pl. háziorvos, szakorvos), a KODSZOTAR FELIRKAT csoportjából.EUJOGHOZZAR.JOGOSULT_ID (NUMBER): A felírási jogosultság kódja (pl. írhat, javasolhat), a KODSZOTAR FELIRJOG csoportjából.EUJOGHOZZAR.SZAKV_ID (NUMBER): A szakképesítés azonosítója, amellyel a felírás lehetséges.4.2. A Kódszótárak (KODSZOTAR) SzerepeA PUPHAX API válaszai tele vannak numerikus vagy rövid szöveges kódokkal, amelyek önmagukban nem hordoznak jelentést. A KODSZOTAR tábla, valamint a különálló termékkód-leíró fájlok (PUPHAX_WS_termekkod_leiras_20220922.xlsx) szolgáltatják a "fordítást" ezen kódok és a valós jelentésük között.1 A backend alkalmazásnak rendelkeznie kell egy mechanizmussal ezen kódok feloldására, például egy induláskor betöltött és memóriában tárolt "cache" segítségével. Az alábbi táblázatok a legfontosabb kódkategóriákat foglalják össze.Támogatási Kategóriák (TAMKATEG)Forrás: 1Kód (SZAMKOD)Mnemonik (SZOVEGKOD)Magyar Leírás (LEIRAS)1normatívNormatív támogatás2emeltEmelt támogatás3kiemeltKiemelt támogatás6GYSE eszköz javításaGYSE eszköz javításához támogatás7különkeretKülönkeretes támogatás8tételesTételes támogatás9kölcsönzésKölcsönzés támogatásFelírási Jogosultságok (FELIRJOG)Forrás: 1Kód (SZAMKOD)Mnemonik (SZOVEGKOD)Jelentés0Nincs jogosultságaNincs jogosultsága1írhatÍrhat2javasolhatJavasolhat3javaslatra írhatJavaslatra írhat4javasolhat és írhatJavasolhat és írhatFelírási Megkötés Típusai (FELIRKAT)Forrás: 1Kód (SZAMKOD)Leírás (SZOVEGKOD)0Megkötés nélkül1Fekvőbeteg gyógyintézet2Járóbeteg szakrendelés3Kijelölt intézmény4Járóbeteg szakrendelés/Fekvőbeteg gyógyintézet5Háziorvos6Kijelölt intézmény szakorvosa......Termék Típusok (TERMEKKOD)Forrás: 1Kód (SZOVEGKOD)TTT PrefixMagyar Leírás (LEIRAS)G111Magi alapanyag, FoNo, mint komponensG313,14Galenikum / Gyógyszerkönyvi készítményG721,22,23,24,25,26Gyógyszer specialitásS831Sorozatgyártású gyógyászati segédeszközök...S941KötszerT123TápszerH124Homeopátiás szerekFA40Gyógyvizes gyógymedenceEzen táblázatok biztosítják a fejlesztő számára a szükséges kontextust a webszolgáltatásból kapott kódolt adatok helyes és teljes körű értelmezéséhez.V. A PUPHAX API Mesterfogásai: Metódusok és HasználatukEz a fejezet egy részletes, gyakorlati útmutató a PUPHAX webszolgáltatás metódusainak használatához. Minden egyes metóduscsoportnál bemutatásra kerül a célja, egy a hivatalos dokumentációból származó SOAP üzenetpélda, valamint egy Java/Spring Boot kódrészlet, amely demonstrálja a metódus meghívását a korábban konfigurált WebServiceTemplate és a generált JAXB objektumok segítségével.5.1. Törzsadatok Lekérdezése (A Tab* Metódusok)Ezek a metódusok az idősoros kezelést nem igénylő, alapvető kódtáblák (pl. ATC kódok, BNO kódok, cégadatok) lekérdezésére szolgálnak. A lekérdezés mindig a tábla legfrissebb, aktuális állapotát adja vissza.1TabATC - ATC Kódok LekérdezéseCél: Az ATC (Anatómiai, Terápiás, Kémiai) kódok és a hozzájuk tartozó hatóanyag-nevek lekérdezése.SOAP Példa 1:XML<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:pup="http://xmlns.oracle.com/orawsv/PUPHAX/PUPHAXWS">
+   <soapenv:Header/>
+   <soapenv:Body>
+      <pup:COBJALAP-TABATCInput>
+          <pup:SXFILTER-VARCHAR2-IN>
+              <!]>
+          </pup:SXFILTER-VARCHAR2-IN>
+      </pup:COBJALAP-TABATCInput>
+   </soapenv:Body>
+</soapenv:Envelope>
+Java Kód Példa:Java// Feltételezve, hogy a 'webServiceTemplate' és 'objectFactory' beinek injektálva lettek.
+public TABATCOutput getAtcCodes(String atcFilter, String nameFilter) {
+    COBJALAPTABATCInput request = objectFactory.createCOBJALAPTABATCInput();
+    String filterXml = String.format("<alapfilter><ATC>%s</ATC><ATCNEV>%s</ATCNEV></alapfilter>", atcFilter, nameFilter);
+    request.setSXFILTERVARCHAR2IN(filterXml);
+
+    return (TABATCOutput) webServiceTemplate.marshalSendAndReceive(
+            "https://puphax.neak.gov.hu/PUPHAXWS", // Az URI a WSDL alapján változhat
+            request,
+            new SoapActionCallback("TABATC")
+    );
+}
+5.2. Idősoros Adatok Lekérdezése (TERMEKLISTA és TAMOGATADAT)Ez a leggyakoribb használati eset, amely a kettős idősoros modell miatt egy többlépcsős folyamatot igényel. Először le kell kérni a szűrőfeltételeknek és a szúrópontnak megfelelő termékek azonosítóit, majd ezen azonosítók alapján lehet lekérni a részletes adatokat.Lépés: Termékazonosítók Lekérdezése (TERMEKLISTA)Cél: Egy adott időpontban (dSP) érvényes, a szűrőfeltételeknek (sXFilter) megfelelő termékek belső TERMEK.ID azonosítóinak listáját adja vissza.SOAP Példa 1:XML<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:pup="http://xmlns.oracle.com/orawsv/PUPHAX/PUPHAXWS">
+   <soapenv:Header/>
+   <soapenv:Body>
+      <pup:COBJIDLISTA-TERMEKLISTAInput>
+         <pup:DSP-DATE-IN>2014-09-29</pup:DSP-DATE-IN>
+          <pup:SXFILTER-VARCHAR2-IN>
+              <!]>
+          </pup:SXFILTER-VARCHAR2-IN>
+      </pup:COBJIDLISTA-TERMEKLISTAInput>
+   </soapenv:Body>
+</soapenv:Envelope>
+Lépés: Részletes Támogatási Adatok Lekérdezése (TAMOGATADAT)Cél: Egy konkrét TERMEK.ID és egy szúrópont (dSP) alapján visszaadja a termék teljes ár- és támogatási struktúráját (a TAMALAP és a kapcsolódó KATEGTAM rekordokat).SOAP Példa 1:XML<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:pup="http://xmlns.oracle.com/orawsv/PUPHAX/PUPHAXWS">
+   <soapenv:Header/>
+   <soapenv:Body>
+      <pup:COBJTAMOGAT-TAMOGATADATInput>
+         <pup:DSP-DATE-IN>2014-09-29</pup:DSP-DATE-IN>
+         <pup:NID-NUMBER-IN>14714225</pup:NID-NUMBER-IN>
+      </pup:COBJTAMOGAT-TAMOGATADATInput>
+   </soapenv:Body>
+</soapenv:Envelope>
+Java Kód Példa (a teljes folyamatra):Javapublic List<OBJTAMOGAT> getFullProductData(String productNameFilter, LocalDate snapshotDate) {
+    // 1. Lépés: TERMEKLISTA hívása
+    COBJIDLISTATERMEKLISTAInput idRequest = objectFactory.createCOBJIDLISTATERMEKLISTAInput();
+    idRequest.setDSPDATEIN(snapshotDate.toString());
+    idRequest.setSXFILTERVARCHAR2IN(String.format("<alapfilter><TNEV>%s</TNEV></alapfilter>", productNameFilter));
+
+    TERMEKLISTAOutput idResponse = (TERMEKLISTAOutput) webServiceTemplate.marshalSendAndReceive(
+        PUPHAX_SERVICE_URL, idRequest, new SoapActionCallback("TERMEKLISTA"));
+
+    List<String> productIds = idResponse.getRETURN().getIDLIST().getOBJSTRING256()
+       .stream().map(OBJSTRING256::getSZOVEG).collect(Collectors.toList());
+
+    // 2. Lépés: TAMOGATADAT hívása minden ID-ra
+    List<OBJTAMOGAT> fullDataList = new ArrayList<>();
+    for (String productId : productIds) {
+        COBJTAMOGATTAMOGATADATInput dataRequest = objectFactory.createCOBJTAMOGATTAMOGATADATInput();
+        dataRequest.setDSPDATEIN(snapshotDate.toString());
+        dataRequest.setNIDNUMBERIN(new BigDecimal(productId));
+
+        TAMOGATADATOutput dataResponse = (TAMOGATADATOutput) webServiceTemplate.marshalSendAndReceive(
+            PUPHAX_SERVICE_URL, dataRequest, new SoapActionCallback("TAMOGATADAT"));
+
+        if (dataResponse.getRETURN()!= null) {
+            fullDataList.add(dataResponse.getRETURN());
+        }
+    }
+    return fullDataList;
+}
+5.3. Inkrementális Szinkronizáció Implementálása (INKVALT)A teljes adatbázis rendszeres letöltése erőforrás-pazarló és a NEAK által nem javasolt gyakorlat.1 Az INKVALT metódus lehetővé teszi a hatékony, inkrementális szinkronizációt.Cél: Két dátum (dSP1 és dSP2) között megváltozott termékek TERMEK.ID azonosítóinak listáját adja vissza. A szűrők (sXFilter) itt is alkalmazhatók a változások körének szűkítésére.Architekturális Minta: A szinkronizációs szolgáltatásnak el kell tárolnia az utolsó sikeres szinkronizáció időbélyegét. A következő futáskor ez az időbélyeg lesz a dSP1 paraméter, míg az aktuális időpont a dSP2. Az INKVALT által visszaadott azonosítók listája alapján a kliens célzottan, csak a megváltozott entitásokat kérdezi le a TERMEKADAT és TAMOGATADAT metódusokkal, majd frissíti a lokális adatbázisát.SOAP Példa 1:XML<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:pup="http://xmlns.oracle.com/orawsv/PUPHAX/PUPHAXWS">
+   <soapenv:Header/>
+   <soapenv:Body>
+      <pup:COBJIDLISTA-INKVALTInput>
+         <pup:DSP1-DATE-IN>2015-02-13</pup:DSP1-DATE-IN>
+         <pup:DSP2-DATE-IN>2015-05-01</pup:DSP2-DATE-IN>
+         <pup:SXFILTER-VARCHAR2-IN>
+           <!]>
+         </pup:SXFILTER-VARCHAR2-IN>
+      </pup:COBJIDLISTA-INKVALTInput>
+   </soapenv:Body>
+</soapenv:Envelope>
+5.4. A Szűrés (sXFilter) és Lapozás (LAPOZAS) MechanizmusaiA nagy méretű eredményhalmazok kezelésére a webszolgáltatás szűrési és lapozási mechanizmust biztosít.Szűrés (sXFilter): A legtöbb listát visszaadó metódus (TERMEKLISTA, INKVALT, DISP_INF stb.) elfogad egy sXFilter paramétert. Ez egy CDATA blokkba csomagolt XML string, amely a szűrési feltételeket tartalmazza.1 A dokumentációk alapján az alábbi szűrőtagek használhatók:Szűrő TagCél Tábla/MezőLeírásATC, ATCNEVTERMEK, ATCKONYVATC kódra vagy hatóanyagnévre szűrISO, ISONEVTERMEK, ISOKONYVISO kódra vagy megnevezésre szűrBNO, BNONEVBNOKODOKBNO kódra vagy leírásra szűrBRANDTERMEK, BRANDMárkanévre szűrTNEVTERMEK.NEVTermék nevére szűrTKTERMEK.TKTörzskönyvi számra szűrTTTTERMEK.TTTTTT kódra szűrTERMKODTERMEK.TERMEKKODTermék típus kódjára szűrFEJCIDTERMEK.FORGENGT_IDForgalomba hozatali engedély jogosultjának cégazonosítójára szűrFORGCIDTERMEK.FORGALMAZ_IDForgalmazó cégazonosítójára szűrTABLANEV-Csak az INKVALT metódusnál, a változások lekérdezésének cél-tábláját adja meg (pl. TabATC)VALTTIP-Csak a DISP_DIFF metódusnál, a változás típusára szűr ('U': új, 'T': törölt, 'M': módosult)Lapozás (LAPOZAS): A nagy méretű listák részekre bontásához a <LAPOZAS>start:count</LAPOZAS> taget kell az sXFilter-en belül elhelyezni. A start az első visszaadandó elem sorszáma (1-től indexelve), a count pedig a kért elemek száma. A dokumentáció szigorú korlátokat szab: a DISP_... metódusoknál a count maximális értéke 100, és a lapozás megadása kötelező, míg a TERMEKLISTA esetében a maximum 10000.1 A kliensalkalmazásnak egy ciklusban kell meghívnia a szolgáltatást, minden iterációban növelve a start értékét, amíg a visszaadott lista üres nem lesz.VI. Haladó Implementációs Stratégiák és MegoldásokA PUPHAX rendszerrel való integráció során felmerülnek olyan komplex kihívások, amelyek túlmutatnak az egyszerű API hívásokon. Ez a fejezet a két legkritikusabb problémára – a karakterkódolás kezelésére és egy robusztus szinkronizációs szolgáltatás kialakítására – nyújt mélyreható, enterprise-szintű megoldásokat.6.1. A Karakterkódolási Dilemma MegoldásaA projekt egyik központi problémája a magyar ékezetes karakterek helyes kezelése. A probléma gyökere a PUPHAX rendszer heterogén karakterkódolási környezetében rejlik.Problémaforrás: A NEAK dokumentációja szerint a háttérben futó Oracle adatbázis EE8ISO8859P2 (más néven "ISO-8859-2" vagy "Latin-2") karakterkódolást használ, amely egy közép-európai nyelvekre optimalizált 8-bites kódolás.1 Ezzel szemben a SOAP webszolgáltatás a modern webes szabványoknak megfelelően UTF-8 kódolású XML válaszokat küld.1Ez a kétlépcsős kódolási lánc egy rejtett, de rendkívül veszélyes hibaforrást rejt magában. Ha a szerveroldali alkalmazásréteg, amely az adatbázisból kiolvasott ISO-8859-2 bájtokat UTF-8 XML-be konvertálja, nem tökéletesen működik, akkor a kliens egy formailag érvényes, UTF-8-nak címkézett, de tartalmilag hibás bájtsorozatot kap. Ez a jelenség, az ún. "mojibake", azt eredményezi, hogy az olyan speciális magyar karakterek, mint az 'ő' és 'ű', olvashatatlan karakterekké (û, õ vagy ?) válnak. A kliensoldali JAXB parser, bízva a HTTP Content-Type fejlécben deklarált UTF-8 kódolásban, nem tudja helyesen értelmezni a hibásan kódolt bájtokat, ami adatvesztéshez és adatkorrupcióhoz vezet.Védelmi Stratégia: ClientInterceptor ImplementálásaA probléma robusztus, kliensoldali kezelésére a legmegfelelőbb eszköz egy Spring Web Services ClientInterceptor implementálása.8 Ez az interceptor a SOAP kommunikációs láncba ékelődik, és lehetőséget ad a bejövő válasz nyers bájtsorozatának manipulálására, mielőtt az a JAXB unmarshallerhez kerülne.A javasolt megoldás egy olyan interceptor, amely a handleResponse metódusban:Hozzáfér a bejövő WebServiceMessage nyers InputStream-jéhez.Beolvassa a teljes XML választ egy bájt-tömbbe.A bájt-tömböt nem az eredeti, feltételezetten UTF-8 kódolással, hanem kényszerítetten ISO-8859-2 kódolással alakítja át egy Java String-gé.Ezt a String-et ezután UTF-8 kódolással visszaalakítja egy új bájt-tömbbé.Létrehoz egy új, memóriában tárolt WebServiceMessage-t a most már garantáltan helyes UTF-8 bájtokból, és ezt adja tovább a feldolgozási láncnak.Ez a "javító" transzkodolási lépés egy védelmi hálót képez a szerveroldali kódolási hibák ellen, biztosítva, hogy a JAXB réteg mindig tiszta, valid UTF-8 adatot kapjon.Kódvázlat egy karakterkódolást javító interceptorhoz:Javaimport org.springframework.ws.client.WebServiceClientException;
+import org.springframework.ws.client.support.interceptor.ClientInterceptor;
+import org.springframework.ws.context.MessageContext;
+import org.springframework.ws.transport.TransportInputStream;
+import org.springframework.util.StreamUtils;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+
+public class CharacterEncodingCorrectionInterceptor implements ClientInterceptor {
+
+    private static final Charset SOURCE_CHARSET = Charset.forName("ISO-8859-2");
+    private static final Charset TARGET_CHARSET = StandardCharsets.UTF_8;
+
+    @Override
+    public boolean handleResponse(MessageContext messageContext) throws WebServiceClientException {
+        try {
+            TransportInputStream tis = (TransportInputStream) messageContext.getResponse().getPayloadSource();
+            byte rawBytes = StreamUtils.copyToByteArray(tis);
+
+            // Feltételezzük, hogy a stream hibásan lett UTF-8-ként deklarálva, de ISO-8859-2 bájtokat tartalmaz.
+            // Először helyesen értelmezzük a bájtokat String-gé, majd visszaalakítjuk garantáltan helyes UTF-8 bájtokká.
+            String correctlyInterpretedString = new String(rawBytes, SOURCE_CHARSET);
+            byte correctedUtf8Bytes = correctlyInterpretedString.getBytes(TARGET_CHARSET);
+
+            // Lecseréljük a message contextben lévő hibás választ a javítottra.
+            // Ez a lépés a Spring-WS implementációjától függően bonyolultabb lehet,
+            // és szükség lehet egy egyedi WebServiceMessage implementációra.
+            // Egy egyszerűbb megközelítés lehet a TransportInputStream cseréje.
+            // A konkrét implementáció a Spring-WS verziójától függ.
+
+            // A koncepció bemutatására:
+            messageContext.setResponse(new InMemoryWebServiceMessage(correctedUtf8Bytes));
+
+        } catch (IOException e) {
+            throw new RuntimeException("Hiba a SOAP válasz karakterkódolásának javítása közben", e);
+        }
+        return true;
+    }
+
+    // A handleRequest, handleFault és afterCompletion metódusokat is implementálni kell.
+    //... (további metódusok)
+}
+// Az InMemoryWebServiceMessage egy saját, egyszerűsített implementáció lenne.
+Ezt az interceptort a WebServiceTemplate bean interceptors property-jén keresztül kell regisztrálni.6.2. Reziliens Szinkronizációs Szolgáltatás TervezéseA PUPHAX adatok lokális adatbázisba történő rendszeres szinkronizálása kritikus üzleti követelmény lehet. A NEAK dokumentációja explicit módon említi a szerveroldali védelmi mechanizmusokat, mint például a párhuzamos kapcsolatok korlátozása (kliensenként maximum 3 végrehajtási szál) és a túlzottan sok kérést indító kliensek ideiglenes kitiltása.1 Egy naiv, egy szálon futó szinkronizációs folyamat, amely több tízezer termék adatát próbálja frissíteni, elfogadhatatlanul lassú lenne.Javasolt Architektúra:Egy robusztus, hatékony és a szerveroldali korlátokat tiszteletben tartó szinkronizációs szolgáltatás az alábbi komponensekből épül fel:Időzített Fő Folyamat (@Scheduled): Egy Spring @Scheduled annotációval ellátott metódus, amely a megadott időközönként (pl. naponta egyszer) elindítja a szinkronizációs folyamatot.Változások Lekérdezése: A folyamat első lépése az INKVALT metódus meghívása az utolsó sikeres szinkronizáció időpontjával és az aktuális időponttal. Ez visszaadja az összes frissítendő termékazonosítót.Párhuzamos Feldolgozás (ThreadPoolTaskExecutor): A kapott azonosítólista feldarabolása kisebb, kezelhető méretű "csomagokra" (batch-ekre). Ezeket a csomagokat egy dedikált, fix méretű szálkészletnek (thread pool) kell feldolgozásra átadni. A ThreadPoolTaskExecutor bean corePoolSize és maxPoolSize paramétereit a NEAK által megadott limitnek megfelelően 3-ra kell állítani.Munkavégző Szálak: Minden szál a saját csomagjában lévő azonosítókon iterál végig, és minden egyes azonosítóra meghívja a szükséges TERMEKADAT és TAMOGATADAT metódusokat. Az eredményeket a lokális adatbázisban frissíti vagy hozza létre.Hibakezelés és Újrapróbálkozás (Spring Retry): A hálózati kommunikáció során fellépő átmeneti hibák (pl. timeout, ideiglenes szerver elérhetetlenség) kezelésére a Spring Retry keretrendszer használata javasolt. Az API hívásokat végző metódusokat @Retryable annotációval lehet ellátni, amely automatikusan újrapróbálja a sikertelen hívásokat egy konfigurálható stratégia (pl. exponenciális visszalépés) szerint.Tranzakciókezelés és Állapotmenedzsment: A teljes szinkronizációs folyamatnak egyetlen, nagy tranzakcióként kell lefutnia. Az "utolsó sikeres szinkronizáció" időbélyegét csak akkor szabad frissíteni, ha az összes csomag feldolgozása hibátlanul befejeződött. Hiba esetén a teljes tranzakciót vissza kell görgetni, hogy az adatbázis konzisztens állapotban maradjon.Ez az architektúra biztosítja a maximális teljesítményt a szerveroldali korlátok betartása mellett, miközben a beépített hibakezelési és újrapróbálkozási mechanizmusok révén növeli a rendszer megbízhatóságát és rezilienciáját.VII. Összegző Javaslatok és Implementációs ÚtitervEz a jelentés részletesen elemezte a NEAK PUPHAX webszolgáltatását, és konkrét, gyakorlati útmutatást nyújtott egy Spring Boot alapú kliensalkalmazás fejlesztéséhez. Az alábbiakban egy összegző ellenőrzőlista és egy javasolt, fázisokra bontott implementációs útiterv található, amely segíti a fejlesztési folyamat strukturálását és a kritikus lépések priorizálását.7.1. Kritikus Lépések EllenőrzőlistájaA sikeres integrációhoz az alábbi kulcsfontosságú feladatokat kell elvégezni:[ ] WSDL Előkészítése: A hivatalos WSDL fájl letöltése, a benne található hibás <soap:address> URL manuális javítása a publikus végpontra ($https://puphax.neak.gov.hu/PUPHAXWS$).[ ] Maven Projekt Konfigurálása: A pom.xml fájl kiegészítése a jaxb2-maven-plugin konfigurációjával a WSDL-alapú Java osztálygeneráláshoz, a megfelelő (wsdl, xmlschema) direktívák használatával.[ ] Java Osztályok Generálása: A mvn generate-sources parancs futtatása és a generált JAXB osztályok validálása.[ ] Spring Konfiguráció Létrehozása: Egy @Configuration osztály implementálása, amely létrehozza a WebServiceTemplate beant, Apache HttpClient és HttpComponentsMessageSender használatával, valamint beállítja a Digest hitelesítést a PUPHAX/puphax kredenciálisokkal.[ ] Kapcsolat Tesztelése: Egy egyszerű, törzsadat-lekérdező (Tab*) metódus (pl. TabATC) meghívása a WebServiceTemplate-en keresztül a kapcsolat és a hitelesítés működésének ellenőrzésére.[ ] Karakterkódolás Kezelése: A ClientInterceptor implementálása az ISO-8859-2 -> UTF-8 transzkodolási problémák proaktív kezelésére. A magyar ékezetes karaktereket tartalmazó válaszok (pl. terméknevek) helyességének validálása.[ ] Szinkronizációs Logika Implementálása: A teljes, INKVALT metódusra épülő inkrementális szinkronizációs munkafolyamat leprogramozása.[ ] Párhuzamosítás és Reziliencia Implementálása: A szinkronizációs szolgáltatás kiegészítése egy 3 szálra korlátozott ThreadPoolTaskExecutor-ral a párhuzamos adatlekérdezéshez, valamint a Spring Retry integrálása az átmeneti hálózati hibák kezelésére.7.2. Fázisokra Bontott Implementációs ÚtitervA projekt komplexitásának kezelésére egy fázisokra bontott megközelítés javasolt, amely lehetővé teszi a fokozatos előrehaladást és a korai fázisokban történő validálást.1. Fázis: Kapcsolat és HitelesítésCél: Egyetlen, sikeres, hitelesített API hívás végrehajtása.Feladatok: WSDL előkészítése, Maven konfiguráció, Java osztályok generálása, WebServiceTemplate bean létrehozása Digest hitelesítéssel, és egy TabCEGEK hívás sikeres tesztelése.Eredmény: Egy működőképes, a PUPHAX szolgáltatással kommunikálni képes alaprendszer.2. Fázis: Adatmodell és Inkrementális SzinkronizációCél: Az INKVALT alapú szinkronizációs munkafolyamat implementálása és egy lokális adatbázis (pl. H2 vagy PostgreSQL) első feltöltése a változásokkal.Feladatok: A karakterkódolást javító ClientInterceptor implementálása. Az INKVALT, TERMEKADAT, TAMOGATADAT metódusok használatára épülő teljes szinkronizációs logika lefejlesztése. A kódszótárak (KODSZOTAR) adatainak lekérdezése és cache-elése.Eredmény: Egy szolgáltatás, amely képes a PUPHAX adatbázis változásait követni és egy lokális másolatot naprakészen tartani.3. Fázis: Automatizálás és RezilienciaCél: A szinkronizációs folyamat automatizálása, teljesítményének optimalizálása és hibatűrésének növelése.Feladatok: A szinkronizációs logika @Scheduled annotációval történő időzítése. A párhuzamos feldolgozás implementálása a 3 szálra korlátozott ThreadPoolTaskExecutor-ral. A Spring Retry bevezetése a hálózati hibák automatikus újrapróbálkozással történő kezelésére.Eredmény: Egy production-ready, önműködő és robusztus adat-szinkronizációs modul.4. Fázis: API Kiszolgáló RétegCél: A szinkronizált, lokális adatbázisra épülő belső REST API réteg kialakítása.Feladatok: Spring Data JPA repository-k létrehozása a lokális adatbázis tábláihoz. Spring MVC @RestController-ek implementálása, amelyek a belső rendszerek számára egyszerűen fogyasztható, JSON formátumú adatokat szolgáltatnak a lokális adatbázisból.Eredmény: Egy magas rendelkezésre állású, gyors és a belső üzleti logikától elszigetelt adatszolgáltató réteg, amely független a külső PUPHAX szolgáltatás pillanatnyi elérhetőségétől.

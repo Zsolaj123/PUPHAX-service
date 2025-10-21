@@ -34,10 +34,12 @@ public class DrugService {
     private static final Logger logger = LoggerFactory.getLogger(DrugService.class);
     
     private final PuphaxSoapClient soapClient;
+    private final PuphaxRealDataService realDataService;
     
     @Autowired
-    public DrugService(PuphaxSoapClient soapClient) {
+    public DrugService(PuphaxSoapClient soapClient, PuphaxRealDataService realDataService) {
         this.soapClient = soapClient;
+        this.realDataService = realDataService;
     }
     
     /**
@@ -62,11 +64,20 @@ public class DrugService {
         long startTime = System.currentTimeMillis();
         
         try {
-            // Call SOAP service
-            CompletableFuture<String> soapResponseFuture = soapClient.searchDrugsAsync(searchTerm, manufacturer, atcCode);
-            String xmlResponse = soapResponseFuture.get();
+            // First try the real data service with proper encoding handling
+            String xmlResponse;
+            try {
+                logger.info("Attempting to fetch real PUPHAX data for search term: {}", searchTerm);
+                xmlResponse = realDataService.searchDrugsReal(searchTerm);
+                logger.info("Successfully retrieved real PUPHAX data");
+            } catch (Exception e) {
+                logger.warn("Real data service failed, falling back to SOAP client: {}", e.getMessage());
+                // Fall back to SOAP client if real data service fails
+                CompletableFuture<String> soapResponseFuture = soapClient.searchDrugsAsync(searchTerm, manufacturer, atcCode);
+                xmlResponse = soapResponseFuture.get();
+            }
             
-            logger.debug("Received SOAP response: {} characters", xmlResponse.length());
+            logger.debug("Received response: {} characters", xmlResponse.length());
             
             // Parse XML response
             List<DrugSummary> allDrugs = parseSearchResponse(xmlResponse);
