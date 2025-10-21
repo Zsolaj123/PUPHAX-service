@@ -15,6 +15,8 @@ import java.security.MessageDigest;
 import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.nio.charset.StandardCharsets;
+import java.nio.charset.Charset;
 
 /**
  * Simplified PUPHAX client using Java 11 HTTP client.
@@ -60,9 +62,10 @@ public class SimplePuphaxClient {
             
             if (initialResponse.statusCode() == 200) {
                 // If we get 200 immediately, PUPHAX might not require auth for this call
+                String responseBody = fixCharacterEncoding(initialResponse.body());
                 logger.debug("PUPHAX response without auth (first 1000 chars): {}", 
-                    initialResponse.body().length() > 1000 ? initialResponse.body().substring(0, 1000) : initialResponse.body());
-                return initialResponse.body();
+                    responseBody.length() > 1000 ? responseBody.substring(0, 1000) : responseBody);
+                return responseBody;
             } else if (initialResponse.statusCode() == 401) {
                 // Extract WWW-Authenticate header for digest challenge
                 String authHeader = initialResponse.headers().firstValue("WWW-Authenticate").orElse("");
@@ -87,9 +90,10 @@ public class SimplePuphaxClient {
                     logger.info("Received authenticated response with status: {}", authResponse.statusCode());
                     
                     if (authResponse.statusCode() == 200) {
+                        String responseBody = fixCharacterEncoding(authResponse.body());
                         logger.debug("PUPHAX response (first 1000 chars): {}", 
-                            authResponse.body().length() > 1000 ? authResponse.body().substring(0, 1000) : authResponse.body());
-                        return authResponse.body();
+                            responseBody.length() > 1000 ? responseBody.substring(0, 1000) : responseBody);
+                        return responseBody;
                     } else {
                         logger.error("PUPHAX returned error after auth: {} - {}", authResponse.statusCode(), authResponse.body());
                         throw new RuntimeException("PUPHAX auth failed: " + authResponse.statusCode());
@@ -128,7 +132,7 @@ public class SimplePuphaxClient {
         HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
         
         if (response.statusCode() == 200) {
-            return response.body();
+            return fixCharacterEncoding(response.body());
         } else {
             throw new RuntimeException("Basic auth also failed: " + response.statusCode());
         }
@@ -238,6 +242,68 @@ public class SimplePuphaxClient {
     }
     
     /**
+     * Get product basic data using TERMEKADAT operation.
+     * This returns product name, ATC code, manufacturer etc.
+     */
+    public String getProductData(String productId, LocalDate searchDate) {
+        try {
+            String soapRequest = buildTermekadatRequest(productId, searchDate);
+            
+            logger.info("Making direct HTTP call to PUPHAX TERMEKADAT for product ID: {}", productId);
+            logger.debug("TERMEKADAT SOAP Request: {}", soapRequest);
+            
+            // Create HTTP request with Basic auth
+            HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(PUPHAX_ENDPOINT))
+                .timeout(Duration.ofSeconds(30))
+                .header("Content-Type", "text/xml; charset=UTF-8")
+                .header("SOAPAction", "TERMEKADAT")
+                .header("Authorization", getBasicAuth())
+                .POST(HttpRequest.BodyPublishers.ofString(soapRequest))
+                .build();
+            
+            // Send initial request
+            HttpResponse<String> initialResponse = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+            
+            if (initialResponse.statusCode() == 200) {
+                String responseBody = fixCharacterEncoding(initialResponse.body());
+                logger.debug("TERMEKADAT response received, length: {} chars", responseBody.length());
+                return responseBody;
+            } else if (initialResponse.statusCode() == 401) {
+                // Handle digest auth if needed
+                String authHeader = initialResponse.headers().firstValue("WWW-Authenticate").orElse("");
+                if (authHeader.startsWith("Digest")) {
+                    String digestAuth = createDigestAuthHeader(authHeader, "POST", "/PUPHAXWS", soapRequest);
+                    
+                    HttpRequest authRequest = HttpRequest.newBuilder()
+                        .uri(URI.create(PUPHAX_ENDPOINT))
+                        .timeout(Duration.ofSeconds(30))
+                        .header("Content-Type", "text/xml; charset=UTF-8")
+                        .header("SOAPAction", "TERMEKADAT")
+                        .header("Authorization", digestAuth)
+                        .POST(HttpRequest.BodyPublishers.ofString(soapRequest))
+                        .build();
+                    
+                    HttpResponse<String> authResponse = httpClient.send(authRequest, HttpResponse.BodyHandlers.ofString());
+                    
+                    if (authResponse.statusCode() == 200) {
+                        String responseBody = fixCharacterEncoding(authResponse.body());
+                        logger.debug("TERMEKADAT digest auth response received, length: {} chars", 
+                            responseBody.length());
+                        return responseBody;
+                    }
+                }
+            }
+            
+            throw new RuntimeException("Failed to get product data: " + initialResponse.statusCode());
+            
+        } catch (Exception e) {
+            logger.error("TERMEKADAT call failed for product {}: {}", productId, e.getMessage());
+            throw new RuntimeException("Failed to get product data", e);
+        }
+    }
+    
+    /**
      * Get product support data using TAMOGATADAT operation.
      */
     public String getProductSupportData(String productId, LocalDate searchDate) {
@@ -245,6 +311,7 @@ public class SimplePuphaxClient {
             String soapRequest = buildTamogatadatRequest(productId, searchDate);
             
             logger.info("Making direct HTTP call to PUPHAX TAMOGATADAT for product ID: {}", productId);
+            logger.debug("TAMOGATADAT SOAP Request: {}", soapRequest);
             
             // Create HTTP request with Basic auth (will work for initial testing)
             HttpRequest request = HttpRequest.newBuilder()
@@ -260,9 +327,10 @@ public class SimplePuphaxClient {
             HttpResponse<String> initialResponse = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
             
             if (initialResponse.statusCode() == 200) {
+                String responseBody = fixCharacterEncoding(initialResponse.body());
                 logger.debug("TAMOGATADAT response received, first 500 chars: {}", 
-                    initialResponse.body().length() > 500 ? initialResponse.body().substring(0, 500) + "..." : initialResponse.body());
-                return initialResponse.body();
+                    responseBody.length() > 500 ? responseBody.substring(0, 500) + "..." : responseBody);
+                return responseBody;
             } else if (initialResponse.statusCode() == 401) {
                 // Handle digest auth if needed
                 String authHeader = initialResponse.headers().firstValue("WWW-Authenticate").orElse("");
@@ -281,9 +349,10 @@ public class SimplePuphaxClient {
                     HttpResponse<String> authResponse = httpClient.send(authRequest, HttpResponse.BodyHandlers.ofString());
                     
                     if (authResponse.statusCode() == 200) {
+                        String responseBody = fixCharacterEncoding(authResponse.body());
                         logger.debug("TAMOGATADAT digest auth response received, first 500 chars: {}", 
-                            authResponse.body().length() > 500 ? authResponse.body().substring(0, 500) + "..." : authResponse.body());
-                        return authResponse.body();
+                            responseBody.length() > 500 ? responseBody.substring(0, 500) + "..." : responseBody);
+                        return responseBody;
                     } else {
                         logger.error("TAMOGATADAT digest auth failed with status {}: {}", authResponse.statusCode(), authResponse.body());
                     }
@@ -296,6 +365,19 @@ public class SimplePuphaxClient {
             logger.error("TAMOGATADAT call failed for product {}: {}", productId, e.getMessage());
             throw new RuntimeException("Failed to get product support data", e);
         }
+    }
+    
+    private String buildTermekadatRequest(String productId, LocalDate searchDate) {
+        // Based on the sample document, TERMEKADAT only needs the product ID
+        return String.format("""
+            <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:pup="http://xmlns.oracle.com/orawsv/PUPHAX/PUPHAXWS">
+               <soapenv:Header/>
+               <soapenv:Body>
+                  <pup:COBJTERMEKADAT-TERMEKADATInput>
+                     <pup:NID-NUMBER-IN>%s</pup:NID-NUMBER-IN>
+                  </pup:COBJTERMEKADAT-TERMEKADATInput>
+               </soapenv:Body>
+            </soapenv:Envelope>""", productId);
     }
     
     private String buildTamogatadatRequest(String productId, LocalDate searchDate) {
@@ -322,5 +404,36 @@ public class SimplePuphaxClient {
                   .replace(">", "&gt;")
                   .replace("\"", "&quot;")
                   .replace("'", "&apos;");
+    }
+    
+    /**
+     * Fix character encoding issues in PUPHAX responses.
+     * PUPHAX returns XML declaring UTF-8 but containing ISO-8859-2 encoded content.
+     * This method attempts to re-encode the response to fix Hungarian characters.
+     */
+    private String fixCharacterEncoding(String response) {
+        try {
+            // Check if response contains typical mis-encoded Hungarian characters
+            if (!response.contains("\ufffd") && !response.contains("�")) {
+                // Response seems OK, return as is
+                return response;
+            }
+            
+            // The response was decoded as UTF-8 but contains ISO-8859-2 content
+            // We need to re-encode it properly
+            
+            // Convert the misinterpreted string back to bytes using ISO-8859-1
+            // (which preserves the byte values)
+            byte[] bytes = response.getBytes(StandardCharsets.ISO_8859_1);
+            
+            // Now interpret these bytes correctly as ISO-8859-2
+            String corrected = new String(bytes, Charset.forName("ISO-8859-2"));
+            
+            logger.debug("Fixed character encoding for response");
+            return corrected;
+        } catch (Exception e) {
+            logger.warn("Failed to fix character encoding, returning original: {}", e.getMessage());
+            return response;
+        }
     }
 }

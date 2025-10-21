@@ -89,30 +89,52 @@ public class PuphaxRealDataService {
             int count = 0;
             LocalDate searchDate = LocalDate.now();
             
-            // TEMPORARILY DISABLED TAMOGATADAT - just show real IDs
-            logger.warn("TAMOGATADAT calls temporarily disabled for debugging");
+            logger.info("Fetching detailed product data via TAMOGATADAT for {} products", Math.min(productIds.size(), 10));
             
             for (String productId : productIds) {
-                if (count++ >= 10) break; // Limit to first 10
+                if (count++ >= 10) break; // Limit to first 10 to avoid too many API calls
                 
-                // Add basic info with REAL product ID from PUPHAX
-                xmlBuilder.append(String.format("""
-                        <drug>
-                            <id>%s</id>
-                            <name>REAL PUPHAX ID: %s (from TERMEKLISTA)</name>
-                            <manufacturer>NEAK PUPHAX</manufacturer>
-                            <atcCode>DEBUG</atcCode>
-                            <activeIngredients>
-                                <ingredient>
-                                    <name>Real ID from PUPHAX</name>
-                                </ingredient>
-                            </activeIngredients>
-                            <prescriptionRequired>true</prescriptionRequired>
-                            <reimbursable>true</reimbursable>
-                            <status>ACTIVE</status>
-                            <source>REAL PUPHAX TERMEKLISTA</source>
-                        </drug>
-                    """, productId, productId));
+                try {
+                    logger.info("Getting detailed data for product ID: {}", productId);
+                    
+                    // First get product basic data (name, ATC, manufacturer)
+                    String termekadatResponse = simplePuphaxClient.getProductData(productId, searchDate);
+                    logger.info("TERMEKADAT response length for product {}: {} chars", productId, termekadatResponse.length());
+                    
+                    // Then get support data (prices, reimbursement)
+                    String tamogatadatResponse = null;
+                    try {
+                        tamogatadatResponse = simplePuphaxClient.getProductSupportData(productId, searchDate);
+                        logger.info("TAMOGATADAT response length for product {}: {} chars", productId, tamogatadatResponse.length());
+                    } catch (Exception e) {
+                        logger.warn("TAMOGATADAT failed for product {}, will use only TERMEKADAT data: {}", productId, e.getMessage());
+                    }
+                    
+                    // Parse both responses to create complete product info
+                    String productXml = parseProductData(productId, termekadatResponse, tamogatadatResponse);
+                    xmlBuilder.append(productXml);
+                    
+                } catch (Exception e) {
+                    logger.error("Failed to get details for product {}: {}", productId, e.getMessage(), e);
+                    // Add basic info if detailed call fails
+                    xmlBuilder.append(String.format("""
+                            <drug>
+                                <id>%s</id>
+                                <name>PUPHAX Product %s (details unavailable)</name>
+                                <manufacturer>NEAK PUPHAX</manufacturer>
+                                <atcCode>ERROR</atcCode>
+                                <activeIngredients>
+                                    <ingredient>
+                                        <name>Error: %s</name>
+                                    </ingredient>
+                                </activeIngredients>
+                                <prescriptionRequired>true</prescriptionRequired>
+                                <reimbursable>false</reimbursable>
+                                <status>ERROR</status>
+                                <source>REAL PUPHAX</source>
+                            </drug>
+                        """, productId, productId, e.getMessage()));
+                }
             }
             
             xmlBuilder.append("    </drugs>\n");
@@ -158,14 +180,133 @@ public class PuphaxRealDataService {
     }
     
     /**
-     * Parse TAMOGATADAT response to extract product details.
+     * Parse product data from TERMEKADAT and optionally TAMOGATADAT responses.
      */
+    private String parseProductData(String productId, String termekadatResponse, String tamogatadatResponse) {
+        try {
+            logger.debug("Parsing product data for product {}", productId);
+            
+            // Log the first part of response to debug parsing
+            logger.debug("TERMEKADAT response preview for {}: {}", productId,
+                termekadatResponse.length() > 500 ? termekadatResponse.substring(0, 500) + "..." : termekadatResponse);
+            
+            // Check if we have a SOAP fault or error response
+            if (termekadatResponse.contains("faultstring") || termekadatResponse.contains("soap:Fault")) {
+                logger.error("SOAP Fault in TERMEKADAT response for product {}: {}", productId, termekadatResponse);
+                throw new Exception("SOAP fault in response");
+            }
+            
+            // Parse TERMEKADAT response for basic product info
+            String productName = extractValue(termekadatResponse, "<NEV>", "</NEV>");
+            String atcCode = extractValue(termekadatResponse, "<ATC>", "</ATC>");
+            String manufacturer = extractValue(termekadatResponse, "<FORGALMAZO>", "</FORGALMAZO>");
+            if (manufacturer.isEmpty()) {
+                manufacturer = extractValue(termekadatResponse, "<FORGALMAZÓNÉV>", "</FORGALMAZÓNÉV>");
+            }
+            String tttCode = extractValue(termekadatResponse, "<TTT>", "</TTT>");
+            String activeIngredient = extractValue(termekadatResponse, "<HATOANYAGNEV>", "</HATOANYAGNEV>");
+            String packaging = extractValue(termekadatResponse, "<KISZNEV>", "</KISZNEV>");
+            
+            // Default values
+            boolean reimbursable = false;
+            String price = "N/A";
+            String supportPercent = "0";
+            
+            // Parse TAMOGATADAT if available
+            if (tamogatadatResponse != null && !tamogatadatResponse.isEmpty()) {
+                price = extractValue(tamogatadatResponse, "<BRUNAKFOGY>", "</BRUNAKFOGY>");
+                if (price.isEmpty()) {
+                    price = extractValue(tamogatadatResponse, "<FAB>", "</FAB>");
+                }
+                supportPercent = extractValue(tamogatadatResponse, "<TAMSZAZ>", "</TAMSZAZ>");
+                reimbursable = !supportPercent.isEmpty() && !supportPercent.equals("0");
+            }
+            
+            // Ensure we have at least the product name
+            if (productName.isEmpty()) {
+                productName = "Product " + productId;
+            }
+            
+            if (manufacturer.isEmpty()) {
+                manufacturer = "N/A";
+            }
+            
+            if (activeIngredient.isEmpty()) {
+                activeIngredient = "N/A";
+            }
+            
+            logger.info("Parsed product {}: name='{}', TTT='{}', ATC='{}', manufacturer='{}'", 
+                productId, productName, tttCode, atcCode, manufacturer);
+            
+            return String.format("""
+                    <drug>
+                        <id>%s</id>
+                        <name>%s</name>
+                        <manufacturer>%s</manufacturer>
+                        <atcCode>%s</atcCode>
+                        <tttCode>%s</tttCode>
+                        <activeIngredients>
+                            <ingredient>
+                                <name>%s</name>
+                            </ingredient>
+                        </activeIngredients>
+                        <packaging>%s</packaging>
+                        <prescriptionRequired>true</prescriptionRequired>
+                        <reimbursable>%s</reimbursable>
+                        <status>ACTIVE</status>
+                        <price>%s</price>
+                        <supportPercent>%s</supportPercent>
+                        <source>REAL PUPHAX DATA</source>
+                    </drug>
+                """, productId, escapeXml(productName), escapeXml(manufacturer), 
+                     escapeXml(atcCode), escapeXml(tttCode), escapeXml(activeIngredient),
+                     escapeXml(packaging), reimbursable, price, supportPercent);
+                
+        } catch (Exception e) {
+            logger.error("Failed to parse product data: {}", e.getMessage());
+            return String.format("""
+                    <drug>
+                        <id>%s</id>
+                        <name>Product %s (parse error)</name>
+                        <manufacturer>N/A</manufacturer>
+                        <atcCode>ERROR</atcCode>
+                        <activeIngredients>
+                            <ingredient>
+                                <name>Parse error: %s</name>
+                            </ingredient>
+                        </activeIngredients>
+                        <prescriptionRequired>true</prescriptionRequired>
+                        <reimbursable>false</reimbursable>
+                        <status>ERROR</status>
+                        <source>PARSE ERROR</source>
+                    </drug>
+                """, productId, productId, e.getMessage());
+        }
+    }
+    
+    /**
+     * Parse TAMOGATADAT response to extract product details.
+     * @deprecated Use parseProductData instead which combines TERMEKADAT and TAMOGATADAT
+     */
+    @Deprecated
     private String parseTamogatadatResponse(String productId, String tamogatadatResponse) {
         try {
             logger.debug("Parsing TAMOGATADAT for product {}, response length: {}", productId, tamogatadatResponse.length());
             
-            // Check if we have a valid response
-            if (!tamogatadatResponse.contains("OBJTAMOGAT") && !tamogatadatResponse.contains("TAMOGATADATOutput")) {
+            // Log what we're looking for
+            boolean hasObjTamogat = tamogatadatResponse.contains("OBJTAMOGAT");
+            boolean hasTamogatadatOutput = tamogatadatResponse.contains("TAMOGATADATOutput");
+            boolean hasKgykeret = tamogatadatResponse.contains("KGYKERET");
+            
+            logger.info("TAMOGATADAT response analysis for product {}: hasOBJTAMOGAT={}, hasTAMOGATADATOutput={}, hasKGYKERET={}", 
+                productId, hasObjTamogat, hasTamogatadatOutput, hasKgykeret);
+            
+            // Log the first 200 chars to see what's actually in the response
+            logger.info("TAMOGATADAT response preview for {}: {}", productId,
+                tamogatadatResponse.length() > 200 ? tamogatadatResponse.substring(0, 200) + "..." : tamogatadatResponse);
+            
+            // Check if we have a valid response - might be different format
+            if (!hasObjTamogat && !hasTamogatadatOutput && !hasKgykeret) {
                 logger.warn("Invalid TAMOGATADAT response for product {}", productId);
                 
                 // Check for SOAP fault
@@ -174,6 +315,30 @@ public class PuphaxRealDataService {
                 }
                 
                 throw new Exception("Invalid response format");
+            }
+            
+            // Check if this is an empty/default response (KGYKERET with max value indicates no data)
+            String kgykeretValue = extractValue(tamogatadatResponse, "<KGYKERET>", "</KGYKERET>");
+            if ("999999999.999999".equals(kgykeretValue)) {
+                logger.info("Product {} has no support data (KGYKERET=999999999.999999)", productId);
+                // Return a response indicating this product has no current support data
+                return String.format("""
+                        <drug>
+                            <id>%s</id>
+                            <name>Product ID %s (no support data available)</name>
+                            <manufacturer>NEAK</manufacturer>
+                            <atcCode>N/A</atcCode>
+                            <activeIngredients>
+                                <ingredient>
+                                    <name>No current support data</name>
+                                </ingredient>
+                            </activeIngredients>
+                            <prescriptionRequired>true</prescriptionRequired>
+                            <reimbursable>false</reimbursable>
+                            <status>NO_DATA</status>
+                            <source>REAL PUPHAX - NO SUPPORT DATA</source>
+                        </drug>
+                    """, productId, productId);
             }
             
             // Extract product name
