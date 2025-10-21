@@ -108,7 +108,7 @@ class PuphaxGyogyszerKerreso {
 
         // Lapozás és rendezés
         keresesiParameterek.append('oldal', oldal.toString());
-        keresesiParameterek.append('meret', '20');
+        keresesiParameterek.append('meret', '10'); // Show 10 results per page as requested
         keresesiParameterek.append('rendezes', 'nev');
         keresesiParameterek.append('irany', 'ASC');
 
@@ -178,55 +178,132 @@ class PuphaxGyogyszerKerreso {
     gyogyszerKartyaHtml(gyogyszer) {
         const statuszOsztaly = gyogyszer.statusz ? gyogyszer.statusz.toLowerCase() : 'aktiv';
         const statuszSzoveg = this.statuszForditasa(gyogyszer.statusz || 'AKTIV');
+        const uniqueId = `drug-${gyogyszer.id || Math.random().toString(36).substr(2, 9)}`;
 
         return `
-            <div class="gyogyszer-kártya fade-in">
-                <div class="gyogyszer-fej">
-                    <div>
-                        <div class="gyogyszer-neve">${this.htmlEscape(gyogyszer.nev || 'Ismeretlen gyógyszer')}</div>
-                        <div class="gyogyszer-azonosito">ID: ${this.htmlEscape(gyogyszer.azonosito || 'N/A')}</div>
+            <div class="gyogyszer-kártya fade-in" data-drug-id="${gyogyszer.id || 'N/A'}">
+                <div class="gyogyszer-osszefoglalo" onclick="puphaxApp.toggleDrugDetails('${uniqueId}')">
+                    <div class="gyogyszer-fej">
+                        <div class="gyogyszer-fo-info">
+                            <div class="gyogyszer-neve">${this.htmlEscape(gyogyszer.nev || 'Ismeretlen gyógyszer')}</div>
+                            <div class="gyogyszer-alapadatok">
+                                ${gyogyszer.gyarto ? `<span class="alapadat-elem">🏭 ${this.htmlEscape(gyogyszer.gyarto)}</span>` : ''}
+                                ${gyogyszer.atcKod ? `<span class="alapadat-elem">📋 ${this.htmlEscape(gyogyszer.atcKod)}</span>` : ''}
+                                ${gyogyszer.hatoanyagok && gyogyszer.hatoanyagok.length > 0 ? 
+                                    `<span class="alapadat-elem">💊 ${this.htmlEscape(gyogyszer.hatoanyagok[0])}</span>` : ''}
+                            </div>
+                        </div>
+                        <div class="gyogyszer-statusz-es-toggle">
+                            <div class="gyogyszer-statusz ${statuszOsztaly}">${statuszSzoveg}</div>
+                            <span class="toggle-icon" id="${uniqueId}-toggle">▼</span>
+                        </div>
                     </div>
-                    <div class="gyogyszer-statusz ${statuszOsztaly}">${statuszSzoveg}</div>
                 </div>
                 
-                <div class="gyogyszer-reszletek">
-                    <div class="gyogyszer-reszlet">
-                        <span class="reszlet-cimke">Gyártó</span>
-                        <span class="reszlet-ertek">${this.htmlEscape(gyogyszer.gyarto || 'Nem megadott')}</span>
-                    </div>
-                    <div class="gyogyszer-reszlet">
-                        <span class="reszlet-cimke">ATC Kód</span>
-                        <span class="reszlet-ertek">${this.htmlEscape(gyogyszer.atcKod || 'Nem megadott')}</span>
-                    </div>
-                    ${gyogyszer.hatoanyag ? `
+                <div class="gyogyszer-reszletezett" id="${uniqueId}" style="display: none;">
+                    <div class="reszletek-grid">
                         <div class="gyogyszer-reszlet">
-                            <span class="reszlet-cimke">Hatóanyag</span>
-                            <span class="reszlet-ertek">${this.htmlEscape(gyogyszer.hatoanyag)}</span>
+                            <span class="reszlet-cimke">Azonosító</span>
+                            <span class="reszlet-ertek">${this.htmlEscape(gyogyszer.id || 'N/A')}</span>
+                        </div>
+                        <div class="gyogyszer-reszlet">
+                            <span class="reszlet-cimke">Gyártó</span>
+                            <span class="reszlet-ertek">${this.htmlEscape(gyogyszer.gyarto || 'Nem megadott')}</span>
+                        </div>
+                        <div class="gyogyszer-reszlet">
+                            <span class="reszlet-cimke">ATC Kód</span>
+                            <span class="reszlet-ertek">${this.htmlEscape(gyogyszer.atcKod || 'Nem megadott')}</span>
+                        </div>
+                        ${gyogyszer.tttKod ? `
+                            <div class="gyogyszer-reszlet">
+                                <span class="reszlet-cimke">TTT Kód</span>
+                                <span class="reszlet-ertek">${this.htmlEscape(gyogyszer.tttKod)}</span>
+                            </div>
+                        ` : ''}
+                        ${gyogyszer.kiszereles ? `
+                            <div class="gyogyszer-reszlet">
+                                <span class="reszlet-cimke">Kiszerelés</span>
+                                <span class="reszlet-ertek">${this.htmlEscape(gyogyszer.kiszereles)}</span>
+                            </div>
+                        ` : ''}
+                        ${gyogyszer.torzskonyvSzam ? `
+                            <div class="gyogyszer-reszlet">
+                                <span class="reszlet-cimke">Törzskönyvi szám</span>
+                                <span class="reszlet-ertek">${this.htmlEscape(gyogyszer.torzskonyvSzam)}</span>
+                            </div>
+                        ` : ''}
+                        ${gyogyszer.venyStatus ? `
+                            <div class="gyogyszer-reszlet">
+                                <span class="reszlet-cimke">Vény státusz</span>
+                                <span class="reszlet-ertek">${this.htmlEscape(this.venyStatusLeiras(gyogyszer.venyStatus))}</span>
+                            </div>
+                        ` : ''}
+                        ${gyogyszer.gyogyszerforma ? `
+                            <div class="gyogyszer-reszlet">
+                                <span class="reszlet-cimke">Gyógyszerforma</span>
+                                <span class="reszlet-ertek">${this.htmlEscape(gyogyszer.gyogyszerforma)}</span>
+                            </div>
+                        ` : ''}
+                        ${gyogyszer.hatarossag ? `
+                            <div class="gyogyszer-reszlet">
+                                <span class="reszlet-cimke">Hatáserősség</span>
+                                <span class="reszlet-ertek">${this.htmlEscape(gyogyszer.hatarossag)}</span>
+                            </div>
+                        ` : ''}
+                        ${gyogyszer.ar ? `
+                            <div class="gyogyszer-reszlet">
+                                <span class="reszlet-cimke">Ár</span>
+                                <span class="reszlet-ertek">${this.htmlEscape(gyogyszer.ar)}</span>
+                            </div>
+                        ` : ''}
+                        ${gyogyszer.tamogatasSzazalek ? `
+                            <div class="gyogyszer-reszlet">
+                                <span class="reszlet-cimke">Támogatás</span>
+                                <span class="reszlet-ertek">${this.htmlEscape(gyogyszer.tamogatasSzazalek)}%</span>
+                            </div>
+                        ` : ''}
+                        ${gyogyszer.ervenyessegKezdete ? `
+                            <div class="gyogyszer-reszlet">
+                                <span class="reszlet-cimke">Érvényes ettől</span>
+                                <span class="reszlet-ertek">${this.htmlEscape(gyogyszer.ervenyessegKezdete)}</span>
+                            </div>
+                        ` : ''}
+                        ${gyogyszer.ervenyessegVege ? `
+                            <div class="gyogyszer-reszlet">
+                                <span class="reszlet-cimke">Érvényes eddig</span>
+                                <span class="reszlet-ertek">${this.htmlEscape(gyogyszer.ervenyessegVege)}</span>
+                            </div>
+                        ` : ''}
+                        ${gyogyszer.normativitas ? `
+                            <div class="gyogyszer-reszlet">
+                                <span class="reszlet-cimke">Normativitás</span>
+                                <span class="reszlet-ertek">${this.htmlEscape(gyogyszer.normativitas)}</span>
+                            </div>
+                        ` : ''}
+                        ${gyogyszer.tamogatasTipus ? `
+                            <div class="gyogyszer-reszlet">
+                                <span class="reszlet-cimke">Támogatás típusa</span>
+                                <span class="reszlet-ertek">${this.htmlEscape(gyogyszer.tamogatasTipus)}</span>
+                            </div>
+                        ` : ''}
+                    </div>
+
+                    ${gyogyszer.hatoanyagok && gyogyszer.hatoanyagok.length > 0 ? `
+                        <div class="hatoanyagok">
+                            <span class="reszlet-cimke">Hatóanyagok</span>
+                            <div class="hatoanyagok-lista">
+                                ${gyogyszer.hatoanyagok.map(hatoanyag => 
+                                    `<span class="hatoanyag-cimke">${this.htmlEscape(hatoanyag)}</span>`
+                                ).join('')}
+                            </div>
                         </div>
                     ` : ''}
-                    ${gyogyszer.forma ? `
-                        <div class="gyogyszer-reszlet">
-                            <span class="reszlet-cimke">Forma</span>
-                            <span class="reszlet-ertek">${this.htmlEscape(gyogyszer.forma)}</span>
-                        </div>
-                    ` : ''}
-                </div>
 
-                ${gyogyszer.hatoanyagok && gyogyszer.hatoanyagok.length > 0 ? `
-                    <div class="hatoanyagok">
-                        <span class="reszlet-cimke">Hatóanyagok</span>
-                        <div class="hatoanyagok-lista">
-                            ${gyogyszer.hatoanyagok.map(hatoanyag => 
-                                `<span class="hatoanyag-cimke">${this.htmlEscape(hatoanyag)}</span>`
-                            ).join('')}
-                        </div>
+                    <div class="gyogyszer-jelzok">
+                        ${gyogyszer.venykoeteles ? '<span class="gyogyszer-jelzo venykoeteles">⚕️ Vényköteles</span>' : ''}
+                        ${gyogyszer.tamogatott ? '<span class="gyogyszer-jelzo tamogatott">💰 Támogatott</span>' : ''}
+                        ${gyogyszer.generikus ? '<span class="gyogyszer-jelzo generikus">🔄 Generikus</span>' : ''}
                     </div>
-                ` : ''}
-
-                <div class="gyogyszer-jelzok">
-                    ${gyogyszer.venykoeteles ? '<span class="gyogyszer-jelzo venykoeteles">⚕️ Vényköteles</span>' : ''}
-                    ${gyogyszer.tamogatott ? '<span class="gyogyszer-jelzo tamogatott">💰 Támogatott</span>' : ''}
-                    ${gyogyszer.generikus ? '<span class="gyogyszer-jelzo generikus">🔄 Generikus</span>' : ''}
                 </div>
             </div>
         `;
@@ -268,7 +345,11 @@ class PuphaxGyogyszerKerreso {
      * Lapozás HTML létrehozása.
      */
     lapozasHtml(lapozas) {
-        const { jelenlegiOldal, osszesOldal, osszesElem, kovetkezoVan, elozoVan } = lapozas;
+        const jelenlegiOldal = lapozas.jelenlegiOldal;
+        const osszesOldal = lapozas.osszesOldal;
+        const osszesElem = lapozas.osszesElem;
+        const kovetkezoVan = lapozas.kovetkezoOldal !== null && lapozas.kovetkezoOldal !== undefined;
+        const elozoVan = lapozas.elozoOldal !== null && lapozas.elozoOldal !== undefined;
         
         return `
             <div class="lapozas-info">
@@ -438,6 +519,42 @@ class PuphaxGyogyszerKerreso {
             'PENDING': 'Függőben'
         };
         return forditas[statusz] || statusz;
+    }
+
+    /**
+     * Get prescription status description
+     */
+    venyStatusLeiras(status) {
+        const statusDescriptions = {
+            'VN': 'Vényköteles (normál)',
+            'V5': 'Vényköteles (5x ismételhető)',
+            'V1': 'Vényköteles (1x ismételhető)',
+            'J': 'Különleges rendelvényen',
+            'VK': 'Vény nélkül kapható',
+            'SZK': 'Szakorvosi javaslat'
+        };
+        return statusDescriptions[status] || status;
+    }
+
+    /**
+     * Toggle drug details visibility
+     */
+    toggleDrugDetails(drugId) {
+        const detailsElement = document.getElementById(drugId);
+        const toggleIcon = document.getElementById(drugId + '-toggle');
+        
+        if (detailsElement && toggleIcon) {
+            if (detailsElement.style.display === 'none') {
+                detailsElement.style.display = 'block';
+                toggleIcon.textContent = '▲';
+                // Add slide down animation
+                detailsElement.classList.add('slide-down');
+            } else {
+                detailsElement.style.display = 'none';
+                toggleIcon.textContent = '▼';
+                detailsElement.classList.remove('slide-down');
+            }
+        }
     }
 
     /**

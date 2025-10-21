@@ -122,6 +122,42 @@ public class GyogyszerKeresesiValasz {
         @Schema(description = "Forrás", example = "NEAK PUPHAX Adatbázis")
         private String forras;
         
+        @Schema(description = "TTT kód", example = "210632225")
+        private String tttKod;
+        
+        @Schema(description = "Törzskönyvi szám", example = "OGYI-T-01505/09")
+        private String torzskonyvSzam;
+        
+        @Schema(description = "Vény státusz", example = "VN - Vényköteles normál")
+        private String venyStatus;
+        
+        @Schema(description = "Hatáserősség", example = "500 mg")
+        private String hatarossag;
+        
+        @Schema(description = "Kiszerelési mennyiség", example = "20")
+        private String kiszerelesMenuiseg;
+        
+        @Schema(description = "Termék típus", example = "1")
+        private String termekTipus;
+        
+        @Schema(description = "Ár", example = "1250 Ft")
+        private String ar;
+        
+        @Schema(description = "Támogatás százalék", example = "50")
+        private String tamogatasSzazalek;
+        
+        @Schema(description = "Érvényesség kezdete", example = "2023-01-01")
+        private String ervenyessegKezdete;
+        
+        @Schema(description = "Érvényesség vége", example = "2025-12-31")
+        private String ervenyessegVege;
+        
+        @Schema(description = "Normativitás (normatív/szabadáras)", example = "normatív")
+        private String normativitas;
+        
+        @Schema(description = "Támogatás típusa", example = "EÜ90")
+        private String tamogatasTipus;
+        
         // Constructors
         public Gyogyszer() {}
         
@@ -171,6 +207,42 @@ public class GyogyszerKeresesiValasz {
         
         public String getForras() { return forras; }
         public void setForras(String forras) { this.forras = forras; }
+        
+        public String getTttKod() { return tttKod; }
+        public void setTttKod(String tttKod) { this.tttKod = tttKod; }
+        
+        public String getTorzskonyvSzam() { return torzskonyvSzam; }
+        public void setTorzskonyvSzam(String torzskonyvSzam) { this.torzskonyvSzam = torzskonyvSzam; }
+        
+        public String getVenyStatus() { return venyStatus; }
+        public void setVenyStatus(String venyStatus) { this.venyStatus = venyStatus; }
+        
+        public String getHatarossag() { return hatarossag; }
+        public void setHatarossag(String hatarossag) { this.hatarossag = hatarossag; }
+        
+        public String getKiszerelesMenuiseg() { return kiszerelesMenuiseg; }
+        public void setKiszerelesMenuiseg(String kiszerelesMenuiseg) { this.kiszerelesMenuiseg = kiszerelesMenuiseg; }
+        
+        public String getTermekTipus() { return termekTipus; }
+        public void setTermekTipus(String termekTipus) { this.termekTipus = termekTipus; }
+        
+        public String getAr() { return ar; }
+        public void setAr(String ar) { this.ar = ar; }
+        
+        public String getTamogatasSzazalek() { return tamogatasSzazalek; }
+        public void setTamogatasSzazalek(String tamogatasSzazalek) { this.tamogatasSzazalek = tamogatasSzazalek; }
+        
+        public String getErvenyessegKezdete() { return ervenyessegKezdete; }
+        public void setErvenyessegKezdete(String ervenyessegKezdete) { this.ervenyessegKezdete = ervenyessegKezdete; }
+        
+        public String getErvenyessegVege() { return ervenyessegVege; }
+        public void setErvenyessegVege(String ervenyessegVege) { this.ervenyessegVege = ervenyessegVege; }
+        
+        public String getNormativitas() { return normativitas; }
+        public void setNormativitas(String normativitas) { this.normativitas = normativitas; }
+        
+        public String getTamogatasTipus() { return tamogatasTipus; }
+        public void setTamogatasTipus(String tamogatasTipus) { this.tamogatasTipus = tamogatasTipus; }
     }
     
     /**

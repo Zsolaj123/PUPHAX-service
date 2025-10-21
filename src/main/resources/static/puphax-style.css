@@ -634,3 +634,68 @@ footer {
         transform: translateY(0);
     }
 }
+
+/* Collapsed/Expanded Drug Card Styles */
+.gyogyszer-osszefoglalo {
+    cursor: pointer;
+    padding: 5px;
+    transition: background-color 0.2s ease;
+    border-radius: 8px;
+}
+
+.gyogyszer-osszefoglalo:hover {
+    background: var(--bg-secondary);
+}
+
+.gyogyszer-fo-info {
+    flex: 1;
+}
+
+.gyogyszer-alapadatok {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 8px;
+}
+
+.alapadat-elem {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    background: var(--bg-secondary);
+    padding: 4px 10px;
+    border-radius: 6px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.gyogyszer-statusz-es-toggle {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.toggle-icon {
+    font-size: 1.2rem;
+    color: var(--text-secondary);
+    transition: transform 0.2s ease;
+    user-select: none;
+}
+
+.gyogyszer-reszletezett {
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border-color);
+}
+
+.reszletek-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 16px;
+    margin-bottom: 20px;
+}
+
+/* Update existing gyogyszer-fej to work with new structure */
+.gyogyszer-osszefoglalo .gyogyszer-fej {
+    margin-bottom: 0;
+}

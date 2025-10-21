@@ -137,7 +137,7 @@ public class GyogyszerController {
             required = false,
             example = "20"
         )
-        @RequestParam(value = "meret", defaultValue = "20")
+        @RequestParam(value = "meret", defaultValue = "10")
         @Min(value = 1, message = "Az oldal méretnek legalább 1-nek kell lennie")
         @Max(value = 100, message = "Az oldal méret nem lehet nagyobb 100-nál")
         int meret,

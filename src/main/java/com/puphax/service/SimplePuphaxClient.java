@@ -57,8 +57,9 @@ public class SimplePuphaxClient {
                 .POST(HttpRequest.BodyPublishers.ofString(soapRequest))
                 .build();
             
-            // Send initial request
-            HttpResponse<String> initialResponse = httpClient.send(initialRequest, HttpResponse.BodyHandlers.ofString());
+            // Send initial request - handle as ISO-8859-2
+            HttpResponse<String> initialResponse = httpClient.send(initialRequest, 
+                HttpResponse.BodyHandlers.ofString(Charset.forName("ISO-8859-2")));
             
             if (initialResponse.statusCode() == 200) {
                 // If we get 200 immediately, PUPHAX might not require auth for this call
@@ -85,7 +86,8 @@ public class SimplePuphaxClient {
                         .POST(HttpRequest.BodyPublishers.ofString(soapRequest))
                         .build();
                     
-                    HttpResponse<String> authResponse = httpClient.send(authRequest, HttpResponse.BodyHandlers.ofString());
+                    HttpResponse<String> authResponse = httpClient.send(authRequest, 
+                        HttpResponse.BodyHandlers.ofString(Charset.forName("ISO-8859-2")));
                     
                     logger.info("Received authenticated response with status: {}", authResponse.statusCode());
                     
@@ -129,7 +131,8 @@ public class SimplePuphaxClient {
             .POST(HttpRequest.BodyPublishers.ofString(soapRequest))
             .build();
         
-        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+        HttpResponse<String> response = httpClient.send(request, 
+            HttpResponse.BodyHandlers.ofString(Charset.forName("ISO-8859-2")));
         
         if (response.statusCode() == 200) {
             return fixCharacterEncoding(response.body());
@@ -263,7 +266,8 @@ public class SimplePuphaxClient {
                 .build();
             
             // Send initial request
-            HttpResponse<String> initialResponse = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+            HttpResponse<String> initialResponse = httpClient.send(request, 
+                HttpResponse.BodyHandlers.ofString(Charset.forName("ISO-8859-2")));
             
             if (initialResponse.statusCode() == 200) {
                 String responseBody = fixCharacterEncoding(initialResponse.body());
@@ -284,7 +288,8 @@ public class SimplePuphaxClient {
                         .POST(HttpRequest.BodyPublishers.ofString(soapRequest))
                         .build();
                     
-                    HttpResponse<String> authResponse = httpClient.send(authRequest, HttpResponse.BodyHandlers.ofString());
+                    HttpResponse<String> authResponse = httpClient.send(authRequest, 
+                        HttpResponse.BodyHandlers.ofString(Charset.forName("ISO-8859-2")));
                     
                     if (authResponse.statusCode() == 200) {
                         String responseBody = fixCharacterEncoding(authResponse.body());
@@ -324,7 +329,8 @@ public class SimplePuphaxClient {
                 .build();
             
             // Send initial request
-            HttpResponse<String> initialResponse = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+            HttpResponse<String> initialResponse = httpClient.send(request, 
+                HttpResponse.BodyHandlers.ofString(Charset.forName("ISO-8859-2")));
             
             if (initialResponse.statusCode() == 200) {
                 String responseBody = fixCharacterEncoding(initialResponse.body());
@@ -346,7 +352,8 @@ public class SimplePuphaxClient {
                         .POST(HttpRequest.BodyPublishers.ofString(soapRequest))
                         .build();
                     
-                    HttpResponse<String> authResponse = httpClient.send(authRequest, HttpResponse.BodyHandlers.ofString());
+                    HttpResponse<String> authResponse = httpClient.send(authRequest, 
+                        HttpResponse.BodyHandlers.ofString(Charset.forName("ISO-8859-2")));
                     
                     if (authResponse.statusCode() == 200) {
                         String responseBody = fixCharacterEncoding(authResponse.body());
@@ -408,32 +415,14 @@ public class SimplePuphaxClient {
     
     /**
      * Fix character encoding issues in PUPHAX responses.
-     * PUPHAX returns XML declaring UTF-8 but containing ISO-8859-2 encoded content.
-     * This method attempts to re-encode the response to fix Hungarian characters.
+     * Since we're now reading responses as ISO-8859-2, this method just ensures
+     * the XML declaration matches the actual encoding.
      */
     private String fixCharacterEncoding(String response) {
-        try {
-            // Check if response contains typical mis-encoded Hungarian characters
-            if (!response.contains("\ufffd") && !response.contains("�")) {
-                // Response seems OK, return as is
-                return response;
-            }
-            
-            // The response was decoded as UTF-8 but contains ISO-8859-2 content
-            // We need to re-encode it properly
-            
-            // Convert the misinterpreted string back to bytes using ISO-8859-1
-            // (which preserves the byte values)
-            byte[] bytes = response.getBytes(StandardCharsets.ISO_8859_1);
-            
-            // Now interpret these bytes correctly as ISO-8859-2
-            String corrected = new String(bytes, Charset.forName("ISO-8859-2"));
-            
-            logger.debug("Fixed character encoding for response");
-            return corrected;
-        } catch (Exception e) {
-            logger.warn("Failed to fix character encoding, returning original: {}", e.getMessage());
-            return response;
+        // Since we're now correctly reading as ISO-8859-2, just fix the XML declaration
+        if (response.contains("<?xml") && response.contains("UTF-8")) {
+            response = response.replace("UTF-8", "ISO-8859-2");
         }
+        return response;
     }
 }

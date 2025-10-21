@@ -166,6 +166,56 @@ public class DrugService {
         // Parse status
         DrugSummary.DrugStatus status = parseStatus(getElementText(drugElement, "status"));
         
+        // Check if we have extended data available
+        String tttCode = getElementText(drugElement, "tttCode");
+        if (tttCode != null) {
+            // We have extended data - create ExtendedDrugSummary
+            String packaging = getElementText(drugElement, "packaging");
+            String registrationNumber = getElementText(drugElement, "registrationNumber");
+            String prescriptionStatus = getElementText(drugElement, "prescriptionStatus");
+            String productForm = getElementText(drugElement, "productForm");
+            String strength = getElementText(drugElement, "strength");
+            String packSize = getElementText(drugElement, "packSize");
+            String productType = getElementText(drugElement, "productType");
+            String price = getElementText(drugElement, "price");
+            String supportPercent = getElementText(drugElement, "supportPercent");
+            String validFrom = getElementText(drugElement, "validFrom");
+            String validTo = getElementText(drugElement, "validTo");
+            String normativity = getElementText(drugElement, "normativity");
+            String supportType = getElementText(drugElement, "supportType");
+            String source = getElementText(drugElement, "source");
+            
+            ExtendedDrugSummary extendedSummary = new ExtendedDrugSummary(
+                id != null ? id : "UNKNOWN",
+                name != null ? name : "Unknown Drug",
+                manufacturer,
+                atcCode,
+                tttCode,
+                activeIngredients,
+                prescriptionRequired,
+                prescriptionStatus,
+                reimbursable,
+                status,
+                packaging,
+                registrationNumber,
+                productForm,
+                strength,
+                packSize,
+                productType,
+                price,
+                supportPercent,
+                validFrom,
+                validTo,
+                normativity,
+                supportType,
+                source
+            );
+            
+            // Convert to basic DrugSummary for compatibility
+            return extendedSummary.toBasicSummary();
+        }
+        
+        // Basic DrugSummary (backward compatibility)
         return new DrugSummary(
             id != null ? id : "UNKNOWN",
             name != null ? name : "Unknown Drug",

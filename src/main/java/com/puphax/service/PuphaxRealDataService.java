@@ -89,10 +89,10 @@ public class PuphaxRealDataService {
             int count = 0;
             LocalDate searchDate = LocalDate.now();
             
-            logger.info("Fetching detailed product data via TAMOGATADAT for {} products", Math.min(productIds.size(), 10));
+            logger.info("Fetching detailed product data for {} products", productIds.size());
             
             for (String productId : productIds) {
-                if (count++ >= 10) break; // Limit to first 10 to avoid too many API calls
+                // Process all products (pagination is handled by the service layer)
                 
                 try {
                     logger.info("Getting detailed data for product ID: {}", productId);
@@ -190,22 +190,52 @@ public class PuphaxRealDataService {
             logger.debug("TERMEKADAT response preview for {}: {}", productId,
                 termekadatResponse.length() > 500 ? termekadatResponse.substring(0, 500) + "..." : termekadatResponse);
             
+            // Log full response for debugging field names
+            if (productId.equals("55845963")) {  // First aspirin product
+                logger.info("FULL TERMEKADAT RESPONSE for debugging:\n{}", termekadatResponse);
+            }
+            
             // Check if we have a SOAP fault or error response
             if (termekadatResponse.contains("faultstring") || termekadatResponse.contains("soap:Fault")) {
                 logger.error("SOAP Fault in TERMEKADAT response for product {}: {}", productId, termekadatResponse);
                 throw new Exception("SOAP fault in response");
             }
             
-            // Parse TERMEKADAT response for basic product info
+            // Parse TERMEKADAT response for all available product info
             String productName = extractValue(termekadatResponse, "<NEV>", "</NEV>");
             String atcCode = extractValue(termekadatResponse, "<ATC>", "</ATC>");
+            
+            // Extract manufacturer - check if name is directly available
             String manufacturer = extractValue(termekadatResponse, "<FORGALMAZO>", "</FORGALMAZO>");
             if (manufacturer.isEmpty()) {
-                manufacturer = extractValue(termekadatResponse, "<FORGALMAZÓNÉV>", "</FORGALMAZÓNÉV>");
+                manufacturer = extractValue(termekadatResponse, "<FORGALMAZONEV>", "</FORGALMAZONEV>");
             }
+            if (manufacturer.isEmpty()) {
+                manufacturer = extractValue(termekadatResponse, "<CEGNEV>", "</CEGNEV>");
+            }
+            // Only show ID if no name is available
+            if (manufacturer.isEmpty()) {
+                String forgalmazId = extractValue(termekadatResponse, "<FORGALMAZ_ID>", "</FORGALMAZ_ID>");
+                String forgengtId = extractValue(termekadatResponse, "<FORGENGT_ID>", "</FORGENGT_ID>");
+                if (!forgalmazId.isEmpty() || !forgengtId.isEmpty()) {
+                    manufacturer = "ID: " + (forgalmazId.isEmpty() ? forgengtId : forgalmazId);
+                }
+            }
+            
+            // Extract all other available fields
             String tttCode = extractValue(termekadatResponse, "<TTT>", "</TTT>");
-            String activeIngredient = extractValue(termekadatResponse, "<HATOANYAGNEV>", "</HATOANYAGNEV>");
+            String activeIngredient = extractValue(termekadatResponse, "<HATOANYAG>", "</HATOANYAG>");
             String packaging = extractValue(termekadatResponse, "<KISZNEV>", "</KISZNEV>");
+            String registrationNumber = extractValue(termekadatResponse, "<TK>", "</TK>");
+            String prescriptionStatus = extractValue(termekadatResponse, "<RENDELHET>", "</RENDELHET>");
+            String productForm = extractValue(termekadatResponse, "<GYSZERFORM>", "</GYSZERFORM>");
+            String strength = extractValue(termekadatResponse, "<HATAROSSAG>", "</HATAROSSAG>");
+            String packSize = extractValue(termekadatResponse, "<KISZALLKVANT>", "</KISZALLKVANT>");
+            String productType = extractValue(termekadatResponse, "<TERMEKADAT_TIPUS>", "</TERMEKADAT_TIPUS>");
+            
+            // Extract validity dates
+            String validFrom = extractValue(termekadatResponse, "<ERV_KEZD>", "</ERV_KEZD>");
+            String validTo = extractValue(termekadatResponse, "<ERV_VEGE>", "</ERV_VEGE>");
             
             // Default values
             boolean reimbursable = false;
@@ -213,6 +243,8 @@ public class PuphaxRealDataService {
             String supportPercent = "0";
             
             // Parse TAMOGATADAT if available
+            String normativity = "";
+            String supportType = "";
             if (tamogatadatResponse != null && !tamogatadatResponse.isEmpty()) {
                 price = extractValue(tamogatadatResponse, "<BRUNAKFOGY>", "</BRUNAKFOGY>");
                 if (price.isEmpty()) {
@@ -220,6 +252,23 @@ public class PuphaxRealDataService {
                 }
                 supportPercent = extractValue(tamogatadatResponse, "<TAMSZAZ>", "</TAMSZAZ>");
                 reimbursable = !supportPercent.isEmpty() && !supportPercent.equals("0");
+                
+                // Extract normative/free pricing info
+                normativity = extractValue(tamogatadatResponse, "<NORMATIVITAS>", "</NORMATIVITAS>");
+                if (normativity.isEmpty()) {
+                    normativity = extractValue(tamogatadatResponse, "<NORMATIV>", "</NORMATIV>");
+                }
+                
+                // Extract support type
+                supportType = extractValue(tamogatadatResponse, "<TAMTIPUS>", "</TAMTIPUS>");
+                if (supportType.isEmpty()) {
+                    supportType = extractValue(tamogatadatResponse, "<TAMOGATAS_TIPUS>", "</TAMOGATAS_TIPUS>");
+                }
+                
+                // Log TAMOGATADAT response for one product to see available fields
+                if (productId.equals("55845963")) {
+                    logger.info("FULL TAMOGATADAT RESPONSE for debugging:\n{}", tamogatadatResponse);
+                }
             }
             
             // Ensure we have at least the product name
@@ -235,8 +284,15 @@ public class PuphaxRealDataService {
                 activeIngredient = "N/A";
             }
             
-            logger.info("Parsed product {}: name='{}', TTT='{}', ATC='{}', manufacturer='{}'", 
-                productId, productName, tttCode, atcCode, manufacturer);
+            // Determine prescription required based on status
+            // VK = Vény nélkül kapható (available without prescription)
+            // Empty or null also means no prescription required
+            boolean prescriptionRequired = !"VK".equals(prescriptionStatus) && 
+                                          prescriptionStatus != null && 
+                                          !prescriptionStatus.isEmpty();
+            
+            logger.info("Parsed product {}: name='{}', TTT='{}', ATC='{}', manufacturer='{}', prescription='{}'", 
+                productId, productName, tttCode, atcCode, manufacturer, prescriptionStatus);
             
             return String.format("""
                     <drug>
@@ -251,16 +307,30 @@ public class PuphaxRealDataService {
                             </ingredient>
                         </activeIngredients>
                         <packaging>%s</packaging>
-                        <prescriptionRequired>true</prescriptionRequired>
+                        <registrationNumber>%s</registrationNumber>
+                        <prescriptionRequired>%s</prescriptionRequired>
+                        <prescriptionStatus>%s</prescriptionStatus>
                         <reimbursable>%s</reimbursable>
                         <status>ACTIVE</status>
                         <price>%s</price>
                         <supportPercent>%s</supportPercent>
+                        <productForm>%s</productForm>
+                        <strength>%s</strength>
+                        <packSize>%s</packSize>
+                        <productType>%s</productType>
+                        <validFrom>%s</validFrom>
+                        <validTo>%s</validTo>
+                        <normativity>%s</normativity>
+                        <supportType>%s</supportType>
                         <source>REAL PUPHAX DATA</source>
                     </drug>
                 """, productId, escapeXml(productName), escapeXml(manufacturer), 
                      escapeXml(atcCode), escapeXml(tttCode), escapeXml(activeIngredient),
-                     escapeXml(packaging), reimbursable, price, supportPercent);
+                     escapeXml(packaging), escapeXml(registrationNumber), prescriptionRequired,
+                     escapeXml(prescriptionStatus), reimbursable, price, supportPercent,
+                     escapeXml(productForm), escapeXml(strength), escapeXml(packSize),
+                     escapeXml(productType), escapeXml(validFrom), escapeXml(validTo),
+                     escapeXml(normativity), escapeXml(supportType));
                 
         } catch (Exception e) {
             logger.error("Failed to parse product data: {}", e.getMessage());

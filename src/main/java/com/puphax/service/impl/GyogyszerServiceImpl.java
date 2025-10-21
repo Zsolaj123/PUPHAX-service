@@ -115,6 +115,10 @@ public class GyogyszerServiceImpl implements GyogyszerService {
         // Forrás beállítása
         magyarGyogyszer.setForras("NEAK PUPHAX Adatbázis");
         
+        // Map additional fields if available (these will be null if not present in XML)
+        // The DrugService parses these from the XML but doesn't expose them in DrugSummary
+        // So we need to get them from the raw XML response or modify the service layer
+        
         return magyarGyogyszer;
     }
     
