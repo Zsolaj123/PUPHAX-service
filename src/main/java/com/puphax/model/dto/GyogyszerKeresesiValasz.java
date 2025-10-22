@@ -158,6 +158,24 @@ public class GyogyszerKeresesiValasz {
         @Schema(description = "Támogatás típusa", example = "EÜ90")
         private String tamogatasTipus;
         
+        @Schema(description = "Bruttó fogyasztói ár", example = "2500 Ft")
+        private String bruttoFogyasztarAr;
+        
+        @Schema(description = "Nettó fogyasztói ár", example = "2000 Ft")
+        private String nettoFogyasztarAr;
+        
+        @Schema(description = "Termelői ár", example = "1500 Ft")
+        private String termelesAr;
+        
+        @Schema(description = "Nagykereskedelmi ár", example = "1800 Ft")
+        private String nagykerAr;
+        
+        @Schema(description = "Támogatott ár", example = "1250 Ft")
+        private String tamogatottAr;
+        
+        @Schema(description = "Térítési díj", example = "250 Ft")
+        private String teritesiDij;
+        
         // Constructors
         public Gyogyszer() {}
         
@@ -243,6 +261,24 @@ public class GyogyszerKeresesiValasz {
         
         public String getTamogatasTipus() { return tamogatasTipus; }
         public void setTamogatasTipus(String tamogatasTipus) { this.tamogatasTipus = tamogatasTipus; }
+        
+        public String getBruttoFogyasztarAr() { return bruttoFogyasztarAr; }
+        public void setBruttoFogyasztarAr(String bruttoFogyasztarAr) { this.bruttoFogyasztarAr = bruttoFogyasztarAr; }
+        
+        public String getNettoFogyasztarAr() { return nettoFogyasztarAr; }
+        public void setNettoFogyasztarAr(String nettoFogyasztarAr) { this.nettoFogyasztarAr = nettoFogyasztarAr; }
+        
+        public String getTermelesAr() { return termelesAr; }
+        public void setTermelesAr(String termelesAr) { this.termelesAr = termelesAr; }
+        
+        public String getNagykerAr() { return nagykerAr; }
+        public void setNagykerAr(String nagykerAr) { this.nagykerAr = nagykerAr; }
+        
+        public String getTamogatottAr() { return tamogatottAr; }
+        public void setTamogatottAr(String tamogatottAr) { this.tamogatottAr = tamogatottAr; }
+        
+        public String getTeritesiDij() { return teritesiDij; }
+        public void setTeritesiDij(String teritesiDij) { this.teritesiDij = teritesiDij; }
     }
     
     /**

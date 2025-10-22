@@ -286,6 +286,42 @@ class PuphaxGyogyszerKerreso {
                                 <span class="reszlet-ertek">${this.htmlEscape(gyogyszer.tamogatasTipus)}</span>
                             </div>
                         ` : ''}
+                        ${gyogyszer.bruttoFogyasztarAr ? `
+                            <div class="gyogyszer-reszlet">
+                                <span class="reszlet-cimke">Bruttó fogyasztói ár</span>
+                                <span class="reszlet-ertek">${this.formatPrice(gyogyszer.bruttoFogyasztarAr)}</span>
+                            </div>
+                        ` : ''}
+                        ${gyogyszer.nettoFogyasztarAr ? `
+                            <div class="gyogyszer-reszlet">
+                                <span class="reszlet-cimke">Nettó fogyasztói ár</span>
+                                <span class="reszlet-ertek">${this.formatPrice(gyogyszer.nettoFogyasztarAr)}</span>
+                            </div>
+                        ` : ''}
+                        ${gyogyszer.termelesAr ? `
+                            <div class="gyogyszer-reszlet">
+                                <span class="reszlet-cimke">Termelői ár</span>
+                                <span class="reszlet-ertek">${this.formatPrice(gyogyszer.termelesAr)}</span>
+                            </div>
+                        ` : ''}
+                        ${gyogyszer.nagykerAr ? `
+                            <div class="gyogyszer-reszlet">
+                                <span class="reszlet-cimke">Nagykereskedelmi ár</span>
+                                <span class="reszlet-ertek">${this.formatPrice(gyogyszer.nagykerAr)}</span>
+                            </div>
+                        ` : ''}
+                        ${gyogyszer.tamogatottAr ? `
+                            <div class="gyogyszer-reszlet">
+                                <span class="reszlet-cimke">Támogatott ár</span>
+                                <span class="reszlet-ertek">${this.formatPrice(gyogyszer.tamogatottAr)}</span>
+                            </div>
+                        ` : ''}
+                        ${gyogyszer.teritesiDij ? `
+                            <div class="gyogyszer-reszlet">
+                                <span class="reszlet-cimke">Térítési díj</span>
+                                <span class="reszlet-ertek">${this.formatPrice(gyogyszer.teritesiDij)}</span>
+                            </div>
+                        ` : ''}
                     </div>
 
                     ${gyogyszer.hatoanyagok && gyogyszer.hatoanyagok.length > 0 ? `
@@ -565,6 +601,26 @@ class PuphaxGyogyszerKerreso {
         const div = document.createElement('div');
         div.textContent = szoveg;
         return div.innerHTML;
+    }
+    
+    /**
+     * Format price values with Ft suffix if not already present.
+     */
+    formatPrice(price) {
+        if (!price || price === 'N/A') return price;
+        
+        // If price already has Ft, return as is
+        if (price.includes('Ft')) {
+            return price;
+        }
+        
+        // Try to parse as number and format
+        const numPrice = parseFloat(price);
+        if (!isNaN(numPrice)) {
+            return numPrice.toLocaleString('hu-HU') + ' Ft';
+        }
+        
+        return price + ' Ft';
     }
 }
 

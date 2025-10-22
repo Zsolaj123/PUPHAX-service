@@ -17,6 +17,9 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.nio.charset.StandardCharsets;
 import java.nio.charset.Charset;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.Map;
+import java.util.HashMap;
 
 /**
  * Simplified PUPHAX client using Java 11 HTTP client.
@@ -31,6 +34,9 @@ public class SimplePuphaxClient {
     private static final String PASSWORD = "puphax";
     
     private final HttpClient httpClient;
+    
+    // Cache for company names to avoid repeated lookups
+    private final Map<String, String> companyNameCache = new ConcurrentHashMap<>();
     
     public SimplePuphaxClient() {
         this.httpClient = HttpClient.newBuilder()
@@ -424,5 +430,79 @@ public class SimplePuphaxClient {
             response = response.replace("UTF-8", "ISO-8859-2");
         }
         return response;
+    }
+    
+    /**
+     * Get company name by ID from PUPHAX CEGEK table.
+     * Results are cached to improve performance.
+     */
+    public String getCompanyName(String companyId) {
+        if (companyId == null || companyId.isEmpty()) {
+            return null;
+        }
+        
+        // Check cache first
+        if (companyNameCache.containsKey(companyId)) {
+            return companyNameCache.get(companyId);
+        }
+        
+        try {
+            String soapRequest = buildCegekRequest(companyId);
+            String response = executeSoapCall(soapRequest, "COBJALAP.TABCEGEK");
+            
+            // Extract company name from response
+            String companyName = extractCompanyName(response);
+            
+            if (companyName != null && !companyName.isEmpty()) {
+                companyNameCache.put(companyId, companyName);
+                logger.info("Fetched company name for ID {}: {}", companyId, companyName);
+            }
+            
+            return companyName;
+            
+        } catch (Exception e) {
+            logger.error("Failed to get company name for ID {}: {}", companyId, e.getMessage());
+            return null;
+        }
+    }
+    
+    /**
+     * Build SOAP request for CEGEK (companies) query.
+     */
+    private String buildCegekRequest(String companyId) {
+        return String.format("""
+            <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:pup="http://xmlns.oracle.com/orawsv/PUPHAX/PUPHAXWS">
+               <soapenv:Header/>
+               <soapenv:Body>
+                  <pup:COBJALAP-TABCEGEKInput>
+                     <pup:SXFILTER-VARCHAR2-IN>
+                       <![CDATA[
+                            <alapfilter>
+                                <CEGID>%s</CEGID>
+                            </alapfilter>
+                       ]]>
+                     </pup:SXFILTER-VARCHAR2-IN>
+                  </pup:COBJALAP-TABCEGEKInput>
+               </soapenv:Body>
+            </soapenv:Envelope>""", companyId);
+    }
+    
+    /**
+     * Extract company name from CEGEK response.
+     */
+    private String extractCompanyName(String response) {
+        if (response == null || response.isEmpty()) {
+            return null;
+        }
+        
+        // Look for ELNEVEZ tag which contains the company name
+        Pattern pattern = Pattern.compile("<ELNEVEZ>([^<]+)</ELNEVEZ>");
+        Matcher matcher = pattern.matcher(response);
+        
+        if (matcher.find()) {
+            return matcher.group(1).trim();
+        }
+        
+        return null;
     }
 }

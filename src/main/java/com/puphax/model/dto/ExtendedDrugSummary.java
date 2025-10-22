@@ -69,8 +69,26 @@ public record ExtendedDrugSummary(
     @JsonProperty("price")
     String price,
     
+    @JsonProperty("bruttoFogyasztarAr")
+    String bruttoFogyasztarAr,
+    
+    @JsonProperty("nettoFogyasztarAr")
+    String nettoFogyasztarAr,
+    
+    @JsonProperty("termelesAr")
+    String termelesAr,
+    
+    @JsonProperty("nagykerAr")
+    String nagykerAr,
+    
     @JsonProperty("supportPercent")
     String supportPercent,
+    
+    @JsonProperty("tamogatottAr")
+    String tamogatottAr,
+    
+    @JsonProperty("teritesiDij")
+    String teritesiDij,
     
     @JsonProperty("validFrom")
     String validFrom,

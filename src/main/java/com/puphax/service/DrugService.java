@@ -181,6 +181,12 @@ public class DrugService {
             String supportPercent = getElementText(drugElement, "supportPercent");
             String validFrom = getElementText(drugElement, "validFrom");
             String validTo = getElementText(drugElement, "validTo");
+            String bruttoFogyasztarAr = getElementText(drugElement, "bruttoFogyasztarAr");
+            String nettoFogyasztarAr = getElementText(drugElement, "nettoFogyasztarAr");
+            String termelesAr = getElementText(drugElement, "termelesAr");
+            String nagykerAr = getElementText(drugElement, "nagykerAr");
+            String tamogatottAr = getElementText(drugElement, "tamogatottAr");
+            String teritesiDij = getElementText(drugElement, "teritesiDij");
             String normativity = getElementText(drugElement, "normativity");
             String supportType = getElementText(drugElement, "supportType");
             String source = getElementText(drugElement, "source");
@@ -203,7 +209,13 @@ public class DrugService {
                 packSize,
                 productType,
                 price,
+                bruttoFogyasztarAr,
+                nettoFogyasztarAr,
+                termelesAr,
+                nagykerAr,
                 supportPercent,
+                tamogatottAr,
+                teritesiDij,
                 validFrom,
                 validTo,
                 normativity,

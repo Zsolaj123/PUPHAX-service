@@ -7,6 +7,11 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.List;
+import java.util.ArrayList;
 
 /**
  * Service that connects to real PUPHAX and properly handles the mixed character encoding.
@@ -19,6 +24,9 @@ public class PuphaxRealDataService {
     
     @Autowired
     private SimplePuphaxClient simplePuphaxClient;
+    
+    // Thread pool for concurrent PUPHAX calls
+    private final ExecutorService executorService = Executors.newFixedThreadPool(10);
     
     /**
      * Search drugs in real PUPHAX with proper encoding handling.
@@ -91,50 +99,71 @@ public class PuphaxRealDataService {
             
             logger.info("Fetching detailed product data for {} products", productIds.size());
             
-            for (String productId : productIds) {
-                // Process all products (pagination is handled by the service layer)
+            // Process products in batches for better performance
+            int batchSize = 5; // Process 5 products concurrently
+            List<CompletableFuture<String>> futures = new ArrayList<>();
+            
+            for (int i = 0; i < productIds.size(); i += batchSize) {
+                int endIndex = Math.min(i + batchSize, productIds.size());
+                List<String> batch = productIds.subList(i, endIndex);
                 
-                try {
-                    logger.info("Getting detailed data for product ID: {}", productId);
-                    
-                    // First get product basic data (name, ATC, manufacturer)
-                    String termekadatResponse = simplePuphaxClient.getProductData(productId, searchDate);
-                    logger.info("TERMEKADAT response length for product {}: {} chars", productId, termekadatResponse.length());
-                    
-                    // Then get support data (prices, reimbursement)
-                    String tamogatadatResponse = null;
-                    try {
-                        tamogatadatResponse = simplePuphaxClient.getProductSupportData(productId, searchDate);
-                        logger.info("TAMOGATADAT response length for product {}: {} chars", productId, tamogatadatResponse.length());
-                    } catch (Exception e) {
-                        logger.warn("TAMOGATADAT failed for product {}, will use only TERMEKADAT data: {}", productId, e.getMessage());
-                    }
-                    
-                    // Parse both responses to create complete product info
-                    String productXml = parseProductData(productId, termekadatResponse, tamogatadatResponse);
-                    xmlBuilder.append(productXml);
-                    
-                } catch (Exception e) {
-                    logger.error("Failed to get details for product {}: {}", productId, e.getMessage(), e);
-                    // Add basic info if detailed call fails
-                    xmlBuilder.append(String.format("""
-                            <drug>
-                                <id>%s</id>
-                                <name>PUPHAX Product %s (details unavailable)</name>
-                                <manufacturer>NEAK PUPHAX</manufacturer>
-                                <atcCode>ERROR</atcCode>
-                                <activeIngredients>
-                                    <ingredient>
-                                        <name>Error: %s</name>
-                                    </ingredient>
-                                </activeIngredients>
-                                <prescriptionRequired>true</prescriptionRequired>
-                                <reimbursable>false</reimbursable>
-                                <status>ERROR</status>
-                                <source>REAL PUPHAX</source>
-                            </drug>
-                        """, productId, productId, e.getMessage()));
+                // Process batch concurrently
+                for (String productId : batch) {
+                    CompletableFuture<String> future = CompletableFuture.supplyAsync(() -> {
+                        try {
+                            logger.info("Getting detailed data for product ID: {}", productId);
+                            
+                            // First get product basic data (name, ATC, manufacturer)
+                            String termekadatResponse = simplePuphaxClient.getProductData(productId, searchDate);
+                            logger.debug("TERMEKADAT response length for product {}: {} chars", productId, termekadatResponse.length());
+                            
+                            // Then get support data (prices, reimbursement)
+                            String tamogatadatResponse = null;
+                            try {
+                                tamogatadatResponse = simplePuphaxClient.getProductSupportData(productId, searchDate);
+                                logger.debug("TAMOGATADAT response length for product {}: {} chars", productId, tamogatadatResponse.length());
+                            } catch (Exception e) {
+                                logger.warn("TAMOGATADAT failed for product {}, will use only TERMEKADAT data: {}", productId, e.getMessage());
+                            }
+                            
+                            // Parse both responses to create complete product info
+                            return parseProductData(productId, termekadatResponse, tamogatadatResponse);
+                            
+                        } catch (Exception e) {
+                            logger.error("Failed to get details for product {}: {}", productId, e.getMessage(), e);
+                            // Return error info if detailed call fails
+                            return String.format("""
+                                    <drug>
+                                        <id>%s</id>
+                                        <name>PUPHAX Product %s (details unavailable)</name>
+                                        <manufacturer>NEAK PUPHAX</manufacturer>
+                                        <atcCode>ERROR</atcCode>
+                                        <activeIngredients>
+                                            <ingredient>
+                                                <name>Error: %s</name>
+                                            </ingredient>
+                                        </activeIngredients>
+                                        <prescriptionRequired>true</prescriptionRequired>
+                                        <reimbursable>false</reimbursable>
+                                        <status>ERROR</status>
+                                        <source>REAL PUPHAX</source>
+                                    </drug>
+                                """, productId, productId, e.getMessage());
+                        }
+                    }, executorService);
+                    futures.add(future);
                 }
+                
+                // Wait for batch to complete before starting next batch
+                for (CompletableFuture<String> future : futures) {
+                    try {
+                        String productXml = future.get();
+                        xmlBuilder.append(productXml);
+                    } catch (Exception e) {
+                        logger.error("Failed to get product data: {}", e.getMessage());
+                    }
+                }
+                futures.clear();
             }
             
             xmlBuilder.append("    </drugs>\n");
@@ -205,7 +234,7 @@ public class PuphaxRealDataService {
             String productName = extractValue(termekadatResponse, "<NEV>", "</NEV>");
             String atcCode = extractValue(termekadatResponse, "<ATC>", "</ATC>");
             
-            // Extract manufacturer - check if name is directly available
+            // Extract manufacturer - try to get company name from ID
             String manufacturer = extractValue(termekadatResponse, "<FORGALMAZO>", "</FORGALMAZO>");
             if (manufacturer.isEmpty()) {
                 manufacturer = extractValue(termekadatResponse, "<FORGALMAZONEV>", "</FORGALMAZONEV>");
@@ -213,12 +242,21 @@ public class PuphaxRealDataService {
             if (manufacturer.isEmpty()) {
                 manufacturer = extractValue(termekadatResponse, "<CEGNEV>", "</CEGNEV>");
             }
-            // Only show ID if no name is available
+            
+            // If still no name, try to look up by ID
             if (manufacturer.isEmpty()) {
                 String forgalmazId = extractValue(termekadatResponse, "<FORGALMAZ_ID>", "</FORGALMAZ_ID>");
                 String forgengtId = extractValue(termekadatResponse, "<FORGENGT_ID>", "</FORGENGT_ID>");
-                if (!forgalmazId.isEmpty() || !forgengtId.isEmpty()) {
-                    manufacturer = "ID: " + (forgalmazId.isEmpty() ? forgengtId : forgalmazId);
+                String companyId = forgalmazId.isEmpty() ? forgengtId : forgalmazId;
+                
+                if (!companyId.isEmpty()) {
+                    // Look up company name from ID
+                    String companyName = simplePuphaxClient.getCompanyName(companyId);
+                    if (companyName != null && !companyName.isEmpty()) {
+                        manufacturer = companyName;
+                    } else {
+                        manufacturer = "ID: " + companyId;
+                    }
                 }
             }
             
@@ -245,22 +283,48 @@ public class PuphaxRealDataService {
             // Parse TAMOGATADAT if available
             String normativity = "";
             String supportType = "";
+            String fogyasztarBrutto = "";
+            String fogyasztarNetto = "";
+            String termelesar = "";
+            String nagykerAr = "";
+            String tamogatottAr = "";
+            String teritesiDij = "";
+            
             if (tamogatadatResponse != null && !tamogatadatResponse.isEmpty()) {
-                price = extractValue(tamogatadatResponse, "<BRUNAKFOGY>", "</BRUNAKFOGY>");
+                // Extract various price types
+                fogyasztarBrutto = extractValue(tamogatadatResponse, "<BRUNAKFOGY>", "</BRUNAKFOGY>");
+                fogyasztarNetto = extractValue(tamogatadatResponse, "<NETNAGYFOGY>", "</NETNAGYFOGY>");
+                termelesar = extractValue(tamogatadatResponse, "<TERMELESAR>", "</TERMELESAR>");
+                nagykerAr = extractValue(tamogatadatResponse, "<BRUTTOFAB>", "</BRUTTOFAB>");
+                
+                // Primary price (fogyasztói ár)
+                price = fogyasztarBrutto;
                 if (price.isEmpty()) {
                     price = extractValue(tamogatadatResponse, "<FAB>", "</FAB>");
                 }
+                
+                // Support information
                 supportPercent = extractValue(tamogatadatResponse, "<TAMSZAZ>", "</TAMSZAZ>");
+                tamogatottAr = extractValue(tamogatadatResponse, "<TAMOSSZEG>", "</TAMOSSZEG>");
+                teritesiDij = extractValue(tamogatadatResponse, "<TERITESIDIJ>", "</TERITESIDIJ>");
+                
                 reimbursable = !supportPercent.isEmpty() && !supportPercent.equals("0");
+                
+                // Extract kategoria (normatív/emelt/kiemelt)
+                String kategoria = extractValue(tamogatadatResponse, "<KATEGORIA>", "</KATEGORIA>");
                 
                 // Extract normative/free pricing info
                 normativity = extractValue(tamogatadatResponse, "<NORMATIVITAS>", "</NORMATIVITAS>");
-                if (normativity.isEmpty()) {
-                    normativity = extractValue(tamogatadatResponse, "<NORMATIV>", "</NORMATIV>");
+                if (normativity.isEmpty() && kategoria.equals("1")) {
+                    normativity = "normatív";
+                } else if (normativity.isEmpty() && kategoria.equals("2")) {
+                    normativity = "emelt";
+                } else if (normativity.isEmpty() && kategoria.equals("3")) {
+                    normativity = "kiemelt";
                 }
                 
                 // Extract support type
-                supportType = extractValue(tamogatadatResponse, "<TAMTIPUS>", "</TAMTIPUS>");
+                supportType = extractValue(tamogatadatResponse, "<TAMTECHN>", "</TAMTECHN>");
                 if (supportType.isEmpty()) {
                     supportType = extractValue(tamogatadatResponse, "<TAMOGATAS_TIPUS>", "</TAMOGATAS_TIPUS>");
                 }
@@ -313,7 +377,13 @@ public class PuphaxRealDataService {
                         <reimbursable>%s</reimbursable>
                         <status>ACTIVE</status>
                         <price>%s</price>
+                        <bruttoFogyasztarAr>%s</bruttoFogyasztarAr>
+                        <nettoFogyasztarAr>%s</nettoFogyasztarAr>
+                        <termelesAr>%s</termelesAr>
+                        <nagykerAr>%s</nagykerAr>
                         <supportPercent>%s</supportPercent>
+                        <tamogatottAr>%s</tamogatottAr>
+                        <teritesiDij>%s</teritesiDij>
                         <productForm>%s</productForm>
                         <strength>%s</strength>
                         <packSize>%s</packSize>
@@ -327,7 +397,10 @@ public class PuphaxRealDataService {
                 """, productId, escapeXml(productName), escapeXml(manufacturer), 
                      escapeXml(atcCode), escapeXml(tttCode), escapeXml(activeIngredient),
                      escapeXml(packaging), escapeXml(registrationNumber), prescriptionRequired,
-                     escapeXml(prescriptionStatus), reimbursable, price, supportPercent,
+                     escapeXml(prescriptionStatus), reimbursable, price, 
+                     escapeXml(fogyasztarBrutto), escapeXml(fogyasztarNetto),
+                     escapeXml(termelesar), escapeXml(nagykerAr),
+                     supportPercent, escapeXml(tamogatottAr), escapeXml(teritesiDij),
                      escapeXml(productForm), escapeXml(strength), escapeXml(packSize),
                      escapeXml(productType), escapeXml(validFrom), escapeXml(validTo),
                      escapeXml(normativity), escapeXml(supportType));
