@@ -1,13 +1,16 @@
 package com.puphax.service;
 
+import org.apache.hc.client5.http.classic.methods.HttpPost;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.apache.hc.core5.http.ClassicHttpResponse;
+import org.apache.hc.core5.http.HttpEntity;
+import org.apache.hc.core5.http.io.entity.EntityUtils;
+import org.apache.hc.core5.http.io.entity.StringEntity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.net.URI;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
-import java.time.Duration;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Base64;
@@ -19,7 +22,6 @@ import java.nio.charset.StandardCharsets;
 import java.nio.charset.Charset;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.Map;
-import java.util.HashMap;
 
 /**
  * Simplified PUPHAX client using Java 11 HTTP client.
@@ -33,15 +35,15 @@ public class SimplePuphaxClient {
     private static final String USERNAME = "PUPHAX";
     private static final String PASSWORD = "puphax";
     
-    private final HttpClient httpClient;
+    private final CloseableHttpClient httpClient;
     
     // Cache for company names to avoid repeated lookups
     private final Map<String, String> companyNameCache = new ConcurrentHashMap<>();
     
-    public SimplePuphaxClient() {
-        this.httpClient = HttpClient.newBuilder()
-            .connectTimeout(Duration.ofSeconds(30))
-            .build();
+    @Autowired
+    public SimplePuphaxClient(CloseableHttpClient httpClient) {
+        this.httpClient = httpClient;
+        logger.info("SimplePuphaxClient initialized with connection pooling HTTP client");
     }
     
     /**
@@ -54,67 +56,7 @@ public class SimplePuphaxClient {
             logger.info("Making direct HTTP call to PUPHAX for search term: {}", searchTerm);
             logger.debug("SOAP Request: {}", soapRequest);
             
-            // First request without auth to get the digest challenge
-            HttpRequest initialRequest = HttpRequest.newBuilder()
-                .uri(URI.create(PUPHAX_ENDPOINT))
-                .timeout(Duration.ofSeconds(60))
-                .header("Content-Type", "text/xml; charset=UTF-8")
-                .header("SOAPAction", "TERMEKLISTA")
-                .POST(HttpRequest.BodyPublishers.ofString(soapRequest))
-                .build();
-            
-            // Send initial request - handle as ISO-8859-2
-            HttpResponse<String> initialResponse = httpClient.send(initialRequest, 
-                HttpResponse.BodyHandlers.ofString(Charset.forName("ISO-8859-2")));
-            
-            if (initialResponse.statusCode() == 200) {
-                // If we get 200 immediately, PUPHAX might not require auth for this call
-                String responseBody = fixCharacterEncoding(initialResponse.body());
-                logger.debug("PUPHAX response without auth (first 1000 chars): {}", 
-                    responseBody.length() > 1000 ? responseBody.substring(0, 1000) : responseBody);
-                return responseBody;
-            } else if (initialResponse.statusCode() == 401) {
-                // Extract WWW-Authenticate header for digest challenge
-                String authHeader = initialResponse.headers().firstValue("WWW-Authenticate").orElse("");
-                logger.debug("Received digest challenge: {}", authHeader);
-                
-                if (authHeader.startsWith("Digest")) {
-                    // Parse digest challenge and create response
-                    String digestAuth = createDigestAuthHeader(authHeader, "POST", "/PUPHAXWS", soapRequest);
-                    
-                    // Retry with digest auth
-                    HttpRequest authRequest = HttpRequest.newBuilder()
-                        .uri(URI.create(PUPHAX_ENDPOINT))
-                        .timeout(Duration.ofSeconds(60))
-                        .header("Content-Type", "text/xml; charset=UTF-8")
-                        .header("SOAPAction", "TERMEKLISTA")
-                        .header("Authorization", digestAuth)
-                        .POST(HttpRequest.BodyPublishers.ofString(soapRequest))
-                        .build();
-                    
-                    HttpResponse<String> authResponse = httpClient.send(authRequest, 
-                        HttpResponse.BodyHandlers.ofString(Charset.forName("ISO-8859-2")));
-                    
-                    logger.info("Received authenticated response with status: {}", authResponse.statusCode());
-                    
-                    if (authResponse.statusCode() == 200) {
-                        String responseBody = fixCharacterEncoding(authResponse.body());
-                        logger.debug("PUPHAX response (first 1000 chars): {}", 
-                            responseBody.length() > 1000 ? responseBody.substring(0, 1000) : responseBody);
-                        return responseBody;
-                    } else {
-                        logger.error("PUPHAX returned error after auth: {} - {}", authResponse.statusCode(), authResponse.body());
-                        throw new RuntimeException("PUPHAX auth failed: " + authResponse.statusCode());
-                    }
-                } else {
-                    // Try with basic auth as fallback
-                    logger.warn("No digest challenge received, trying basic auth");
-                    return retryWithBasicAuth(soapRequest);
-                }
-            } else {
-                logger.error("PUPHAX returned unexpected status: {} - {}", initialResponse.statusCode(), initialResponse.body());
-                throw new RuntimeException("PUPHAX error: " + initialResponse.statusCode());
-            }
+            return executeSoapCall(soapRequest, "TERMEKLISTA");
             
         } catch (Exception e) {
             logger.error("Direct PUPHAX call failed: {}", e.getMessage(), e);
@@ -127,23 +69,23 @@ public class SimplePuphaxClient {
         return "Basic " + Base64.getEncoder().encodeToString(auth.getBytes());
     }
     
-    private String retryWithBasicAuth(String soapRequest) throws Exception {
-        HttpRequest request = HttpRequest.newBuilder()
-            .uri(URI.create(PUPHAX_ENDPOINT))
-            .timeout(Duration.ofSeconds(60))
-            .header("Content-Type", "text/xml; charset=UTF-8")
-            .header("SOAPAction", "TERMEKLISTA")
-            .header("Authorization", getBasicAuth())
-            .POST(HttpRequest.BodyPublishers.ofString(soapRequest))
-            .build();
+    private String retryWithBasicAuth(String soapRequest, String soapAction) throws Exception {
+        HttpPost request = new HttpPost(PUPHAX_ENDPOINT);
+        request.setHeader("Content-Type", "text/xml; charset=UTF-8");
+        request.setHeader("SOAPAction", soapAction);
+        request.setHeader("Authorization", getBasicAuth());
+        request.setEntity(new StringEntity(soapRequest, StandardCharsets.UTF_8));
         
-        HttpResponse<String> response = httpClient.send(request, 
-            HttpResponse.BodyHandlers.ofString(Charset.forName("ISO-8859-2")));
-        
-        if (response.statusCode() == 200) {
-            return fixCharacterEncoding(response.body());
-        } else {
-            throw new RuntimeException("Basic auth also failed: " + response.statusCode());
+        try (ClassicHttpResponse response = httpClient.execute(request)) {
+            int statusCode = response.getCode();
+            HttpEntity entity = response.getEntity();
+            String responseBody = EntityUtils.toString(entity, Charset.forName("ISO-8859-2"));
+            
+            if (statusCode == 200) {
+                return fixCharacterEncoding(responseBody);
+            } else {
+                throw new RuntimeException("Basic auth also failed: " + statusCode);
+            }
         }
     }
     
@@ -261,52 +203,7 @@ public class SimplePuphaxClient {
             logger.info("Making direct HTTP call to PUPHAX TERMEKADAT for product ID: {}", productId);
             logger.debug("TERMEKADAT SOAP Request: {}", soapRequest);
             
-            // Create HTTP request with Basic auth
-            HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(PUPHAX_ENDPOINT))
-                .timeout(Duration.ofSeconds(30))
-                .header("Content-Type", "text/xml; charset=UTF-8")
-                .header("SOAPAction", "TERMEKADAT")
-                .header("Authorization", getBasicAuth())
-                .POST(HttpRequest.BodyPublishers.ofString(soapRequest))
-                .build();
-            
-            // Send initial request
-            HttpResponse<String> initialResponse = httpClient.send(request, 
-                HttpResponse.BodyHandlers.ofString(Charset.forName("ISO-8859-2")));
-            
-            if (initialResponse.statusCode() == 200) {
-                String responseBody = fixCharacterEncoding(initialResponse.body());
-                logger.debug("TERMEKADAT response received, length: {} chars", responseBody.length());
-                return responseBody;
-            } else if (initialResponse.statusCode() == 401) {
-                // Handle digest auth if needed
-                String authHeader = initialResponse.headers().firstValue("WWW-Authenticate").orElse("");
-                if (authHeader.startsWith("Digest")) {
-                    String digestAuth = createDigestAuthHeader(authHeader, "POST", "/PUPHAXWS", soapRequest);
-                    
-                    HttpRequest authRequest = HttpRequest.newBuilder()
-                        .uri(URI.create(PUPHAX_ENDPOINT))
-                        .timeout(Duration.ofSeconds(30))
-                        .header("Content-Type", "text/xml; charset=UTF-8")
-                        .header("SOAPAction", "TERMEKADAT")
-                        .header("Authorization", digestAuth)
-                        .POST(HttpRequest.BodyPublishers.ofString(soapRequest))
-                        .build();
-                    
-                    HttpResponse<String> authResponse = httpClient.send(authRequest, 
-                        HttpResponse.BodyHandlers.ofString(Charset.forName("ISO-8859-2")));
-                    
-                    if (authResponse.statusCode() == 200) {
-                        String responseBody = fixCharacterEncoding(authResponse.body());
-                        logger.debug("TERMEKADAT digest auth response received, length: {} chars", 
-                            responseBody.length());
-                        return responseBody;
-                    }
-                }
-            }
-            
-            throw new RuntimeException("Failed to get product data: " + initialResponse.statusCode());
+            return executeSoapCall(soapRequest, "TERMEKADAT");
             
         } catch (Exception e) {
             logger.error("TERMEKADAT call failed for product {}: {}", productId, e.getMessage());
@@ -324,55 +221,7 @@ public class SimplePuphaxClient {
             logger.info("Making direct HTTP call to PUPHAX TAMOGATADAT for product ID: {}", productId);
             logger.debug("TAMOGATADAT SOAP Request: {}", soapRequest);
             
-            // Create HTTP request with Basic auth (will work for initial testing)
-            HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(PUPHAX_ENDPOINT))
-                .timeout(Duration.ofSeconds(30))
-                .header("Content-Type", "text/xml; charset=UTF-8")
-                .header("SOAPAction", "TAMOGATADAT")
-                .header("Authorization", getBasicAuth())
-                .POST(HttpRequest.BodyPublishers.ofString(soapRequest))
-                .build();
-            
-            // Send initial request
-            HttpResponse<String> initialResponse = httpClient.send(request, 
-                HttpResponse.BodyHandlers.ofString(Charset.forName("ISO-8859-2")));
-            
-            if (initialResponse.statusCode() == 200) {
-                String responseBody = fixCharacterEncoding(initialResponse.body());
-                logger.debug("TAMOGATADAT response received, first 500 chars: {}", 
-                    responseBody.length() > 500 ? responseBody.substring(0, 500) + "..." : responseBody);
-                return responseBody;
-            } else if (initialResponse.statusCode() == 401) {
-                // Handle digest auth if needed
-                String authHeader = initialResponse.headers().firstValue("WWW-Authenticate").orElse("");
-                if (authHeader.startsWith("Digest")) {
-                    String digestAuth = createDigestAuthHeader(authHeader, "POST", "/PUPHAXWS", soapRequest);
-                    
-                    HttpRequest authRequest = HttpRequest.newBuilder()
-                        .uri(URI.create(PUPHAX_ENDPOINT))
-                        .timeout(Duration.ofSeconds(30))
-                        .header("Content-Type", "text/xml; charset=UTF-8")
-                        .header("SOAPAction", "TAMOGATADAT")
-                        .header("Authorization", digestAuth)
-                        .POST(HttpRequest.BodyPublishers.ofString(soapRequest))
-                        .build();
-                    
-                    HttpResponse<String> authResponse = httpClient.send(authRequest, 
-                        HttpResponse.BodyHandlers.ofString(Charset.forName("ISO-8859-2")));
-                    
-                    if (authResponse.statusCode() == 200) {
-                        String responseBody = fixCharacterEncoding(authResponse.body());
-                        logger.debug("TAMOGATADAT digest auth response received, first 500 chars: {}", 
-                            responseBody.length() > 500 ? responseBody.substring(0, 500) + "..." : responseBody);
-                        return responseBody;
-                    } else {
-                        logger.error("TAMOGATADAT digest auth failed with status {}: {}", authResponse.statusCode(), authResponse.body());
-                    }
-                }
-            }
-            
-            throw new RuntimeException("Failed to get support data: " + initialResponse.statusCode());
+            return executeSoapCall(soapRequest, "TAMOGATADAT");
             
         } catch (Exception e) {
             logger.error("TAMOGATADAT call failed for product {}: {}", productId, e.getMessage());
@@ -419,6 +268,69 @@ public class SimplePuphaxClient {
                   .replace("'", "&apos;");
     }
     
+    /**
+     * Execute a SOAP call to PUPHAX service with digest authentication.
+     * This is a generic method for making SOAP calls to any PUPHAX endpoint.
+     */
+    private String executeSoapCall(String soapRequest, String soapAction) throws Exception {
+        // Create HTTP POST request using Apache HttpClient
+        HttpPost initialRequest = new HttpPost(PUPHAX_ENDPOINT);
+        initialRequest.setHeader("Content-Type", "text/xml; charset=UTF-8");
+        initialRequest.setHeader("SOAPAction", soapAction);
+        initialRequest.setEntity(new StringEntity(soapRequest, StandardCharsets.UTF_8));
+        
+        try (ClassicHttpResponse initialResponse = httpClient.execute(initialRequest)) {
+            int statusCode = initialResponse.getCode();
+            HttpEntity entity = initialResponse.getEntity();
+            String responseBody = EntityUtils.toString(entity, Charset.forName("ISO-8859-2"));
+            
+            if (statusCode == 200) {
+                // If we get 200 immediately, PUPHAX might not require auth for this call
+                String fixedResponseBody = fixCharacterEncoding(responseBody);
+                logger.debug("PUPHAX response without auth (first 1000 chars): {}", 
+                    fixedResponseBody.length() > 1000 ? fixedResponseBody.substring(0, 1000) : fixedResponseBody);
+                return fixedResponseBody;
+            } else if (statusCode == 401) {
+                // Extract WWW-Authenticate header for digest challenge
+                String authHeader = initialResponse.getFirstHeader("WWW-Authenticate") != null 
+                    ? initialResponse.getFirstHeader("WWW-Authenticate").getValue() : "";
+                logger.debug("Received digest challenge: {}", authHeader);
+                
+                if (authHeader.startsWith("Digest")) {
+                    // Parse digest challenge and create response
+                    String digestAuth = createDigestAuthHeader(authHeader, "POST", "/PUPHAXWS", soapRequest);
+                    
+                    // Retry with digest auth
+                    HttpPost authRequest = new HttpPost(PUPHAX_ENDPOINT);
+                    authRequest.setHeader("Content-Type", "text/xml; charset=UTF-8");
+                    authRequest.setHeader("SOAPAction", soapAction);
+                    authRequest.setHeader("Authorization", digestAuth);
+                    authRequest.setEntity(new StringEntity(soapRequest, StandardCharsets.UTF_8));
+                    
+                    try (ClassicHttpResponse authResponse = httpClient.execute(authRequest)) {
+                        int authStatusCode = authResponse.getCode();
+                        HttpEntity authEntity = authResponse.getEntity();
+                        String authResponseBody = EntityUtils.toString(authEntity, Charset.forName("ISO-8859-2"));
+                        
+                        if (authStatusCode == 200) {
+                            String fixedAuthResponseBody = fixCharacterEncoding(authResponseBody);
+                            logger.debug("PUPHAX authenticated response (first 1000 chars): {}", 
+                                fixedAuthResponseBody.length() > 1000 ? fixedAuthResponseBody.substring(0, 1000) : fixedAuthResponseBody);
+                            return fixedAuthResponseBody;
+                        } else {
+                            throw new RuntimeException("PUPHAX authentication failed. Status: " + authStatusCode);
+                        }
+                    }
+                } else {
+                    // Fallback to basic auth
+                    return retryWithBasicAuth(soapRequest, soapAction);
+                }
+            } else {
+                throw new RuntimeException("Unexpected response from PUPHAX. Status: " + statusCode);
+            }
+        }
+    }
+
     /**
      * Fix character encoding issues in PUPHAX responses.
      * Since we're now reading responses as ISO-8859-2, this method just ensures

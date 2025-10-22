@@ -23,4 +23,5 @@ Java 17 with Spring Boot 3.5.6: Follow standard conventions
 <!-- MANUAL ADDITIONS START -->
 ## Development Guidelines
 - When developing this project, always refer to `/home/zsine/PUPHAX-service/PUPHAX_DEVELOPMENT_GUIDE.md` and the info in reference folder
+- Always check the PUPHAX_DEVELOPMENT_GUIDE.md for info when facing an issue, and always update it with new findings, fixes
 <!-- MANUAL ADDITIONS END -->

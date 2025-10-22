@@ -132,7 +132,11 @@ public class DrugService {
             for (int i = 0; i < drugNodes.getLength(); i++) {
                 Element drugElement = (Element) drugNodes.item(i);
                 DrugSummary drug = parseDrugElement(drugElement);
-                drugs.add(drug);
+                if (drug != null) {
+                    drugs.add(drug);
+                } else {
+                    logger.warn("Skipping null drug element at index {}", i);
+                }
             }
             
             logger.debug("Parsed {} drugs from XML response", drugs.size());
@@ -151,20 +155,43 @@ public class DrugService {
      * @return DrugSummary object
      */
     private DrugSummary parseDrugElement(Element drugElement) {
-        String id = getElementText(drugElement, "id");
-        String name = getElementText(drugElement, "name");
-        String manufacturer = getElementText(drugElement, "manufacturer");
-        String atcCode = getElementText(drugElement, "atcCode");
-        
-        // Parse active ingredients
-        List<String> activeIngredients = parseActiveIngredients(drugElement);
-        
-        // Parse boolean fields
-        boolean prescriptionRequired = Boolean.parseBoolean(getElementText(drugElement, "prescriptionRequired"));
-        boolean reimbursable = Boolean.parseBoolean(getElementText(drugElement, "reimbursable"));
-        
-        // Parse status
-        DrugSummary.DrugStatus status = parseStatus(getElementText(drugElement, "status"));
+        try {
+            // Essential fields with validation
+            String id = getElementText(drugElement, "id");
+            if (id == null || id.trim().isEmpty()) {
+                logger.warn("Drug element missing required 'id' field, skipping");
+                return null;
+            }
+            
+            String name = getElementText(drugElement, "name");
+            if (name == null || name.trim().isEmpty()) {
+                logger.warn("Drug element with id '{}' missing required 'name' field, using default", id);
+                name = "Unknown Drug";
+            }
+            
+            // Optional fields with safe defaults
+            String manufacturer = getElementText(drugElement, "manufacturer");
+            if (manufacturer == null || manufacturer.trim().isEmpty()) {
+                manufacturer = "Unknown Manufacturer";
+            }
+            
+            String atcCode = getElementText(drugElement, "atcCode");
+            
+            // Parse active ingredients with error handling
+            List<String> activeIngredients;
+            try {
+                activeIngredients = parseActiveIngredients(drugElement);
+            } catch (Exception e) {
+                logger.warn("Failed to parse active ingredients for drug '{}': {}", id, e.getMessage());
+                activeIngredients = List.of(); // Empty list as fallback
+            }
+            
+            // Parse boolean fields with safe defaults
+            boolean prescriptionRequired = safeParseBool(getElementText(drugElement, "prescriptionRequired"), false);
+            boolean reimbursable = safeParseBool(getElementText(drugElement, "reimbursable"), false);
+            
+            // Parse status with enhanced error handling
+            DrugSummary.DrugStatus status = parseStatus(getElementText(drugElement, "status"));
         
         // Check if we have extended data available
         String tttCode = getElementText(drugElement, "tttCode");
@@ -227,17 +254,22 @@ public class DrugService {
             return extendedSummary.toBasicSummary();
         }
         
-        // Basic DrugSummary (backward compatibility)
-        return new DrugSummary(
-            id != null ? id : "UNKNOWN",
-            name != null ? name : "Unknown Drug",
-            manufacturer,
-            atcCode,
-            activeIngredients,
-            prescriptionRequired,
-            reimbursable,
-            status
-        );
+            // Basic DrugSummary (backward compatibility)
+            return new DrugSummary(
+                id != null ? id : "UNKNOWN",
+                name != null ? name : "Unknown Drug",
+                manufacturer,
+                atcCode,
+                activeIngredients,
+                prescriptionRequired,
+                reimbursable,
+                status
+            );
+        } catch (Exception e) {
+            logger.error("Failed to parse drug element: {}", e.getMessage(), e);
+            // Return a minimal drug summary to prevent total failure
+            return DrugSummary.basic("ERROR", "Parse Error", "Unknown");
+        }
     }
     
     /**
@@ -289,15 +321,37 @@ public class DrugService {
      * @return DrugStatus enum value
      */
     private DrugSummary.DrugStatus parseStatus(String statusText) {
-        if (statusText == null) {
+        if (statusText == null || statusText.trim().isEmpty()) {
             return DrugSummary.DrugStatus.ACTIVE;
         }
         
+        String normalizedStatus = statusText.trim().toUpperCase();
+        
         try {
-            return DrugSummary.DrugStatus.valueOf(statusText.toUpperCase());
+            return DrugSummary.DrugStatus.valueOf(normalizedStatus);
         } catch (IllegalArgumentException e) {
-            logger.warn("Unknown drug status '{}', defaulting to ACTIVE", statusText);
-            return DrugSummary.DrugStatus.ACTIVE;
+            logger.warn("Unknown drug status '{}', mapping to UNKNOWN", statusText);
+            return DrugSummary.DrugStatus.UNKNOWN;
+        }
+    }
+    
+    /**
+     * Safely parses boolean values with fallback.
+     * 
+     * @param value String value to parse
+     * @param defaultValue Default value if parsing fails
+     * @return Parsed boolean or default value
+     */
+    private boolean safeParseBool(String value, boolean defaultValue) {
+        if (value == null || value.trim().isEmpty()) {
+            return defaultValue;
+        }
+        
+        try {
+            return Boolean.parseBoolean(value.trim());
+        } catch (Exception e) {
+            logger.warn("Failed to parse boolean value '{}', using default: {}", value, defaultValue);
+            return defaultValue;
         }
     }
     

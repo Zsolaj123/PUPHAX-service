@@ -1,0 +1,45 @@
+NDX,SZOVEGKOD,TTT prefix,LEIRAS,ERV_KEZD,ERV_VEG
+1,G1,11,"Magi alapanyag, FoNo, mint komponens",01-június-2015,31-dec.-99
+2,G3,"13,14",Galenikum / Gyógyszerkönyvi készítmény,01-június-2015,31-dec.-99
+3,G4,12,FoNo-készítmény,01-június-2015,31-dec.-99
+4,G5,51,Magi csomagolóanyag,01-június-2015,31-dec.-99
+5,G6,61,Magi készítési díj,01-június-2015,31-dec.-99
+6,G7,"21,22,23,24,25,26",Gyógyszer specialitás,01-június-2015,31-dec.-99
+7,S8,31,"Sorozatgyártású gyógyászati segédeszközök a kötszerek, a hallókészülékek és a kontaktlencsék kivételével",01-június-2015,31-dec.-99
+8,S9,41,Kötszer,01-június-2015,31-dec.-99
+9,SH,31,Hallókészülék,01-június-2015,31-dec.-99
+10,SL,31,Kontaktlencse,01-június-2015,31-dec.-99
+11,SA,31,Adaptív gyógyászati segédeszközök,01-június-2015,31-dec.-99
+12,SK,31,Kölcsönözhető eszközök,01-június-2015,31-dec.-99
+13,SE1,31,Egyedi gyártású ortézis/protézis,01-június-2015,31-dec.-99
+14,SE2,31,Egyedi gyártású ortopédcipő,01-június-2015,31-dec.-99
+15,SE3,31,Egyedi gyártású keringési terápiás segédeszköz,01-június-2015,31-dec.-99
+16,SE4,31,Egyedi gyártású hasi sérvkötő,01-június-2015,31-dec.-99
+17,SE5,31,Egyedi gyártású fogtechnikai termék,01-június-2015,31-dec.-99
+18,SE6,31,Egyedi gyártású kemény kontaktlencse,01-június-2015,31-dec.-99
+19,SE7,31,Egyedi gyártású szemüvegkeret,01-június-2015,31-dec.-99
+20,SE8,31,Egyedi gyártású hallásjavító készülékek kiegészítője,01-június-2015,31-dec.-99
+21,ST,31,GYSE technikai térítési díj,01-június-2015,31-dec.-99
+22,SJ1,31,GYSE javítás rezsióradíj inhalátorok,01-június-2015,31-dec.-99
+23,SJ2,31,"GYSE javítás rezsióradíj ortézisek, protézisek",01-június-2015,31-dec.-99
+24,SJ3,31,GYSE javítás rezsióradíj fogtechnikai eszközök,01-június-2015,31-dec.-99
+25,SJ4,31,"GYSE javítás rezsióradíj mopedek, kerekesszékek",01-június-2015,31-dec.-99
+26,SJ5,31,GYSE javítás rezsióradíj optikai eszközök,01-június-2015,31-dec.-99
+27,SJ6,31,GYSE javítás rezsióradíj műgége,01-június-2015,31-dec.-99
+28,SJ7,31,GYSE javítás rezsióradíj hallókészülékek,01-június-2015,31-dec.-99
+29,SJ8,31,GYSE javítás rezsióradíj hallásjavító implantátumok beszédprocesszorai,01-június-2015,31-dec.-99
+30,FA,40,Gyógyvizes gyógymedence,01-június-2015,31-dec.-99
+31,FB,40,Gyógyvizes kádfürdő,01-június-2015,31-dec.-99
+32,FC,40,Iszappakolás,01-június-2015,31-dec.-99
+33,FD,40,Súlyfürdő,01-június-2015,31-dec.-99
+34,FE,40,Szénsavas fürdő,01-június-2015,31-dec.-99
+35,FF,40,Orvosi gyógymasszázs,01-június-2015,31-dec.-99
+36,FG,40,Víz alatti vízsugármasszázs,01-június-2015,31-dec.-99
+37,FH,40,Víz alatti csoportos gyógytorna,01-június-2015,31-dec.-99
+38,FI,40,Komplex fürdőgyógyászati ellátás,01-június-2015,31-dec.-99
+39,FJ,40,18 éves kor alatti csoportos gyógyúszás,01-június-2015,31-dec.-99
+40,FK,40,Szén-dioxid gyógygázfürdő,01-június-2015,31-dec.-99
+41,OO,21,Oxigén,01-június-2015,31-dec.-99
+42,OP,52,Oxigén csomagolóanyag,01-június-2015,31-dec.-99
+43,T1,23,Tápszer,01-június-2015,31-dec.-99
+44,H1,24,Homeopátiás szerek,01-június-2015,31-dec.-99

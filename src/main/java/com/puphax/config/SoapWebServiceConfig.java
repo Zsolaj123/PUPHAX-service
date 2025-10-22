@@ -62,11 +62,11 @@ public class SoapWebServiceConfig {
     @Bean
     public HttpComponents5MessageSender httpComponents5MessageSender() {
         // Simply create and return the message sender with HttpClient
-        return new HttpComponents5MessageSender(httpClient());
+        return new HttpComponents5MessageSender(soapHttpClient());
     }
     
     @Bean
-    public CloseableHttpClient httpClient() {
+    public CloseableHttpClient soapHttpClient() {
         // Create credentials provider with PUPHAX credentials
         CredentialsProvider credentialsProvider = CredentialsProviderBuilder.create()
             .add(new AuthScope(null, -1), PUPHAX_USERNAME, PUPHAX_PASSWORD.toCharArray())

@@ -58,7 +58,13 @@ public record DrugSummary(
         WITHDRAWN,
         
         @JsonProperty("PENDING")
-        PENDING
+        PENDING,
+        
+        @JsonProperty("ERROR")
+        ERROR,
+        
+        @JsonProperty("UNKNOWN")
+        UNKNOWN
     }
     
     /**

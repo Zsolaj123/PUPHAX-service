@@ -271,13 +271,53 @@ private List<DrugSummary> parseSearchResponse(String xmlResponse) {
 2. Test with simple drug searches first
 3. Verify WSDL accessibility
 
+### Docker Deployment Issues
+
+**Problem**: Docker image builds successfully but container not accessible
+
+**Common Causes:**
+- Image built but container not started
+- Port not properly exposed
+- Container exits immediately
+
+**Solution:**
+```bash
+# Check if image exists
+docker images | grep puphax
+
+# Start container with proper port mapping
+docker run -d -p 8080:8080 --name puphax-service puphax-hungarian:latest
+
+# Check container status
+docker ps
+
+# Check container logs
+docker logs puphax-service
+
+# Test health endpoint
+curl http://localhost:8080/api/v1/gyogyszerek/egeszseg/gyors
+```
+
+**Expected Health Response:**
+```json
+{
+  "statu": "FEL",
+  "uzenet": "Minden szolgáltatás működik",
+  "idopecsét": "2025-10-22T09:11:56.835865824Z",
+  "verzio": "1.0.0"
+}
+```
+
 ### Common Test Cases
 ```bash
 # Test drug search
 curl "http://localhost:8080/api/v1/drugs/search?term=aspirin&page=0&size=5"
 
 # Test health endpoint  
-curl "http://localhost:8080/api/v1/drugs/health"
+curl "http://localhost:8080/api/v1/gyogyszerek/egeszseg/gyors"
+
+# Test with Hungarian characters
+curl "http://localhost:8080/api/v1/drugs/search?term=paracetamol"
 ```
 
 ### Debugging Checklist
@@ -287,6 +327,7 @@ curl "http://localhost:8080/api/v1/drugs/health"
 4. ✅ Monitor for rate limiting
 5. ✅ Check character encoding
 6. ✅ Verify date formats (yyyy-MM-dd)
+7. ✅ Ensure Docker container is running with proper port mapping
 
 ### Logging Configuration
 ```yaml

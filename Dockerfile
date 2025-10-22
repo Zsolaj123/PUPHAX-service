@@ -58,12 +58,12 @@ RUN chown -R puphax:puphax /app
 # Switch to application user
 USER puphax
 
-# Expose port 8080
-EXPOSE 8080
+# Expose port 8081
+EXPOSE 8081
 
 # Health check for the application
 HEALTHCHECK --interval=30s --timeout=3s --start-period=40s --retries=3 \
-    CMD curl -f http://localhost:8080/api/v1/gyogyszerek/egeszseg/gyors || exit 1
+    CMD curl -f http://localhost:8081/api/v1/gyogyszerek/egeszseg/gyors || exit 1
 
 # JVM optimization arguments
 ENV JAVA_OPTS="-Xms512m -Xmx1024m -XX:+UseG1GC -XX:+UseStringDeduplication -Dfile.encoding=UTF-8 -Duser.timezone=Europe/Budapest"
