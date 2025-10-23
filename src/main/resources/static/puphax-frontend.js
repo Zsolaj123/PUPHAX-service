@@ -352,8 +352,7 @@ class PuphaxGyogyszerKerreso {
                             <div class="gyogyszer-alapadatok">
                                 ${gyogyszer.gyarto ? `<span class="alapadat-elem">🏭 ${this.htmlEscape(gyogyszer.gyarto)}</span>` : ''}
                                 ${gyogyszer.atcKod ? `<span class="alapadat-elem">📋 ${this.htmlEscape(gyogyszer.atcKod)}</span>` : ''}
-                                ${gyogyszer.hatoanyagok && gyogyszer.hatoanyagok.length > 0 ? 
-                                    `<span class="alapadat-elem">💊 ${this.htmlEscape(gyogyszer.hatoanyagok[0])}</span>` : ''}
+                                ${gyogyszer.hatoanyagNev ? `<span class="alapadat-elem">💊 ${this.htmlEscape(gyogyszer.hatoanyagNev)}</span>` : ''}
                             </div>
                         </div>
                         <div class="gyogyszer-statusz-es-toggle">
@@ -362,9 +361,13 @@ class PuphaxGyogyszerKerreso {
                         </div>
                     </div>
                 </div>
-                
+
                 <div class="gyogyszer-reszletezett" id="${uniqueId}" style="display: none;">
-                    <div class="reszletek-grid">
+
+                    <!-- Core Identification Section -->
+                    <div class="reszletek-szekció">
+                        <h4 class="szekció-cím">📝 Alapvető azonosítás</h4>
+                        <div class="reszletek-grid">
                         <div class="gyogyszer-reszlet">
                             <span class="reszlet-cimke">Azonosító</span>
                             <span class="reszlet-ertek">${this.htmlEscape(gyogyszer.id || 'N/A')}</span>
