@@ -211,18 +211,63 @@ public class PuphaxCsvFallbackService {
                     }
                     
                     ProductRecord product = new ProductRecord();
+                    // Core identification
                     product.id = fields[0].trim();
+                    product.parentId = fields[1].trim();
+                    product.validFrom = validFrom;
+                    product.validTo = validTo;
                     product.termekKod = unquote(fields[4]);
+                    product.kozHid = unquote(fields[5]);
                     product.ttt = unquote(fields[6]);
+                    product.tk = unquote(fields[7]);
+                    product.tkTorles = unquote(fields[8]);
+                    product.tkTorlesDate = parseDate(unquote(fields[9]), dateFormatter);
+                    product.eanKod = unquote(fields[10]);
+                    product.brandId = fields[11].trim();
+
+                    // Names
                     product.name = unquote(fields[12]);
                     product.shortName = unquote(fields[13]);
+
+                    // Classification
                     product.atc = unquote(fields[14]);
                     product.iso = unquote(fields[15]);
                     product.activeIngredient = unquote(fields[16]);
-                    product.brandId = fields[11].trim();
-                    product.validFrom = validFrom;
-                    product.validTo = validTo;
+
+                    // Administration and form
+                    product.adagMod = unquote(fields[17]);
+                    product.gyForma = unquote(fields[18]);
+                    product.rendelhet = unquote(fields[19]);
+                    product.egyenId = unquote(fields[20]);
+                    product.helyettesith = unquote(fields[21]);
+
+                    // Strength and dosage
+                    product.potencia = unquote(fields[22]);
+                    product.oHatoMenny = unquote(fields[23]);
+                    product.hatoMenny = unquote(fields[24]);
+                    product.hatoEgys = unquote(fields[25]);
+                    product.kiszMenny = unquote(fields[26]);
+                    product.kiszEgys = unquote(fields[27]);
+                    product.dddMenny = unquote(fields[28]);
+                    product.dddEgys = unquote(fields[29]);
+                    product.dddFaktor = unquote(fields[30]);
+                    product.dot = unquote(fields[31]);
+                    product.adagMenny = unquote(fields[32]);
+                    product.adagEgys = unquote(fields[33]);
+
+                    // Special attributes
+                    product.egyedi = unquote(fields[34]);
+                    product.oldalIsag = unquote(fields[35]);
+                    product.tobblGar = unquote(fields[36]);
+                    product.patika = unquote(fields[37]);
+                    product.dobAzon = unquote(fields[38]);
+                    product.keresztJelzes = unquote(fields[39]);
+
+                    // Distribution
+                    product.forgEngtId = unquote(fields[40]);
+                    product.forgazId = unquote(fields[41]);
                     product.inStock = "1".equals(fields[42]);
+                    product.kihirdetesId = unquote(fields[43]);
                     
                     productsById.put(product.id, product);
                     validCount++;
@@ -292,7 +337,7 @@ public class PuphaxCsvFallbackService {
     }
     
     /**
-     * Format search results as PUPHAX-compatible XML.
+     * Format search results as comprehensive PUPHAX-compatible XML with all available fields.
      */
     private String formatSearchResults(List<ProductRecord> products, String searchTerm) {
         StringBuilder xml = new StringBuilder();
@@ -301,30 +346,129 @@ public class PuphaxCsvFallbackService {
         xml.append("  <totalCount>").append(products.size()).append("</totalCount>\n");
         xml.append("  <source>CSV Fallback (NEAK Historical Data 2007-2023)</source>\n");
         xml.append("  <drugs>\n");
-        
+
         for (ProductRecord product : products) {
             xml.append("    <drug>\n");
+
+            // Core identification
             xml.append("      <id>").append(escapeXml(product.id)).append("</id>\n");
+            if (product.parentId != null && !product.parentId.isEmpty()) {
+                xml.append("      <parentId>").append(escapeXml(product.parentId)).append("</parentId>\n");
+            }
+            xml.append("      <productCode>").append(escapeXml(product.termekKod)).append("</productCode>\n");
+            if (product.eanKod != null && !product.eanKod.isEmpty()) {
+                xml.append("      <eanCode>").append(escapeXml(product.eanKod)).append("</eanCode>\n");
+            }
+
+            // Names
             xml.append("      <name>").append(escapeXml(product.name)).append("</name>\n");
-            
+            if (product.shortName != null && !product.shortName.isEmpty()) {
+                xml.append("      <shortName>").append(escapeXml(product.shortName)).append("</shortName>\n");
+            }
+
+            // Manufacturer
             String manufacturer = companies.getOrDefault(product.brandId, "Unknown");
+            String brand = brandNames.getOrDefault(product.brandId, manufacturer);
             xml.append("      <manufacturer>").append(escapeXml(manufacturer)).append("</manufacturer>\n");
-            
-            xml.append("      <atcCode>").append(escapeXml(product.atc)).append("</atcCode>\n");
+            xml.append("      <brand>").append(escapeXml(brand)).append("</brand>\n");
+
+            // Classification
+            if (product.atc != null && !product.atc.isEmpty()) {
+                xml.append("      <atcCode>").append(escapeXml(product.atc)).append("</atcCode>\n");
+                String atcDescription = atcCodes.getOrDefault(product.atc, "");
+                if (!atcDescription.isEmpty()) {
+                    xml.append("      <atcDescription>").append(escapeXml(atcDescription)).append("</atcDescription>\n");
+                }
+            }
+
+            // Active ingredients
             xml.append("      <activeIngredients>\n");
             if (product.activeIngredient != null && !product.activeIngredient.isEmpty()) {
                 xml.append("        <ingredient><name>").append(escapeXml(product.activeIngredient)).append("</name></ingredient>\n");
             }
             xml.append("      </activeIngredients>\n");
+
+            // Form and administration
+            if (product.gyForma != null && !product.gyForma.isEmpty()) {
+                xml.append("      <pharmaceuticalForm>").append(escapeXml(product.gyForma)).append("</pharmaceuticalForm>\n");
+            }
+            if (product.adagMod != null && !product.adagMod.isEmpty()) {
+                xml.append("      <administrationMethod>").append(escapeXml(product.adagMod)).append("</administrationMethod>\n");
+            }
+
+            // Strength and dosage
+            if (product.potencia != null && !product.potencia.isEmpty()) {
+                xml.append("      <strength>").append(escapeXml(product.potencia)).append("</strength>\n");
+            }
+            if (product.hatoMenny != null && !product.hatoMenny.isEmpty()) {
+                xml.append("      <activeSubstanceAmount>").append(escapeXml(product.hatoMenny));
+                if (product.hatoEgys != null && !product.hatoEgys.isEmpty()) {
+                    xml.append(" ").append(escapeXml(product.hatoEgys));
+                }
+                xml.append("</activeSubstanceAmount>\n");
+            }
+            if (product.kiszMenny != null && !product.kiszMenny.isEmpty()) {
+                xml.append("      <packageSize>").append(escapeXml(product.kiszMenny));
+                if (product.kiszEgys != null && !product.kiszEgys.isEmpty()) {
+                    xml.append(" ").append(escapeXml(product.kiszEgys));
+                }
+                xml.append("</packageSize>\n");
+            }
+
+            // DDD (Defined Daily Dose)
+            if (product.dddMenny != null && !product.dddMenny.isEmpty()) {
+                xml.append("      <ddd>").append(escapeXml(product.dddMenny));
+                if (product.dddEgys != null && !product.dddEgys.isEmpty()) {
+                    xml.append(" ").append(escapeXml(product.dddEgys));
+                }
+                if (product.dddFaktor != null && !product.dddFaktor.isEmpty()) {
+                    xml.append(" (factor: ").append(escapeXml(product.dddFaktor)).append(")");
+                }
+                xml.append("</ddd>\n");
+            }
+
+            // Regulatory status
             xml.append("      <prescriptionRequired>").append(product.ttt != null && product.ttt.startsWith("2")).append("</prescriptionRequired>\n");
+            if (product.ttt != null && !product.ttt.isEmpty()) {
+                xml.append("      <tttCode>").append(escapeXml(product.ttt)).append("</tttCode>\n");
+            }
+            if (product.tk != null && !product.tk.isEmpty()) {
+                xml.append("      <tkCode>").append(escapeXml(product.tk)).append("</tkCode>\n");
+            }
             xml.append("      <reimbursable>true</reimbursable>\n");
+            if (product.rendelhet != null && !product.rendelhet.isEmpty()) {
+                xml.append("      <prescribable>").append(escapeXml(product.rendelhet)).append("</prescribable>\n");
+            }
+            if (product.helyettesith != null && !product.helyettesith.isEmpty()) {
+                xml.append("      <substitutable>").append(escapeXml(product.helyettesith)).append("</substitutable>\n");
+            }
+
+            // Special attributes
+            if (product.patika != null && !product.patika.isEmpty()) {
+                xml.append("      <pharmacyOnly>").append(escapeXml(product.patika)).append("</pharmacyOnly>\n");
+            }
+            if (product.keresztJelzes != null && !product.keresztJelzes.isEmpty()) {
+                xml.append("      <crossReference>").append(escapeXml(product.keresztJelzes)).append("</crossReference>\n");
+            }
+
+            // Validity dates
+            if (product.validFrom != null) {
+                xml.append("      <validFrom>").append(product.validFrom.toString()).append("</validFrom>\n");
+            }
+            if (product.validTo != null) {
+                xml.append("      <validTo>").append(product.validTo.toString()).append("</validTo>\n");
+            }
+
+            // Status
             xml.append("      <status>").append(product.inStock ? "ACTIVE" : "INACTIVE").append("</status>\n");
+            xml.append("      <inStock>").append(product.inStock).append("</inStock>\n");
+
             xml.append("    </drug>\n");
         }
-        
+
         xml.append("  </drugs>\n");
         xml.append("</drugSearchResponse>");
-        
+
         return xml.toString();
     }
     
@@ -373,20 +517,65 @@ public class PuphaxCsvFallbackService {
     }
     
     /**
-     * Product record from TERMEK table.
+     * Product record from TERMEK table with all 44 CSV fields.
      */
     private static class ProductRecord {
-        String id;
-        String termekKod;
-        String ttt;
-        String name;
-        String shortName;
-        String atc;
-        String iso;
-        String activeIngredient;
-        String brandId;
-        LocalDate validFrom;
-        LocalDate validTo;
-        boolean inStock;
+        // Core identification fields
+        String id;                      // ID (column 0)
+        String parentId;                // PARENT_ID (column 1)
+        LocalDate validFrom;            // ERV_KEZD (column 2)
+        LocalDate validTo;              // ERV_VEGE (column 3)
+        String termekKod;               // TERMEKKOD (column 4)
+        String kozHid;                  // KOZHID (column 5)
+        String ttt;                     // TTT (column 6)
+        String tk;                      // TK (column 7)
+        String tkTorles;                // TKTORLES (column 8)
+        LocalDate tkTorlesDate;         // TKTORLESDAT (column 9)
+        String eanKod;                  // EANKOD (column 10)
+        String brandId;                 // BRAND_ID (column 11)
+
+        // Name and description fields
+        String name;                    // NEV (column 12)
+        String shortName;               // KISZNEV (column 13)
+
+        // Classification fields
+        String atc;                     // ATC (column 14)
+        String iso;                     // ISO (column 15)
+        String activeIngredient;        // HATOANYAG (column 16)
+
+        // Administration and form fields
+        String adagMod;                 // ADAGMOD (column 17)
+        String gyForma;                 // GYFORMA (column 18)
+        String rendelhet;               // RENDELHET (column 19)
+        String egyenId;                 // EGYEN_ID (column 20)
+        String helyettesith;            // HELYETTESITH (column 21)
+
+        // Strength and dosage fields
+        String potencia;                // POTENCIA (column 22)
+        String oHatoMenny;              // OHATO_MENNY (column 23)
+        String hatoMenny;               // HATO_MENNY (column 24)
+        String hatoEgys;                // HATO_EGYS (column 25)
+        String kiszMenny;               // KISZ_MENNY (column 26)
+        String kiszEgys;                // KISZ_EGYS (column 27)
+        String dddMenny;                // DDD_MENNY (column 28)
+        String dddEgys;                 // DDD_EGYS (column 29)
+        String dddFaktor;               // DDD_FAKTOR (column 30)
+        String dot;                     // DOT (column 31)
+        String adagMenny;               // ADAG_MENNY (column 32)
+        String adagEgys;                // ADAG_EGYS (column 33)
+
+        // Special attributes
+        String egyedi;                  // EGYEDI (column 34)
+        String oldalIsag;               // OLDALISAG (column 35)
+        String tobblGar;                // TOBBLGAR (column 36)
+        String patika;                  // PATIKA (column 37)
+        String dobAzon;                 // DOBAZON (column 38)
+        String keresztJelzes;           // KERESZTJELZES (column 39)
+
+        // Distribution fields
+        String forgEngtId;              // FORGENGT_ID (column 40)
+        String forgazId;                // FORGALMAZ_ID (column 41)
+        boolean inStock;                // FORGALOMBAN (column 42)
+        String kihirdetesId;            // KIHIRDETES_ID (column 43)
     }
 }
