@@ -1,9 +1,11 @@
 package com.puphax.controller;
 
 import com.puphax.model.dto.DrugSearchResponse;
+import com.puphax.model.dto.FilterOptions;
 import com.puphax.model.dto.HealthStatus;
 import com.puphax.service.DrugService;
 import com.puphax.service.HealthService;
+import com.puphax.service.PuphaxCsvFallbackService;
 import com.puphax.exception.PuphaxValidationException;
 import com.puphax.util.LoggingUtils;
 import io.swagger.v3.oas.annotations.Operation;
@@ -40,11 +42,14 @@ public class DrugController {
     
     private final DrugService drugService;
     private final HealthService healthService;
-    
+    private final PuphaxCsvFallbackService csvFallbackService;
+
     @Autowired
-    public DrugController(DrugService drugService, HealthService healthService) {
+    public DrugController(DrugService drugService, HealthService healthService,
+                         PuphaxCsvFallbackService csvFallbackService) {
         this.drugService = drugService;
         this.healthService = healthService;
+        this.csvFallbackService = csvFallbackService;
     }
     
     /**
@@ -211,7 +216,74 @@ public class DrugController {
             LoggingUtils.clearContext();
         }
     }
-    
+
+    /**
+     * Get available filter options for the drug search interface.
+     *
+     * This endpoint provides lists of available values for all filter controls,
+     * extracted from the CSV fallback data. Results are cached for performance.
+     *
+     * @return FilterOptions containing manufacturers, ATC codes, forms, etc.
+     */
+    @GetMapping("/filters")
+    @Operation(
+        summary = "Get available filter options",
+        description = "Returns all available filter values for dropdowns and checkboxes. " +
+                      "Cached for performance - filters don't change frequently."
+    )
+    @ApiResponses(value = {
+        @ApiResponse(
+            responseCode = "200",
+            description = "Filter options retrieved successfully",
+            content = @Content(
+                mediaType = MediaType.APPLICATION_JSON_VALUE,
+                schema = @Schema(implementation = FilterOptions.class)
+            )
+        ),
+        @ApiResponse(
+            responseCode = "500",
+            description = "Internal server error",
+            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)
+        )
+    })
+    public ResponseEntity<FilterOptions> getFilterOptions(HttpServletRequest request) {
+        String correlationId = LoggingUtils.generateCorrelationId();
+        long startTime = System.currentTimeMillis();
+
+        try {
+            LoggingUtils.setupHealthCheckContext(correlationId);
+            LoggingUtils.setClientIp(getClientIpAddress(request));
+
+            logger.debug("Filter options request started");
+
+            FilterOptions filterOptions = csvFallbackService.getFilterOptions();
+
+            long responseTime = System.currentTimeMillis() - startTime;
+            LoggingUtils.setResponseTime(responseTime);
+
+            logger.info("Filter options retrieved: {} manufacturers, {} ATC codes, {} forms, {} brands (response time: {}ms)",
+                       filterOptions.manufacturers().size(),
+                       filterOptions.atcCodes().size(),
+                       filterOptions.productForms().size(),
+                       filterOptions.brands().size(),
+                       responseTime);
+
+            return ResponseEntity.ok(filterOptions);
+
+        } catch (Exception e) {
+            long responseTime = System.currentTimeMillis() - startTime;
+            LoggingUtils.setResponseTime(responseTime);
+            LoggingUtils.setupErrorContext(correlationId, "FILTER_OPTIONS_ERROR", "filter-options");
+
+            logger.error("Filter options retrieval failed: {} (response time: {}ms)",
+                        e.getMessage(), responseTime);
+            throw e;
+
+        } finally {
+            LoggingUtils.clearContext();
+        }
+    }
+
     /**
      * Validates search parameters and throws appropriate exceptions for invalid input.
      * 
