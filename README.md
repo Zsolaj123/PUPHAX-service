@@ -70,6 +70,18 @@ curl "http://localhost:8081/api/v1/gyogyszerek/kereses?keresett_kifejezés=aspir
 - **Cache:** Caffeine (intelligens gyorsítótár)
 - **Deploy:** Docker, Docker Compose
 
+### Hozzájárulás
+
+Szívesen fogadunk közreműködést! 🎉
+
+1. **Fork-old** a repository-t
+2. **Hozz létre** egy feature branch-et (`git checkout -b feature/uj-funkció`)
+3. **Commit-old** a változtatásokat (`git commit -m 'Új funkció hozzáadása'`)
+4. **Push-old** a branch-re (`git push origin feature/uj-funkció`)
+5. **Nyiss** egy Pull Request-et
+
+Részletekért lásd: [Hozzájárulási Útmutató](guides/CONTRIBUTING.md)
+
 ### Licenc
 
 MIT License - lásd [LICENSE](LICENSE) fájl
@@ -134,6 +146,18 @@ curl "http://localhost:8081/api/v1/drugs/search?searchTerm=aspirin"
 - **Resilience:** Resilience4j (Circuit Breaker, Retry)
 - **Cache:** Caffeine (intelligent caching)
 - **Deploy:** Docker, Docker Compose
+
+### Contributing
+
+Contributions are welcome! 🎉
+
+1. **Fork** the repository
+2. **Create** a feature branch (`git checkout -b feature/amazing-feature`)
+3. **Commit** your changes (`git commit -m 'Add amazing feature'`)
+4. **Push** to the branch (`git push origin feature/amazing-feature`)
+5. **Open** a Pull Request
+
+For details, see: [Contributing Guide](guides/CONTRIBUTING.md)
 
 ### License
 
