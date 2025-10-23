@@ -25,15 +25,18 @@ class DrugServiceTest {
     
     @Mock
     private PuphaxSoapClient soapClient;
-    
+
     @Mock
     private PuphaxRealDataService realDataService;
-    
+
+    @Mock
+    private PuphaxCsvFallbackService csvFallbackService;
+
     private DrugService drugService;
-    
+
     @BeforeEach
     void setUp() {
-        drugService = new DrugService(soapClient, realDataService);
+        drugService = new DrugService(soapClient, realDataService, csvFallbackService);
     }
     
     @Test
