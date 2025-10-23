@@ -141,37 +141,114 @@ class PuphaxGyogyszerKerreso {
      */
     async keresesVegrehajtasa(oldal = 0) {
         const urlapAdatok = new FormData(document.getElementById('gyogyszer-kereses-form'));
-        const keresesiParameterek = new URLSearchParams();
 
-        // Kötelező kifejezés
+        // Build DrugSearchFilter JSON object
+        const filterCriteria = {};
+
+        // Search term (now optional - can search with filters alone)
         const keresettkifejezés = urlapAdatok.get('keresett_kifejezés')?.trim();
-        if (!keresettkifejezés) {
-            this.hibaMutatasa('Kérjük, adjon meg egy gyógyszer nevet a kereséshez.');
-            return;
+        if (keresettkifejezés) {
+            filterCriteria.searchTerm = keresettkifejezés;
         }
-        keresesiParameterek.append('keresett_kifejezés', keresettkifejezés);
 
-        // Opcionális szűrők
+        // Opcionális szűrők from form
         const gyarto = urlapAdatok.get('gyarto')?.trim();
-        if (gyarto) keresesiParameterek.append('gyarto', gyarto);
+        if (gyarto) filterCriteria.manufacturers = [gyarto];
 
         const atcKod = urlapAdatok.get('atc_kod')?.trim();
-        if (atcKod) keresesiParameterek.append('atc_kod', atcKod.toUpperCase());
+        if (atcKod) filterCriteria.atcCodes = [atcKod.toUpperCase()];
 
-        // Lapozás és rendezés
-        keresesiParameterek.append('oldal', oldal.toString());
-        keresesiParameterek.append('meret', '10'); // Show 10 results per page as requested
-        keresesiParameterek.append('rendezes', 'nev');
-        keresesiParameterek.append('irany', 'ASC');
+        // Advanced filters from multi-select
+        if (this.selectedFilters.manufacturers.size > 0) {
+            filterCriteria.manufacturers = Array.from(this.selectedFilters.manufacturers);
+        }
+        if (this.selectedFilters.atcCodes.size > 0) {
+            filterCriteria.atcCodes = Array.from(this.selectedFilters.atcCodes);
+        }
+        if (this.selectedFilters.productForms.size > 0) {
+            filterCriteria.productForms = Array.from(this.selectedFilters.productForms);
+        }
+        if (this.selectedFilters.prescriptionTypes.size > 0) {
+            filterCriteria.prescriptionTypes = Array.from(this.selectedFilters.prescriptionTypes);
+        }
+        if (this.selectedFilters.brands.size > 0) {
+            filterCriteria.brands = Array.from(this.selectedFilters.brands);
+        }
+
+        // Boolean filters
+        if (this.selectedFilters.prescriptionRequired !== null) {
+            filterCriteria.prescriptionRequired = this.selectedFilters.prescriptionRequired;
+        }
+        if (this.selectedFilters.reimbursable !== null) {
+            filterCriteria.reimbursable = this.selectedFilters.reimbursable;
+        }
+        if (this.selectedFilters.inStock !== null) {
+            filterCriteria.inStock = this.selectedFilters.inStock;
+        }
+
+        // Pagination and sorting
+        filterCriteria.page = oldal;
+        filterCriteria.size = 10;
+        filterCriteria.sortBy = 'name';
+        filterCriteria.sortDirection = 'ASC';
 
         this.jelenlegiOldal = oldal;
-        this.jelenlegiKeresesiParameterek = Object.fromEntries(keresesiParameterek.entries());
+        this.jelenlegiKeresesiParameterek = filterCriteria;
 
-        await this.keresesVezerles(keresesiParameterek);
+        await this.keresesVezerlésAdvanced(filterCriteria);
     }
 
     /**
-     * A tényleges API hívás végrehajtása gyógyszer keresésre.
+     * Advanced search API call using POST with JSON body.
+     */
+    async keresesVezerlésAdvanced(filterCriteria) {
+        try {
+            this.betoltesKijelzes(true);
+            this.hibaElrejtes();
+            this.eredmenyekElrejtes();
+
+            const url = `${this.alapUrl}/kereses/haladó`;
+            console.log('Advanced API Request:', url, filterCriteria);
+
+            const kezdoIdo = performance.now();
+            const valasz = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify(filterCriteria)
+            });
+            const valaszIdo = performance.now() - kezdoIdo;
+
+            if (!valasz.ok) {
+                const hibaReszletek = await valasz.text();
+                throw new Error(`HTTP ${valasz.status}: ${valasz.statusText} - ${hibaReszletek}`);
+            }
+
+            const adatok = await valasz.json();
+            this.utolsoKeresesiValasz = adatok;
+
+            console.log('Advanced search results:', {
+                totalResults: adatok.pagination?.osszesElem || 0,
+                page: (adatok.pagination?.jelenlegiOldal || 0) + 1,
+                totalPages: adatok.pagination?.osszesOldal || 0,
+                responseTime: `${valaszIdo.toFixed(2)}ms`,
+                filters: adatok.keresesiInfo?.alkalmazottSzurok || {}
+            });
+
+            this.eredmenyekMegjelenitese(adatok);
+
+        } catch (error) {
+            console.error('Advanced search error:', error);
+            this.hibaMutatasa(`Hiba a keresés során: ${error.message}`);
+        } finally {
+            this.betoltesKijelzes(false);
+        }
+    }
+
+    /**
+     * A tényleges API hívás végrehajtása gyógyszer keresésre (legacy GET method).
      */
     async keresesVezerles(keresesiParameterek) {
         try {

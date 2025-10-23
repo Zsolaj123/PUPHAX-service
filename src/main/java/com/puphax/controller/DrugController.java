@@ -285,8 +285,88 @@ public class DrugController {
     }
 
     /**
+     * Advanced drug search with comprehensive filtering.
+     *
+     * @param filter DrugSearchFilter object with all search and filter criteria
+     * @param request HTTP request for logging
+     * @return DrugSearchResponse with paginated and filtered results
+     */
+    @PostMapping("/search/advanced")
+    @Operation(
+        summary = "Advanced drug search with comprehensive filtering",
+        description = "Search for drugs using comprehensive filters including manufacturers, ATC codes, product forms, prescription types, etc."
+    )
+    @ApiResponses(value = {
+        @ApiResponse(
+            responseCode = "200",
+            description = "Search completed successfully",
+            content = @Content(
+                mediaType = MediaType.APPLICATION_JSON_VALUE,
+                schema = @Schema(implementation = DrugSearchResponse.class)
+            )
+        ),
+        @ApiResponse(
+            responseCode = "400",
+            description = "Invalid filter criteria",
+            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)
+        ),
+        @ApiResponse(
+            responseCode = "500",
+            description = "Internal server error",
+            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)
+        )
+    })
+    public ResponseEntity<DrugSearchResponse> searchDrugsAdvanced(
+            @RequestBody @Validated com.puphax.model.dto.DrugSearchFilter filter,
+            HttpServletRequest request) {
+
+        String correlationId = LoggingUtils.generateCorrelationId();
+        long startTime = System.currentTimeMillis();
+
+        try {
+            LoggingUtils.setupSearchContext(
+                correlationId,
+                filter.searchTerm() != null ? filter.searchTerm() : "advanced-search",
+                null, // manufacturer (part of filter object)
+                null, // atcCode (part of filter object)
+                filter.page() != null ? filter.page() : 0,
+                filter.size() != null ? filter.size() : 20
+            );
+            LoggingUtils.setClientIp(getClientIpAddress(request));
+
+            logger.info("Advanced drug search started - searchTerm: {}, activeFilters: {}",
+                       filter.searchTerm(), filter.getActiveFilterCount());
+
+            DrugSearchResponse response = drugService.searchDrugsAdvanced(filter);
+
+            long responseTime = System.currentTimeMillis() - startTime;
+            LoggingUtils.setResponseTime(responseTime);
+
+            logger.info("Advanced search completed - found {} results (page {}/{}), response time: {}ms",
+                       response.pagination().totalElements(),
+                       response.pagination().currentPage() + 1,
+                       response.pagination().totalPages(),
+                       responseTime);
+
+            return ResponseEntity.ok(response);
+
+        } catch (Exception e) {
+            long responseTime = System.currentTimeMillis() - startTime;
+            LoggingUtils.setResponseTime(responseTime);
+            LoggingUtils.setupErrorContext(correlationId, "ADVANCED_SEARCH_ERROR",
+                                          filter.searchTerm() != null ? filter.searchTerm() : "none");
+
+            logger.error("Advanced search failed: {} (response time: {}ms)", e.getMessage(), responseTime);
+            throw e;
+
+        } finally {
+            LoggingUtils.clearContext();
+        }
+    }
+
+    /**
      * Validates search parameters and throws appropriate exceptions for invalid input.
-     * 
+     *
      * @param term Search term
      * @param manufacturer Manufacturer filter
      * @param atcCode ATC code filter
