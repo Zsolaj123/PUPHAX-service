@@ -86,7 +86,7 @@ git clone https://github.com/felhasznalonev/puphax-service.git
 cd puphax-service
 
 # Szolgáltatás építése és indítása
-docker-compose up -d
+docker compose -f docker/docker-compose.yml up -d
 
 # Állapot ellenőrzése
 curl http://localhost:8081/api/v1/gyogyszerek/egeszseg/gyors
@@ -232,8 +232,8 @@ cp filtered/*.csv src/main/resources/puphax-data/
 
 # 4. Újraépítés és telepítés
 ./mvnw clean package
-docker-compose build
-docker-compose up -d
+docker compose -f docker/docker-compose.yml build
+docker compose -f docker/docker-compose.yml up -d
 ```
 
 ## Integráció Meglévő Projektbe
@@ -704,15 +704,15 @@ Mielőtt pull request-et nyitasz, győződj meg róla, hogy minden teszt lefut:
 ./mvnw verify
 
 # Docker build tesztelése
-docker-compose build
-docker-compose up -d
+docker compose -f docker/docker-compose.yml build
+docker compose -f docker/docker-compose.yml up -d
 
 # Manuális API tesztelés
 curl http://localhost:8081/api/v1/gyogyszerek/egeszseg/gyors
 curl "http://localhost:8081/api/v1/gyogyszerek/kereses?keresett_kifejezés=aspirin"
 
 # Docker leállítása
-docker-compose down
+docker compose -f docker/docker-compose.yml down
 ```
 
 ### Pull Request Nyitása
@@ -1149,10 +1149,10 @@ LOGGING_LEVEL_COM_PUPHAX=INFO
 EOF
 
 # 3. Build és indítás
-docker-compose up -d
+docker compose -f docker/docker-compose.yml up -d
 
 # 4. Ellenőrzés
-docker-compose logs -f
+docker compose -f docker/docker-compose.yml logs -f
 curl http://localhost:8081/api/v1/gyogyszerek/egeszseg/gyors
 
 # 5. Auto-restart beállítása
@@ -1385,7 +1385,7 @@ A szolgáltatás automatikusan átáll CSV fallback-re. Ellenőrizd a logokat:
 
 ```bash
 # Docker
-docker-compose logs puphax-service | grep -i "csv fallback"
+docker compose -f docker/docker-compose.yml logs puphax-service | grep -i "csv fallback"
 
 # Helyi
 tail -f logs/puphax-service.log | grep -i "csv"
@@ -1552,19 +1552,19 @@ jcmd <pid> GC.heap_dump /tmp/heap.hprof
 
 ```bash
 # Hibák keresése
-docker-compose logs puphax-service | grep -i error
+docker compose -f docker/docker-compose.yml logs puphax-service | grep -i error
 
 # CSV fallback használat
-docker-compose logs puphax-service | grep -i "csv fallback"
+docker compose -f docker/docker-compose.yml logs puphax-service | grep -i "csv fallback"
 
 # NEAK hívások
-docker-compose logs puphax-service | grep -i "making direct http call"
+docker compose -f docker/docker-compose.yml logs puphax-service | grep -i "making direct http call"
 
 # Cache statisztikák
-docker-compose logs puphax-service | grep -i cache
+docker compose -f docker/docker-compose.yml logs puphax-service | grep -i cache
 
 # Válaszidők elemzése
-docker-compose logs puphax-service | grep "valaszIdoMs"
+docker compose -f docker/docker-compose.yml logs puphax-service | grep "valaszIdoMs"
 ```
 
 ### Support
@@ -1572,7 +1572,7 @@ docker-compose logs puphax-service | grep "valaszIdoMs"
 Ha nem találod a megoldást:
 
 1. **GitHub Issues**: https://github.com/felhasznalonev/puphax-service/issues
-2. **Dokumentáció**: Olvasd el a `PUPHAX_DEVELOPMENT_GUIDE.md`-t
+2. **Dokumentáció**: Olvasd el a `docs/PUPHAX_DEVELOPMENT_GUIDE.md`-t
 3. **NEAK Hivatalos**: https://www.neak.gov.hu
 
 ---
@@ -1654,7 +1654,7 @@ git clone https://github.com/username/puphax-service.git
 cd puphax-service
 
 # Build and start service
-docker-compose up -d
+docker compose -f docker/docker-compose.yml up -d
 
 # Check health
 curl http://localhost:8081/api/v1/drugs/health/quick
@@ -1790,8 +1790,8 @@ cp filtered/*.csv src/main/resources/puphax-data/
 
 # 4. Rebuild and deploy
 ./mvnw clean package
-docker-compose build
-docker-compose up -d
+docker compose -f docker/docker-compose.yml build
+docker compose -f docker/docker-compose.yml up -d
 ```
 
 ## Integration Guide {#integration-guide-en}
@@ -1969,15 +1969,15 @@ Before opening a pull request, ensure all tests pass:
 ./mvnw verify
 
 # Test Docker build
-docker-compose build
-docker-compose up -d
+docker compose -f docker/docker-compose.yml build
+docker compose -f docker/docker-compose.yml up -d
 
 # Manual API testing
 curl http://localhost:8081/api/v1/drugs/health/quick
 curl "http://localhost:8081/api/v1/drugs/search?term=aspirin"
 
 # Stop Docker
-docker-compose down
+docker compose -f docker/docker-compose.yml down
 ```
 
 ### Opening a Pull Request

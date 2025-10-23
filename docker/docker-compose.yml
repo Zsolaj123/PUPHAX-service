@@ -3,8 +3,8 @@ version: '3.8'
 services:
   puphax-hungarian:
     build:
-      context: .
-      dockerfile: Dockerfile
+      context: ..
+      dockerfile: docker/Dockerfile
     image: puphax-hungarian:latest
     container_name: puphax-hungarian-frontend
     ports:

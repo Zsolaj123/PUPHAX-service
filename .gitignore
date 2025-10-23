@@ -72,6 +72,7 @@ reference/Ősfeltöltés2007-2023/*.csv
 # Claude-specific files
 CLAUDE.md
 .specify/
+.claude/
 
 # Spec files (development only)
 specs/
