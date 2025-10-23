@@ -51,7 +51,8 @@ class DrugControllerTest {
             List.of("Acetylsalicylic acid"),
             false,
             true,
-            DrugSummary.DrugStatus.ACTIVE
+            DrugSummary.DrugStatus.ACTIVE,
+            null, null, null, null, null, null, null, null, null, null, null
         );
         
         PaginationInfo pagination = new PaginationInfo(0, 20, 1, 1L, false, false);
@@ -118,7 +119,8 @@ class DrugControllerTest {
             List.of("Acetylsalicylic acid"),
             false,
             true,
-            DrugSummary.DrugStatus.ACTIVE
+            DrugSummary.DrugStatus.ACTIVE,
+            null, null, null, null, null, null, null, null, null, null, null
         );
         
         PaginationInfo pagination = new PaginationInfo(0, 20, 1, 1L, false, false);

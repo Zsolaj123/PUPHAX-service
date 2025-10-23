@@ -52,7 +52,8 @@ class DrugControllerAdvancedTest {
             List.of("Acetylsalicylic acid"),
             false,
             true,
-            DrugSummary.DrugStatus.ACTIVE
+            DrugSummary.DrugStatus.ACTIVE,
+            null, null, null, null, null, null, null, null, null, null, null
         );
         
         PaginationInfo pagination = new PaginationInfo(0, 20, 1, 1L, false, false);
@@ -95,7 +96,8 @@ class DrugControllerAdvancedTest {
             List.of("Acetylsalicylic acid"),
             false,
             true,
-            DrugSummary.DrugStatus.ACTIVE
+            DrugSummary.DrugStatus.ACTIVE,
+            null, null, null, null, null, null, null, null, null, null, null
         );
         
         PaginationInfo pagination = new PaginationInfo(0, 20, 1, 1L, false, false);
@@ -138,7 +140,8 @@ class DrugControllerAdvancedTest {
             List.of("Acetylsalicylic acid"),
             false,
             true,
-            DrugSummary.DrugStatus.ACTIVE
+            DrugSummary.DrugStatus.ACTIVE,
+            null, null, null, null, null, null, null, null, null, null, null
         );
         
         PaginationInfo pagination = new PaginationInfo(0, 10, 1, 1L, false, false);
@@ -186,7 +189,8 @@ class DrugControllerAdvancedTest {
             List.of("Acetylsalicylic acid"),
             false,
             true,
-            DrugSummary.DrugStatus.ACTIVE
+            DrugSummary.DrugStatus.ACTIVE,
+            null, null, null, null, null, null, null, null, null, null, null
         );
         
         PaginationInfo pagination = new PaginationInfo(2, 5, 10, 45L, true, true);
@@ -234,7 +238,8 @@ class DrugControllerAdvancedTest {
             List.of("Acetylsalicylic acid"),
             false,
             true,
-            DrugSummary.DrugStatus.ACTIVE
+            DrugSummary.DrugStatus.ACTIVE,
+            null, null, null, null, null, null, null, null, null, null, null
         );
         
         PaginationInfo pagination = new PaginationInfo(0, 20, 1, 1L, false, false);
