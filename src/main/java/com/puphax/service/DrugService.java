@@ -35,11 +35,14 @@ public class DrugService {
     
     private final PuphaxSoapClient soapClient;
     private final PuphaxRealDataService realDataService;
-    
+    private final PuphaxCsvFallbackService csvFallbackService;
+
     @Autowired
-    public DrugService(PuphaxSoapClient soapClient, PuphaxRealDataService realDataService) {
+    public DrugService(PuphaxSoapClient soapClient, PuphaxRealDataService realDataService,
+                      PuphaxCsvFallbackService csvFallbackService) {
         this.soapClient = soapClient;
         this.realDataService = realDataService;
+        this.csvFallbackService = csvFallbackService;
     }
     
     /**
@@ -109,7 +112,154 @@ public class DrugService {
             throw new PuphaxServiceException("Unexpected error in operation: " + e.getMessage(), e);
         }
     }
-    
+
+    /**
+     * Advanced drug search using comprehensive DrugSearchFilter.
+     *
+     * This method uses the CSV fallback service's advanced filtering capabilities
+     * to search across 43,930 products with support for 20+ filter criteria.
+     *
+     * @param filter Comprehensive filter criteria
+     * @return DrugSearchResponse with paginated results and enhanced DrugSummary (55 fields)
+     */
+    public DrugSearchResponse searchDrugsAdvanced(DrugSearchFilter filter) {
+        logger.debug("Advanced drug search with {} active filters", filter.getActiveFilterCount());
+
+        long startTime = System.currentTimeMillis();
+
+        try {
+            // Use CSV fallback service for advanced filtering
+            List<PuphaxCsvFallbackService.ProductRecord> products =
+                csvFallbackService.searchWithAdvancedFilters(filter);
+
+            // Convert ProductRecord to enhanced DrugSummary (with all 55 fields)
+            List<DrugSummary> allDrugs = products.stream()
+                .map(p -> convertProductRecordToDrugSummary(p))
+                .collect(java.util.stream.Collectors.toList());
+
+            // Apply pagination (sorting already done in CSV service)
+            int page = filter.page() != null ? filter.page() : 0;
+            int size = filter.size() != null ? filter.size() : 20;
+            List<DrugSummary> paginatedDrugs = applyPagination(allDrugs, page, size);
+
+            // Create pagination info
+            PaginationInfo pagination = PaginationInfo.of(page, size, allDrugs.size());
+
+            // Create search info with filter details
+            long responseTime = System.currentTimeMillis() - startTime;
+            Map<String, String> filterMap = buildFilterMap(filter);
+            SearchInfo searchInfo = new SearchInfo(
+                filter.searchTerm() != null ? filter.searchTerm() : "",
+                filterMap,
+                responseTime,
+                false,  // Not using fallback since we're directly using CSV
+                Instant.now()
+            );
+
+            logger.info("Advanced search completed: {} results (from {} total) in {}ms with {} filters",
+                       paginatedDrugs.size(), allDrugs.size(), responseTime, filter.getActiveFilterCount());
+
+            return new DrugSearchResponse(paginatedDrugs, pagination, searchInfo);
+
+        } catch (Exception e) {
+            logger.error("Error during advanced drug search: {}", e.getMessage(), e);
+            throw new PuphaxServiceException("Advanced search failed: " + e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Convert ProductRecord to enhanced DrugSummary with all 55 fields.
+     */
+    private DrugSummary convertProductRecordToDrugSummary(PuphaxCsvFallbackService.ProductRecord p) {
+        return DrugSummary.builder(p.id, p.name)
+            // Core identification
+            .parentId(p.parentId)
+            .shortName(p.shortName)
+            .brandId(p.brandId)
+            // Validity and registration
+            .validFrom(p.validFrom != null ? p.validFrom.toString() : null)
+            .validTo(p.validTo != null ? p.validTo.toString() : null)
+            .termekKod(p.termekKod)
+            .kozHid(p.kozHid)
+            .tttCode(p.ttt)
+            .tk(p.tk)
+            .tkTorles(p.tkTorles)
+            .tkTorlesDate(p.tkTorlesDate != null ? p.tkTorlesDate.toString() : null)
+            .eanKod(p.eanKod)
+            .registrationNumber(p.kozHid)
+            // Classification
+            .atcCode(p.atc)
+            .iso(p.iso)
+            .activeIngredient(p.activeIngredient)
+            .activeIngredients(p.activeIngredient != null ? List.of(p.activeIngredient) : List.of())
+            // Administration and form
+            .adagMod(p.adagMod)
+            .productForm(p.gyForma)
+            .prescriptionStatus(p.rendelhet)
+            .egyenId(p.egyenId)
+            .helyettesith(p.helyettesith)
+            .patika(p.patika)
+            // Strength and dosage
+            .potencia(p.potencia)
+            .oHatoMenny(p.oHatoMenny)
+            .hatoMenny(p.hatoMenny)
+            .hatoEgys(p.hatoEgys)
+            .kiszMenny(p.kiszMenny)
+            .kiszEgys(p.kiszEgys)
+            .packSize(p.kiszMenny)
+            // DDD fields
+            .dddMenny(p.dddMenny)
+            .dddEgys(p.dddEgys)
+            .dddFaktor(p.dddFaktor)
+            .dot(p.dot)
+            .adagMenny(p.adagMenny)
+            .adagEgys(p.adagEgys)
+            // Special attributes
+            .egyedi(p.egyedi)
+            .oldalIsag(p.oldalIsag)
+            .tobblGar(p.tobblGar)
+            .dobAzon(p.dobAzon)
+            // Distribution and availability
+            .inStock(p.inStock)
+            // Status and source
+            .status(DrugSummary.DrugStatus.ACTIVE)
+            .source("CSV")
+            // Derived fields
+            .prescriptionRequired(isPrescriptionRequired(p.rendelhet))
+            .reimbursable(p.tk != null && !p.tk.trim().isEmpty())
+            .build();
+    }
+
+    /**
+     * Build filter map for SearchInfo from DrugSearchFilter.
+     */
+    private Map<String, String> buildFilterMap(DrugSearchFilter filter) {
+        Map<String, String> filters = new HashMap<>();
+        if (filter.atcCodes() != null && !filter.atcCodes().isEmpty())
+            filters.put("atcCodes", String.join(", ", filter.atcCodes()));
+        if (filter.manufacturers() != null && !filter.manufacturers().isEmpty())
+            filters.put("manufacturers", String.join(", ", filter.manufacturers()));
+        if (filter.productForms() != null && !filter.productForms().isEmpty())
+            filters.put("productForms", String.join(", ", filter.productForms()));
+        if (filter.prescriptionRequired() != null)
+            filters.put("prescriptionRequired", filter.prescriptionRequired().toString());
+        if (filter.reimbursable() != null)
+            filters.put("reimbursable", filter.reimbursable().toString());
+        if (filter.inStock() != null)
+            filters.put("inStock", filter.inStock().toString());
+        // Add more as needed
+        return filters;
+    }
+
+    /**
+     * Check if prescription is required based on prescription status code.
+     */
+    private boolean isPrescriptionRequired(String rendelhet) {
+        if (rendelhet == null) return false;
+        return rendelhet.equals("VN") || rendelhet.equals("V5") ||
+               rendelhet.equals("V1") || rendelhet.equals("J");
+    }
+
     /**
      * Parses the XML response from PUPHAX SOAP service into DrugSummary objects.
      * 

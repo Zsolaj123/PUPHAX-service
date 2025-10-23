@@ -532,7 +532,7 @@ public class PuphaxCsvFallbackService {
     /**
      * Product record from TERMEK table with all 44 CSV fields.
      */
-    private static class ProductRecord {
+    public static class ProductRecord {
         // Core identification fields
         String id;                      // ID (column 0)
         String parentId;                // PARENT_ID (column 1)
