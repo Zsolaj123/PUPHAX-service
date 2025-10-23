@@ -26,11 +26,14 @@ class DrugServiceTest {
     @Mock
     private PuphaxSoapClient soapClient;
     
+    @Mock
+    private PuphaxRealDataService realDataService;
+    
     private DrugService drugService;
     
     @BeforeEach
     void setUp() {
-        drugService = new DrugService(soapClient);
+        drugService = new DrugService(soapClient, realDataService);
     }
     
     @Test

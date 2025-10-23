@@ -158,7 +158,7 @@ public class PuphaxSpringWsClient {
                   </pup:C_OBJ_ID_LISTA_TERMEKLISTA-INPUT>
                </soapenv:Body>
             </soapenv:Envelope>
-            """, dateStr, filterXml);
+            """, escapeXml(dateStr), filterXml);
     }
     
     /**
@@ -178,7 +178,7 @@ public class PuphaxSpringWsClient {
                   </pup:C_OBJ_TAMOGAT_TAMOGATADAT-INPUT>
                </soapenv:Body>
             </soapenv:Envelope>
-            """, dateStr, productId);
+            """, escapeXml(dateStr), escapeXml(productId));
     }
     
     /**
@@ -195,7 +195,7 @@ public class PuphaxSpringWsClient {
                   </pup:C_OBJ_TERMEKADAT_TERMEKADAT-INPUT>
                </soapenv:Body>
             </soapenv:Envelope>
-            """, productId);
+            """, escapeXml(productId));
     }
     
     /**

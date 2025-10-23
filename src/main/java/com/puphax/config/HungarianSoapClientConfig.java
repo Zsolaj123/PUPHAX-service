@@ -21,6 +21,12 @@ public class HungarianSoapClientConfig {
     @Value("${puphax.soap.endpoint-url}")
     private String endpointUrl;
     
+    @Value("${puphax.soap.username:PUPHAX}")
+    private String puphaxUsername;
+    
+    @Value("${puphax.soap.password:puphax}")
+    private String puphaxPassword;
+    
     /**
      * Configure global digest authentication for PUPHAX.
      */
@@ -33,7 +39,7 @@ public class HungarianSoapClientConfig {
                     (getRequestingHost().equals("puphax.neak.gov.hu") || 
                      getRequestingHost().contains("puphax"))) {
                     logger.debug("Providing digest authentication for PUPHAX host: {}", getRequestingHost());
-                    return new PasswordAuthentication("PUPHAX", "puphax".toCharArray());
+                    return new PasswordAuthentication(puphaxUsername, puphaxPassword.toCharArray());
                 }
                 return null;
             }

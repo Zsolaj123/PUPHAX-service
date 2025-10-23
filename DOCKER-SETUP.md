@@ -41,9 +41,9 @@ Ez az útmutató lépésről lépésre bemutatja, hogyan telepítheti és futtat
    ```
 
 2. **Frontend elérése**
-   - **Magyar Frontend**: http://localhost:8080
-   - **API Dokumentáció**: http://localhost:8080/swagger-ui.html
-   - **Egészség állapot**: http://localhost:8080/api/v1/gyogyszerek/egeszseg
+   - **Magyar Frontend**: http://localhost:8081
+   - **API Dokumentáció**: http://localhost:8081/swagger-ui.html
+   - **Egészség állapot**: http://localhost:8081/api/v1/gyogyszerek/egeszseg
 
 ## 📝 Manuális Telepítés
 
@@ -70,7 +70,7 @@ docker-compose up -d
 docker-compose up
 
 # Csak egy példány futtatása
-docker run -d -p 8080:8080 --name puphax-hungarian puphax-hungarian:latest
+docker run -d -p 8080:8081 --name puphax-hungarian puphax-hungarian:latest
 ```
 
 ### 3. Állapot Ellenőrzése
@@ -83,7 +83,7 @@ docker-compose ps
 docker-compose logs -f
 
 # Egészség ellenőrzés
-curl http://localhost:8080/api/v1/gyogyszerek/egeszseg/gyors
+curl http://localhost:8081/api/v1/gyogyszerek/egeszseg/gyors
 ```
 
 ## ⚙️ Konfigurációs Lehetőségek
@@ -116,7 +116,7 @@ environment:
 ```yaml
 # docker-compose.yml
 ports:
-  - "9090:8080"  # Külső port 9090, belső 8080
+  - "9090:8081"  # Külső port 9090, belső 8080
 ```
 
 ### Memória Korlátok
@@ -185,10 +185,10 @@ docker-compose exec puphax-hungarian pg_dump > backup.sql
 1. **Port már használatban**
    ```bash
    # Ellenőrzés: mi fut a 8080 porton
-   sudo netstat -tlnp | grep :8080
+   sudo netstat -tlnp | grep :8081
    
    # Megoldás: másik port használata
-   # docker-compose.yml módosítása: "8081:8080"
+   # docker-compose.yml módosítása: "8081:8081"
    ```
 
 2. **Memória hiba**
@@ -233,13 +233,13 @@ environment:
 
 ```bash
 # Alapvető metrikák
-curl http://localhost:8080/actuator/health
+curl http://localhost:8081/actuator/health
 
 # Részletes információk
-curl http://localhost:8080/actuator/info
+curl http://localhost:8081/actuator/info
 
 # JVM metrikák
-curl http://localhost:8080/actuator/metrics
+curl http://localhost:8081/actuator/metrics
 ```
 
 ### Prometheus Integráció
@@ -296,7 +296,7 @@ docker-compose build --no-cache
 docker-compose up -d
 
 # 5. Egészség ellenőrzés
-curl -f http://localhost:8080/api/v1/gyogyszerek/egeszseg/gyors
+curl -f http://localhost:8081/api/v1/gyogyszerek/egeszseg/gyors
 ```
 
 ## 📞 Támogatás
@@ -319,15 +319,15 @@ docker system df                            # Disk használat
 docker system prune                         # Cleanup
 
 # Monitoring
-curl http://localhost:8080/api/v1/gyogyszerek/egeszseg  # Egészség
+curl http://localhost:8081/api/v1/gyogyszerek/egeszseg  # Egészség
 docker stats puphax-hungarian-frontend                  # Erőforrások
 ```
 
 ### Kapcsolat
 
-- **Frontend URL**: http://localhost:8080
-- **API Docs**: http://localhost:8080/swagger-ui.html
-- **Health Check**: http://localhost:8080/api/v1/gyogyszerek/egeszseg
+- **Frontend URL**: http://localhost:8081
+- **API Docs**: http://localhost:8081/swagger-ui.html
+- **Health Check**: http://localhost:8081/api/v1/gyogyszerek/egeszseg
 
 ---
 

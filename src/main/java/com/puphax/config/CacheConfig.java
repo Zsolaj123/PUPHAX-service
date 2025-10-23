@@ -40,10 +40,16 @@ public class CacheConfig {
             .recordStats()
         );
         
-        // Pre-configure cache names
+        // Pre-configure cache names to match @Cacheable annotations
         cacheManager.setCacheNames(java.util.List.of(
+            "drug-search-results",
+            "product-details",
+            "support-data",
+            "company-names",
             "puphax-drugs",
-            "puphax-drug-details"
+            "puphax-drug-details",
+            "drugSearchCache",
+            "gyogyszer-kereses-cache"
         ));
         
         return cacheManager;

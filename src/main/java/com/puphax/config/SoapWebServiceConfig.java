@@ -35,8 +35,11 @@ public class SoapWebServiceConfig {
     @Value("${puphax.soap.endpoint-url:https://puphax.neak.gov.hu/PUPHAXWS}")
     private String puphaxServiceUrl;
     
-    private static final String PUPHAX_USERNAME = "PUPHAX";
-    private static final String PUPHAX_PASSWORD = "puphax";
+    @Value("${puphax.soap.username:PUPHAX}")
+    private String puphaxUsername;
+    
+    @Value("${puphax.soap.password:puphax}")
+    private String puphaxPassword;
     
     @Bean
     public WebServiceTemplate webServiceTemplate() {
@@ -69,7 +72,7 @@ public class SoapWebServiceConfig {
     public CloseableHttpClient soapHttpClient() {
         // Create credentials provider with PUPHAX credentials
         CredentialsProvider credentialsProvider = CredentialsProviderBuilder.create()
-            .add(new AuthScope(null, -1), PUPHAX_USERNAME, PUPHAX_PASSWORD.toCharArray())
+            .add(new AuthScope(null, -1), puphaxUsername, puphaxPassword.toCharArray())
             .build();
         
         // Build the HTTP client with credentials

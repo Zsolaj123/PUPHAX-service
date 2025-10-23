@@ -1,0 +1,109 @@
+# Test configuration for PUPHAX service
+# This configuration is used during testing to ensure reliable and isolated test execution
+
+spring:
+  profiles:
+    active: test
+  
+  # Cache configuration for testing
+  cache:
+    caffeine:
+      spec: maximumSize=100,expireAfterWrite=5m
+
+# PUPHAX service configuration for testing
+puphax:
+  soap:
+    endpoint-url: ${PUPHAX_ENDPOINT_URL:https://puphax.neak.gov.hu/PUPHAXWS}
+    username: ${PUPHAX_USERNAME:PUPHAX}
+    password: ${PUPHAX_PASSWORD:puphax}
+    connect-timeout: 30000
+    request-timeout: 60000
+
+# Server configuration
+server:
+  port: 8081
+
+# Logging configuration for tests
+logging:
+  level:
+    com.puphax: DEBUG
+    org.springframework.ws: INFO
+    org.apache.hc: INFO
+    root: INFO
+  pattern:
+    console: "%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
+
+# Circuit breaker configuration for testing
+resilience4j:
+  circuitbreaker:
+    instances:
+      puphax-service:
+        sliding-window-size: 10
+        failure-rate-threshold: 50
+        wait-duration-in-open-state: 10s
+        permitted-number-of-calls-in-half-open-state: 3
+        minimum-number-of-calls: 5
+        automatic-transition-from-open-to-half-open-enabled: true
+        record-exceptions:
+          - com.puphax.exception.PuphaxConnectionException
+          - com.puphax.exception.PuphaxTimeoutException
+        ignore-exceptions:
+          - com.puphax.exception.PuphaxValidationException
+
+  retry:
+    instances:
+      puphax-service:
+        max-attempts: 3
+        wait-duration: 1s
+        exponential-backoff-multiplier: 2
+        retry-exceptions:
+          - com.puphax.exception.PuphaxConnectionException
+          - java.net.ConnectException
+          - java.net.SocketTimeoutException
+
+  timelimiter:
+    instances:
+      puphax-service:
+        timeout-duration: 30s
+        cancel-running-future: true
+
+# Test-specific properties
+test:
+  puphax:
+    # Test data
+    test-drug-name: "XANAX"
+    test-company-id: "67"
+    test-product-id: "14714226"
+    test-date: "2024-10-01"
+    
+    # Performance thresholds
+    max-response-time-ms: 30000
+    cache-test-iterations: 5
+    
+    # Security test data
+    malicious-inputs:
+      - "<script>alert('xss')</script>"
+      - "<?xml version=\"1.0\"?><malicious/>"
+      - "&lt;inject&gt;test&lt;/inject&gt;"
+      - "]]><malicious>content</malicious><![CDATA["
+      - "<![CDATA[malicious]]>"
+      - "&amp;&lt;&gt;&quot;&apos;"
+    
+    # Hungarian test terms
+    hungarian-terms:
+      - "ÁGENSEK"
+      - "BÉTA"
+      - "ÉRZÉSEK"
+      - "FŐNÖM"
+      - "ŰZÜLET"
+      - "gyógyszer"
+      - "málna"
+      - "üveg"
+
+# Management and monitoring (disabled for tests)
+management:
+  endpoints:
+    enabled-by-default: false
+  endpoint:
+    health:
+      enabled: true

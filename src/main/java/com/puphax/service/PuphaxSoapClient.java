@@ -16,6 +16,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import jakarta.annotation.PostConstruct;
 
 import jakarta.xml.ws.BindingProvider;
 import jakarta.xml.ws.handler.Handler;
@@ -23,6 +24,7 @@ import java.net.Authenticator;
 import java.net.ConnectException;
 import java.net.PasswordAuthentication;
 import java.net.SocketTimeoutException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -39,7 +41,7 @@ public class PuphaxSoapClient {
     
     private static final Logger logger = LoggerFactory.getLogger(PuphaxSoapClient.class);
     
-    private final PUPHAXWSPortType puphaxPort;
+    private PUPHAXWSPortType puphaxPort;
     private final PuphaxHttpClient httpClient;
     
     @Autowired(required = false)
@@ -54,15 +56,25 @@ public class PuphaxSoapClient {
     @Value("${puphax.soap.request-timeout:60000}")
     private int requestTimeout;
     
+    @Value("${puphax.soap.username:PUPHAX}")
+    private String puphaxUsername;
+    
+    @Value("${puphax.soap.password:puphax}")
+    private String puphaxPassword;
+    
     public PuphaxSoapClient() {
         this.httpClient = new PuphaxHttpClient();
+    }
+    
+    @PostConstruct
+    public void initializeAuthentication() {
         try {
-            // Configure digest authentication for PUPHAX service
+            // Configure digest authentication for PUPHAX service after Spring injection
             Authenticator.setDefault(new Authenticator() {
                 @Override
                 protected PasswordAuthentication getPasswordAuthentication() {
                     if (getRequestingHost().equals("puphax.neak.gov.hu")) {
-                        return new PasswordAuthentication("PUPHAX", "puphax".toCharArray());
+                        return new PasswordAuthentication(puphaxUsername, puphaxPassword.toCharArray());
                     }
                     return null;
                 }
@@ -81,7 +93,59 @@ public class PuphaxSoapClient {
             System.setProperty("sun.net.http.allowRestrictedHeaders", "true");
             
             // Create the SOAP service and port
-            PUPHAXWSService service = new PUPHAXWSService();
+            // Try to fetch WSDL from NEAK URL first, then fallback to classpath
+            URL wsdlUrl = null;
+            boolean useNEAKWsdl = false;
+
+            try {
+                // First attempt: Fetch WSDL from NEAK to always use the latest version
+                String wsdlUrlString = endpointUrl + "?wsdl";
+                URL testUrl = new URL(wsdlUrlString);
+                logger.info("Attempting to fetch WSDL from NEAK: {}", wsdlUrlString);
+
+                // Test if NEAK service is available and returning valid WSDL
+                java.io.InputStream stream = testUrl.openStream();
+                java.io.BufferedReader reader = new java.io.BufferedReader(new java.io.InputStreamReader(stream));
+                String firstLine = reader.readLine();
+                reader.close();
+
+                // Check if response looks like valid XML (WSDL should start with <?xml or <definitions>)
+                if (firstLine != null && (firstLine.trim().startsWith("<?xml") || firstLine.trim().startsWith("<definitions"))) {
+                    wsdlUrl = testUrl;
+                    useNEAKWsdl = true;
+                    logger.info("Successfully validated WSDL from NEAK service");
+                } else {
+                    logger.warn("NEAK service returned non-XML content (likely HTML error page). Falling back to classpath WSDL.");
+                    logger.debug("Response first line: {}", firstLine);
+                }
+            } catch (Exception e) {
+                logger.warn("Could not fetch or validate WSDL from NEAK: {}. Falling back to classpath.", e.getMessage());
+            }
+
+            // Fallback: Use local WSDL from classpath if NEAK is unavailable
+            if (!useNEAKWsdl) {
+                try {
+                    wsdlUrl = getClass().getClassLoader().getResource("wsdl/PUPHAXWS.wsdl");
+                    if (wsdlUrl != null) {
+                        logger.info("Using fallback WSDL from classpath: {}", wsdlUrl);
+                    } else {
+                        logger.error("WSDL not found in classpath either!");
+                    }
+                } catch (Exception ex) {
+                    logger.error("Could not load WSDL from classpath: {}", ex.getMessage());
+                }
+            }
+
+            // Create SOAP service
+            PUPHAXWSService service;
+            if (wsdlUrl != null) {
+                service = new PUPHAXWSService(wsdlUrl);
+                logger.info("SOAP service created successfully with WSDL from: {}", useNEAKWsdl ? "NEAK" : "classpath");
+            } else {
+                // Last resort: default constructor (will likely fail)
+                logger.error("No WSDL available - using default constructor as last resort");
+                service = new PUPHAXWSService();
+            }
             this.puphaxPort = service.getPUPHAXWSPort();
             
             // Add handlers to fix encoding issues and capture raw XML
@@ -975,13 +1039,13 @@ public class PuphaxSoapClient {
             String drugAtc = determinePuphaxAtc(drugName, atcCode);
             
             xmlBuilder.append("        <drug>\n");
-            xmlBuilder.append(String.format("            <id>%s</id>\n", drugId));
-            xmlBuilder.append(String.format("            <name>%s</name>\n", drugName));
-            xmlBuilder.append(String.format("            <manufacturer>%s</manufacturer>\n", drugManufacturer));
-            xmlBuilder.append(String.format("            <atcCode>%s</atcCode>\n", drugAtc));
+            xmlBuilder.append(String.format("            <id>%s</id>\n", escapeXml(drugId)));
+            xmlBuilder.append(String.format("            <name>%s</name>\n", escapeXml(drugName)));
+            xmlBuilder.append(String.format("            <manufacturer>%s</manufacturer>\n", escapeXml(drugManufacturer)));
+            xmlBuilder.append(String.format("            <atcCode>%s</atcCode>\n", escapeXml(drugAtc)));
             xmlBuilder.append("            <activeIngredients>\n");
             xmlBuilder.append("                <ingredient>\n");
-            xmlBuilder.append(String.format("                    <name>%s</name>\n", extractActiveIngredient(drugName)));
+            xmlBuilder.append(String.format("                    <name>%s</name>\n", escapeXml(extractActiveIngredient(drugName))));
             xmlBuilder.append("                </ingredient>\n");
             xmlBuilder.append("            </activeIngredients>\n");
             xmlBuilder.append("            <prescriptionRequired>false</prescriptionRequired>\n");
@@ -994,9 +1058,9 @@ public class PuphaxSoapClient {
         
         xmlBuilder.append("    </drugs>\n");
         xmlBuilder.append(String.format("    <searchCriteria>\n"));
-        xmlBuilder.append(String.format("        <term>%s</term>\n", searchTerm));
-        xmlBuilder.append(String.format("        <manufacturer>%s</manufacturer>\n", manufacturer));
-        xmlBuilder.append(String.format("        <atcCode>%s</atcCode>\n", atcCode));
+        xmlBuilder.append(String.format("        <term>%s</term>\n", escapeXml(searchTerm)));
+        xmlBuilder.append(String.format("        <manufacturer>%s</manufacturer>\n", escapeXml(manufacturer)));
+        xmlBuilder.append(String.format("        <atcCode>%s</atcCode>\n", escapeXml(atcCode)));
         xmlBuilder.append("    </searchCriteria>\n");
         xmlBuilder.append(String.format("    <responseTime>%d</responseTime>\n", System.currentTimeMillis() % 1000 + 300));
         xmlBuilder.append("    <encoding>UTF-8</encoding>\n");

@@ -160,16 +160,50 @@ class PuphaxGyogyszerKerreso {
     eredmenyekMegjelenites(valasz, valaszIdo) {
         const eredmenyekTartalom = document.getElementById('eredmenyek-tartalom');
 
+        // Check if results are from CSV fallback
+        const csvFallbackBanner = this.csvFallbackErtesites(valasz);
+
         if (!valasz.gyogyszerek || valasz.gyogyszerek.length === 0) {
-            eredmenyekTartalom.innerHTML = this.uresEredmenyekHtml();
+            eredmenyekTartalom.innerHTML = csvFallbackBanner + this.uresEredmenyekHtml();
         } else {
-            eredmenyekTartalom.innerHTML = valasz.gyogyszerek.map(gyogyszer => 
+            const drugsHtml = valasz.gyogyszerek.map(gyogyszer =>
                 this.gyogyszerKartyaHtml(gyogyszer)
             ).join('');
+            eredmenyekTartalom.innerHTML = csvFallbackBanner + drugsHtml;
         }
 
         this.lapozasFreszites(valasz.lapozas);
         this.eredmenyekMutatas();
+    }
+
+    /**
+     * CSV fallback értesítés banner létrehozása.
+     */
+    csvFallbackErtesites(valasz) {
+        // Check if using CSV fallback (manufacturer="Unknown" is a good indicator)
+        const usingFallback = valasz.gyogyszerek && valasz.gyogyszerek.length > 0 &&
+                             valasz.gyogyszerek[0].gyarto === "Unknown";
+
+        if (usingFallback) {
+            return `
+                <div class="csv-fallback-notice" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                     color: white; padding: 15px 20px; border-radius: 8px; margin-bottom: 20px;
+                     border-left: 5px solid #fbbf24; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <span style="font-size: 24px;">ℹ️</span>
+                        <div>
+                            <strong style="font-size: 16px;">Helyi adatbázis használatban</strong>
+                            <p style="margin: 5px 0 0 0; font-size: 14px; opacity: 0.95;">
+                                A NEAK PUPHAX webszolgáltatás jelenleg nem elérhető.
+                                Az eredmények a helyi CSV adatbázisból származnak (2007-2023 hivatalos NEAK adatok).
+                                44,000+ aktuális gyógyszer adatai elérhetők.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+        return '';
     }
 
     /**

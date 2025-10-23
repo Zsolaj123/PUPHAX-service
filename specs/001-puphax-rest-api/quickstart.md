@@ -30,7 +30,7 @@ mvn spring-boot:run
 
 ```bash
 # Check service health
-curl http://localhost:8080/actuator/health
+curl http://localhost:8081/actuator/health
 
 # Expected response:
 # {"status":"UP","components":{"puphaxSoap":{"status":"UP"}}}
@@ -40,10 +40,10 @@ curl http://localhost:8080/actuator/health
 
 ```bash
 # Search for aspirin
-curl "http://localhost:8080/api/v1/drugs/search?term=aspirin"
+curl "http://localhost:8081/api/v1/drugs/search?term=aspirin"
 
 # Search with filters
-curl "http://localhost:8080/api/v1/drugs/search?term=aspirin&manufacturer=Bayer&page=0&size=10"
+curl "http://localhost:8081/api/v1/drugs/search?term=aspirin&manufacturer=Bayer&page=0&size=10"
 ```
 
 ## Project Structure Overview
@@ -136,31 +136,31 @@ mvn spring-boot:run -Dspring-boot.run.jvmArguments="-Xdebug -Xrunjdwp:transport=
 
 ### 2. API Documentation
 
-Visit `http://localhost:8080/swagger-ui.html` for interactive API documentation.
+Visit `http://localhost:8081/swagger-ui.html` for interactive API documentation.
 
 ### 3. Test the API
 
 #### Basic Search
 ```bash
-curl -X GET "http://localhost:8080/api/v1/drugs/search?term=aspirin" \
+curl -X GET "http://localhost:8081/api/v1/drugs/search?term=aspirin" \
   -H "accept: application/json"
 ```
 
 #### Search with Pagination
 ```bash
-curl -X GET "http://localhost:8080/api/v1/drugs/search?term=aspirin&page=0&size=5" \
+curl -X GET "http://localhost:8081/api/v1/drugs/search?term=aspirin&page=0&size=5" \
   -H "accept: application/json"
 ```
 
 #### Search with Filters
 ```bash
-curl -X GET "http://localhost:8080/api/v1/drugs/search?term=aspirin&manufacturer=Bayer&atcCode=N02BA01" \
+curl -X GET "http://localhost:8081/api/v1/drugs/search?term=aspirin&manufacturer=Bayer&atcCode=N02BA01" \
   -H "accept: application/json"
 ```
 
 #### Get Drug Details
 ```bash
-curl -X GET "http://localhost:8080/api/v1/drugs/HU001234" \
+curl -X GET "http://localhost:8081/api/v1/drugs/HU001234" \
   -H "accept: application/json"
 ```
 
@@ -208,7 +208,7 @@ ENTRYPOINT ["java", "-jar", "/app.jar"]
 docker build -t puphax-service .
 
 # Run container
-docker run -p 8080:8080 puphax-service
+docker run -p 8080:8081 puphax-service
 ```
 
 ## Common Issues and Solutions
@@ -282,7 +282,7 @@ management:
 ```bash
 # Test concurrent requests
 for i in {1..100}; do
-  curl -s "http://localhost:8080/api/v1/drugs/search?term=aspirin" &
+  curl -s "http://localhost:8081/api/v1/drugs/search?term=aspirin" &
 done
 wait
 ```
@@ -290,10 +290,10 @@ wait
 ### Monitor Performance
 ```bash
 # Check JVM metrics
-curl http://localhost:8080/actuator/metrics/jvm.memory.used
+curl http://localhost:8081/actuator/metrics/jvm.memory.used
 
 # Check HTTP metrics
-curl http://localhost:8080/actuator/metrics/http.server.requests
+curl http://localhost:8081/actuator/metrics/http.server.requests
 ```
 
 ## Next Steps
@@ -328,9 +328,9 @@ mvn spring-boot:run -Dspring-boot.run.jvmArguments="-XX:+FlightRecorder -XX:Star
 
 ## Support and Documentation
 
-- **API Documentation**: `http://localhost:8080/swagger-ui.html`
-- **Health Checks**: `http://localhost:8080/actuator/health`
-- **Metrics**: `http://localhost:8080/actuator/metrics`
+- **API Documentation**: `http://localhost:8081/swagger-ui.html`
+- **Health Checks**: `http://localhost:8081/actuator/health`
+- **Metrics**: `http://localhost:8081/actuator/metrics`
 - **Project Issues**: Use Git repository issue tracker
 - **PUPHAX API**: Contact `puphax-request@neak.gov.hu`
 

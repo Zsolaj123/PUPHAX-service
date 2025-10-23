@@ -11,6 +11,10 @@ spring:
     caffeine:
       spec: maximumSize=1000,expireAfterWrite=10m
     cache-names:
+      - drug-search-results
+      - product-details
+      - support-data
+      - company-names
       - drugSearchCache
       - puphax-drugs
       - puphax-drug-details
@@ -18,7 +22,7 @@ spring:
   
   mvc:
     pathmatch:
-      matching-strategy: ant_path_matcher
+      matching-strategy: path_pattern_parser
   
   # Hungarian character encoding support
   http:
@@ -40,7 +44,9 @@ spring:
 # PUPHAX SOAP Service Configuration
 puphax:
   soap:
-    endpoint-url: https://puphax.neak.gov.hu/PUPHAXWS
+    endpoint-url: ${PUPHAX_ENDPOINT_URL:https://puphax.neak.gov.hu/PUPHAXWS}
+    username: ${PUPHAX_USERNAME:PUPHAX}
+    password: ${PUPHAX_PASSWORD:puphax}
     connect-timeout: 30000
     request-timeout: 60000
     max-connections: 20
@@ -48,41 +54,136 @@ puphax:
     retry:
       max-attempts: 3
       backoff-delay: 1000
+  query:
+    # Date range configuration to reduce NEAK server load
+    # NEAK recommends not querying full 15-year history
+    snapshot-date-offset-months: 1  # Query products valid 1 month ago (recent data only)
+    use-current-snapshot: true       # Use current date as snapshot (true) or specific date (false)
 
-# Resilience4j Configuration
+# Resilience4j Configuration - Optimized for PUPHAX Service
 resilience4j:
+  # Circuit Breaker Configuration
   circuitbreaker:
+    configs:
+      default:
+        register-health-indicator: true
+        event-consumer-buffer-size: 50
     instances:
       puphax-service:
-        register-health-indicator: true
-        sliding-window-size: 10
-        minimum-number-of-calls: 5
-        permitted-number-of-calls-in-half-open-state: 3
-        wait-duration-in-open-state: 30s
-        failure-rate-threshold: 50
-        event-consumer-buffer-size: 10
+        base-config: default
+        sliding-window-type: time_based
+        sliding-window-size: 120
+        minimum-number-of-calls: 8
+        failure-rate-threshold: 60
+        slow-call-rate-threshold: 80
+        slow-call-duration-threshold: 45s
+        wait-duration-in-open-state: 2m
+        permitted-number-of-calls-in-half-open-state: 5
+        automatic-transition-from-open-to-half-open-enabled: true
         record-exceptions:
           - com.puphax.exception.PuphaxServiceException
+          - com.puphax.exception.PuphaxConnectionException
+          - com.puphax.exception.PuphaxTimeoutException
+          - java.net.SocketTimeoutException
+          - java.net.ConnectException
+          - java.lang.RuntimeException
+        ignore-exceptions:
+          - com.puphax.exception.PuphaxValidationException
+          - java.lang.IllegalArgumentException
+          - java.lang.NullPointerException
+      
+      puphax-fast-operations:
+        base-config: default
+        sliding-window-type: count_based
+        sliding-window-size: 50
+        minimum-number-of-calls: 5
+        failure-rate-threshold: 40
+        slow-call-rate-threshold: 70
+        slow-call-duration-threshold: 10s
+        wait-duration-in-open-state: 30s
+        permitted-number-of-calls-in-half-open-state: 3
+        
+      puphax-bulk-operations:
+        base-config: default
+        sliding-window-type: time_based
+        sliding-window-size: 300
+        minimum-number-of-calls: 15
+        failure-rate-threshold: 70
+        slow-call-rate-threshold: 85
+        slow-call-duration-threshold: 60s
+        wait-duration-in-open-state: 5m
+        permitted-number-of-calls-in-half-open-state: 8
+
+  # Retry Configuration
+  retry:
+    configs:
+      default:
+        max-attempts: 4
+        wait-duration: 2s
+        exponential-backoff-multiplier: 2.0
+        randomized-wait-factor: 0.1
+    instances:
+      puphax-service:
+        base-config: default
+        retry-exceptions:
+          - com.puphax.exception.PuphaxConnectionException
+          - com.puphax.exception.PuphaxTimeoutException
           - java.net.SocketTimeoutException
           - java.net.ConnectException
         ignore-exceptions:
           - com.puphax.exception.PuphaxValidationException
-  
-  retry:
-    instances:
-      puphax-service:
+          - java.lang.IllegalArgumentException
+          - java.lang.NullPointerException
+      
+      puphax-fast-operations:
+        max-attempts: 5
+        wait-duration: 500ms
+        exponential-backoff-multiplier: 1.5
+        
+      puphax-bulk-operations:
         max-attempts: 3
-        wait-duration: 1s
-        exponential-backoff-multiplier: 2
-        retry-exceptions:
-          - java.net.SocketTimeoutException
-          - java.net.ConnectException
-  
+        wait-duration: 5s
+        exponential-backoff-multiplier: 2.5
+
+  # Time Limiter Configuration
   timelimiter:
+    configs:
+      default:
+        cancel-running-future: true
     instances:
       puphax-service:
-        timeout-duration: 30s
-        cancel-running-future: true
+        base-config: default
+        timeout-duration: 45s
+        
+      puphax-fast-operations:
+        timeout-duration: 15s
+        
+      puphax-bulk-operations:
+        timeout-duration: 2m
+        cancel-running-future: false
+
+  # Bulkhead Configuration
+  bulkhead:
+    configs:
+      default:
+        max-wait-duration: 30s
+    instances:
+      puphax-service:
+        base-config: default
+        max-concurrent-calls: 10
+        
+      puphax-critical-operations:
+        max-concurrent-calls: 5
+        max-wait-duration: 60s
+
+  # Thread Pool Bulkhead for Async Operations
+  thread-pool-bulkhead:
+    instances:
+      puphax-async:
+        max-thread-pool-size: 8
+        core-thread-pool-size: 4
+        queue-capacity: 50
+        keep-alive-duration: 20s
 
 # Management and Monitoring
 management:
@@ -114,6 +215,43 @@ logging:
     name: logs/puphax-service.log
     max-size: 100MB
     max-history: 30
+
+---
+# Production Profile Configuration for Docker Deployment
+spring:
+  config:
+    activate:
+      on-profile: production
+  cache:
+    caffeine:
+      spec: maximumSize=5000,expireAfterWrite=30m
+
+# Production-optimized logging
+logging:
+  level:
+    com.puphax: INFO
+    org.springframework.cache: WARN
+    jakarta.xml.ws: WARN
+    com.puphax.service.SimplePuphaxClient: INFO
+    com.puphax.service.PuphaxRealDataService: INFO
+    root: WARN
+  file:
+    name: /app/logs/puphax-service.log
+
+# Production resilience settings - more tolerant for network issues
+resilience4j:
+  circuitbreaker:
+    instances:
+      puphax-service:
+        sliding-window-size: 300  # 5 minutes
+        minimum-number-of-calls: 10
+        failure-rate-threshold: 70  # More tolerant
+        wait-duration-in-open-state: 5m  # Longer recovery time
+  retry:
+    instances:
+      puphax-service:
+        max-attempts: 5  # More retry attempts in production
+        wait-duration: 3s
 
 # OpenAPI Documentation
 springdoc:

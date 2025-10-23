@@ -9,6 +9,7 @@ import org.apache.hc.core5.http.io.entity.StringEntity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import java.net.URI;
 import java.time.LocalDate;
@@ -22,6 +23,8 @@ import java.nio.charset.StandardCharsets;
 import java.nio.charset.Charset;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.Map;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.CacheEvict;
 
 /**
  * Simplified PUPHAX client using Java 11 HTTP client.
@@ -31,10 +34,22 @@ import java.util.Map;
 public class SimplePuphaxClient {
     
     private static final Logger logger = LoggerFactory.getLogger(SimplePuphaxClient.class);
-    private static final String PUPHAX_ENDPOINT = "https://puphax.neak.gov.hu/PUPHAXWS";
-    private static final String USERNAME = "PUPHAX";
-    private static final String PASSWORD = "puphax";
     
+    @Value("${puphax.soap.endpoint-url:https://puphax.neak.gov.hu/PUPHAXWS}")
+    private String puphaxEndpoint;
+    
+    @Value("${puphax.soap.username:PUPHAX}")
+    private String username;
+
+    @Value("${puphax.soap.password:puphax}")
+    private String password;
+
+    @Value("${puphax.query.snapshot-date-offset-months:1}")
+    private int snapshotDateOffsetMonths;
+
+    @Value("${puphax.query.use-current-snapshot:true}")
+    private boolean useCurrentSnapshot;
+
     private final CloseableHttpClient httpClient;
     
     // Cache for company names to avoid repeated lookups
@@ -49,13 +64,19 @@ public class SimplePuphaxClient {
     /**
      * Search drugs using direct HTTP call.
      */
+    @Cacheable(value = "drug-search-results", key = "#searchTerm", unless = "#result == null")
     public String searchDrugsSimple(String searchTerm) {
         try {
-            String soapRequest = buildTermeklistaRequest(searchTerm, LocalDate.now());
-            
-            logger.info("Making direct HTTP call to PUPHAX for search term: {}", searchTerm);
+            // Calculate snapshot date to reduce server load (don't query full 15-year history)
+            LocalDate snapshotDate = useCurrentSnapshot
+                ? LocalDate.now().minusMonths(snapshotDateOffsetMonths)
+                : LocalDate.now();
+
+            logger.info("Making direct HTTP call to PUPHAX for search term: {} (snapshot date: {})", searchTerm, snapshotDate);
+
+            String soapRequest = buildTermeklistaRequest(searchTerm, snapshotDate);
             logger.debug("SOAP Request: {}", soapRequest);
-            
+
             return executeSoapCall(soapRequest, "TERMEKLISTA");
             
         } catch (Exception e) {
@@ -65,12 +86,12 @@ public class SimplePuphaxClient {
     }
     
     private String getBasicAuth() {
-        String auth = USERNAME + ":" + PASSWORD;
+        String auth = username + ":" + password;
         return "Basic " + Base64.getEncoder().encodeToString(auth.getBytes());
     }
     
     private String retryWithBasicAuth(String soapRequest, String soapAction) throws Exception {
-        HttpPost request = new HttpPost(PUPHAX_ENDPOINT);
+        HttpPost request = new HttpPost(puphaxEndpoint);
         request.setHeader("Content-Type", "text/xml; charset=UTF-8");
         request.setHeader("SOAPAction", soapAction);
         request.setHeader("Authorization", getBasicAuth());
@@ -115,7 +136,7 @@ public class SimplePuphaxClient {
             MessageDigest md = MessageDigest.getInstance("MD5");
             
             // HA1 = MD5(username:realm:password)
-            String ha1Input = USERNAME + ":" + realm + ":" + PASSWORD;
+            String ha1Input = username + ":" + realm + ":" + password;
             byte[] ha1Bytes = md.digest(ha1Input.getBytes("UTF-8"));
             String ha1 = bytesToHex(ha1Bytes);
             
@@ -133,7 +154,7 @@ public class SimplePuphaxClient {
             
             // Build Authorization header
             StringBuilder authHeader = new StringBuilder("Digest ");
-            authHeader.append("username=\"").append(USERNAME).append("\", ");
+            authHeader.append("username=\"").append(username).append("\", ");
             authHeader.append("realm=\"").append(realm).append("\", ");
             authHeader.append("nonce=\"").append(nonce).append("\", ");
             authHeader.append("uri=\"").append(uri).append("\", ");
@@ -196,6 +217,7 @@ public class SimplePuphaxClient {
      * Get product basic data using TERMEKADAT operation.
      * This returns product name, ATC code, manufacturer etc.
      */
+    @Cacheable(value = "product-details", key = "#productId + '_' + #searchDate", unless = "#result == null")
     public String getProductData(String productId, LocalDate searchDate) {
         try {
             String soapRequest = buildTermekadatRequest(productId, searchDate);
@@ -214,6 +236,7 @@ public class SimplePuphaxClient {
     /**
      * Get product support data using TAMOGATADAT operation.
      */
+    @Cacheable(value = "support-data", key = "#productId + '_' + #searchDate", unless = "#result == null")
     public String getProductSupportData(String productId, LocalDate searchDate) {
         try {
             String soapRequest = buildTamogatadatRequest(productId, searchDate);
@@ -239,7 +262,7 @@ public class SimplePuphaxClient {
                      <pup:NID-NUMBER-IN>%s</pup:NID-NUMBER-IN>
                   </pup:COBJTERMEKADAT-TERMEKADATInput>
                </soapenv:Body>
-            </soapenv:Envelope>""", productId);
+            </soapenv:Envelope>""", escapeXml(productId));
     }
     
     private String buildTamogatadatRequest(String productId, LocalDate searchDate) {
@@ -254,7 +277,7 @@ public class SimplePuphaxClient {
                      <pup:NID-NUMBER-IN>%s</pup:NID-NUMBER-IN>
                   </pup:COBJTAMOGAT-TAMOGATADATInput>
                </soapenv:Body>
-            </soapenv:Envelope>""", dateStr, productId);
+            </soapenv:Envelope>""", escapeXml(dateStr), escapeXml(productId));
     }
     
     private String escapeXml(String text) {
@@ -274,7 +297,7 @@ public class SimplePuphaxClient {
      */
     private String executeSoapCall(String soapRequest, String soapAction) throws Exception {
         // Create HTTP POST request using Apache HttpClient
-        HttpPost initialRequest = new HttpPost(PUPHAX_ENDPOINT);
+        HttpPost initialRequest = new HttpPost(puphaxEndpoint);
         initialRequest.setHeader("Content-Type", "text/xml; charset=UTF-8");
         initialRequest.setHeader("SOAPAction", soapAction);
         initialRequest.setEntity(new StringEntity(soapRequest, StandardCharsets.UTF_8));
@@ -301,7 +324,7 @@ public class SimplePuphaxClient {
                     String digestAuth = createDigestAuthHeader(authHeader, "POST", "/PUPHAXWS", soapRequest);
                     
                     // Retry with digest auth
-                    HttpPost authRequest = new HttpPost(PUPHAX_ENDPOINT);
+                    HttpPost authRequest = new HttpPost(puphaxEndpoint);
                     authRequest.setHeader("Content-Type", "text/xml; charset=UTF-8");
                     authRequest.setHeader("SOAPAction", soapAction);
                     authRequest.setHeader("Authorization", digestAuth);
@@ -348,6 +371,7 @@ public class SimplePuphaxClient {
      * Get company name by ID from PUPHAX CEGEK table.
      * Results are cached to improve performance.
      */
+    @Cacheable(value = "company-names", key = "#companyId", unless = "#result == null")
     public String getCompanyName(String companyId) {
         if (companyId == null || companyId.isEmpty()) {
             return null;
@@ -396,7 +420,7 @@ public class SimplePuphaxClient {
                      </pup:SXFILTER-VARCHAR2-IN>
                   </pup:COBJALAP-TABCEGEKInput>
                </soapenv:Body>
-            </soapenv:Envelope>""", companyId);
+            </soapenv:Envelope>""", escapeXml(companyId));
     }
     
     /**
@@ -416,5 +440,57 @@ public class SimplePuphaxClient {
         }
         
         return null;
+    }
+    
+    // ========================================
+    // Cache Management Methods
+    // ========================================
+    
+    /**
+     * Evict search results from cache for a specific search term.
+     */
+    @CacheEvict(value = "drug-search-results", key = "#searchTerm")
+    public void evictSearchCache(String searchTerm) {
+        logger.info("Evicted search cache for term: {}", searchTerm);
+    }
+    
+    /**
+     * Evict product details from cache for a specific product.
+     */
+    @CacheEvict(value = "product-details", key = "#productId + '_' + #searchDate")
+    public void evictProductDetailsCache(String productId, LocalDate searchDate) {
+        logger.info("Evicted product details cache for ID: {} on date: {}", productId, searchDate);
+    }
+    
+    /**
+     * Evict support data from cache for a specific product.
+     */
+    @CacheEvict(value = "support-data", key = "#productId + '_' + #searchDate")
+    public void evictSupportDataCache(String productId, LocalDate searchDate) {
+        logger.info("Evicted support data cache for ID: {} on date: {}", productId, searchDate);
+    }
+    
+    /**
+     * Evict company name from cache for a specific company.
+     */
+    @CacheEvict(value = "company-names", key = "#companyId")
+    public void evictCompanyNameCache(String companyId) {
+        logger.info("Evicted company name cache for ID: {}", companyId);
+    }
+    
+    /**
+     * Evict all search-related caches.
+     */
+    @CacheEvict(value = {"drug-search-results", "product-details", "support-data"}, allEntries = true)
+    public void evictAllSearchCaches() {
+        logger.info("Evicted all search-related caches");
+    }
+    
+    /**
+     * Evict all caches.
+     */
+    @CacheEvict(value = {"drug-search-results", "product-details", "support-data", "company-names"}, allEntries = true)
+    public void evictAllCaches() {
+        logger.warn("Evicted ALL caches - performance may be temporarily impacted");
     }
 }

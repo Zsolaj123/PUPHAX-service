@@ -24,7 +24,10 @@ public class PuphaxRealDataService {
     
     @Autowired
     private SimplePuphaxClient simplePuphaxClient;
-    
+
+    @Autowired
+    private PuphaxCsvFallbackService csvFallbackService;
+
     // Thread pool for concurrent PUPHAX calls
     private final ExecutorService executorService = Executors.newFixedThreadPool(10);
     
@@ -45,6 +48,25 @@ public class PuphaxRealDataService {
             
         } catch (Exception e) {
             logger.error("Real PUPHAX call failed: {}", e.getMessage(), e);
+            logger.info("Falling back to CSV local data service");
+            return useCsvFallback(searchTerm);
+        }
+    }
+
+    /**
+     * Use CSV fallback service when NEAK is unavailable.
+     */
+    private String useCsvFallback(String searchTerm) {
+        try {
+            if (csvFallbackService.isInitialized()) {
+                logger.info("Using CSV fallback service for search term: {}", searchTerm);
+                return csvFallbackService.searchDrugs(searchTerm);
+            } else {
+                logger.warn("CSV fallback service not initialized, using minimal fallback");
+                return createFallbackResponse(searchTerm);
+            }
+        } catch (Exception e) {
+            logger.error("CSV fallback also failed: {}", e.getMessage(), e);
             return createFallbackResponse(searchTerm);
         }
     }
@@ -59,8 +81,8 @@ public class PuphaxRealDataService {
             
             // Check if this is a SOAP response
             if (!puphaxResponse.contains("soap:") && !puphaxResponse.contains("soapenv:")) {
-                logger.warn("Response doesn't appear to be a SOAP envelope");
-                return createFallbackResponse(searchTerm);
+                logger.warn("Response doesn't appear to be a SOAP envelope, using CSV fallback");
+                return useCsvFallback(searchTerm);
             }
             
             // Extract product IDs from TERMEKLISTA response
@@ -80,8 +102,8 @@ public class PuphaxRealDataService {
             }
             
             if (productIds.isEmpty()) {
-                logger.warn("No product IDs found in PUPHAX TERMEKLISTA response");
-                return createFallbackResponse(searchTerm);
+                logger.warn("No product IDs found in PUPHAX TERMEKLISTA response, using CSV fallback");
+                return useCsvFallback(searchTerm);
             }
             
             logger.info("Found {} product IDs in REAL PUPHAX response", productIds.size());
@@ -174,8 +196,8 @@ public class PuphaxRealDataService {
             return xmlBuilder.toString();
             
         } catch (Exception e) {
-            logger.error("Failed to parse PUPHAX response: {}", e.getMessage());
-            return createFallbackResponse(searchTerm);
+            logger.error("Failed to parse PUPHAX response: {}, using CSV fallback", e.getMessage());
+            return useCsvFallback(searchTerm);
         }
     }
     

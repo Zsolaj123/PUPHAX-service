@@ -24,10 +24,22 @@ public class HungarianHttpTransport {
     private static final Logger logger = LoggerFactory.getLogger(HungarianHttpTransport.class);
     private static final Charset ISO_8859_2 = Charset.forName("ISO-8859-2");
     
+    private final String username;
+    private final String password;
+    
+    public HungarianHttpTransport(String username, String password) {
+        this.username = username;
+        this.password = password;
+    }
+    
+    public HungarianHttpTransport() {
+        this("PUPHAX", "puphax"); // Default fallback for backward compatibility
+    }
+    
     /**
      * Performs HTTP request with Hungarian character encoding support.
      */
-    public static InputStream performRequest(String endpoint, String soapAction, byte[] soapRequestBytes) throws IOException {
+    public InputStream performRequest(String endpoint, String soapAction, byte[] soapRequestBytes) throws IOException {
         logger.debug("Performing HTTP request to PUPHAX with Hungarian encoding support: {}", endpoint);
         
         URL url = new URL(endpoint);
@@ -47,7 +59,7 @@ public class HungarianHttpTransport {
             connection.setRequestProperty("User-Agent", "PUPHAX-Java-Client/1.0");
             
             // Add digest authentication header
-            String credentials = "PUPHAX:puphax";
+            String credentials = username + ":" + password;
             String encodedCredentials = Base64.getEncoder().encodeToString(credentials.getBytes(StandardCharsets.UTF_8));
             connection.setRequestProperty("Authorization", "Basic " + encodedCredentials);
             

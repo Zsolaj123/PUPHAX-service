@@ -26,11 +26,14 @@ class DrugServicePaginationTest {
     @Mock
     private PuphaxSoapClient mockSoapClient;
     
+    @Mock
+    private PuphaxRealDataService realDataService;
+    
     private DrugService drugService;
     
     @BeforeEach
     void setUp() {
-        drugService = new DrugService(mockSoapClient);
+        drugService = new DrugService(mockSoapClient, realDataService);
     }
     
     @Test
