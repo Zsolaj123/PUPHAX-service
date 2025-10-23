@@ -69,6 +69,122 @@
                             </button>
                         </div>
                     </form>
+
+                    <!-- Advanced Filters Panel -->
+                    <div class="advanced-filters-container" id="advanced-filters-container">
+                        <button class="toggle-filters-btn" id="toggle-filters-btn" type="button">
+                            <span class="toggle-icon" id="toggle-icon">▼</span>
+                            <span>Részletes Szűrők</span>
+                            <span class="filter-count-badge" id="filter-count-badge" style="display: none;">0</span>
+                        </button>
+
+                        <div class="advanced-filters-panel" id="advanced-filters-panel" style="display: none;">
+                            <!-- Active Filters Display -->
+                            <div class="active-filters" id="active-filters" style="display: none;">
+                                <div class="active-filters-header">
+                                    <span>Aktív szűrők:</span>
+                                    <button class="clear-all-filters" id="clear-all-filters" type="button">Összes törlése</button>
+                                </div>
+                                <div class="active-filters-list" id="active-filters-list"></div>
+                            </div>
+
+                            <!-- Filter Grid -->
+                            <div class="filters-grid">
+                                <!-- Manufacturers Filter -->
+                                <div class="filter-group">
+                                    <label class="filter-label">
+                                        <span>🏭 Gyártó</span>
+                                        <span class="selected-count" id="manufacturers-count"></span>
+                                    </label>
+                                    <div class="filter-search-wrapper">
+                                        <input type="text" class="filter-search" id="manufacturer-search" placeholder="Keresés gyártók között...">
+                                    </div>
+                                    <div class="filter-options-container" id="manufacturer-options">
+                                        <div class="loading-spinner">Betöltés...</div>
+                                    </div>
+                                </div>
+
+                                <!-- ATC Codes Filter -->
+                                <div class="filter-group">
+                                    <label class="filter-label">
+                                        <span>📋 ATC Kód</span>
+                                        <span class="selected-count" id="atc-count"></span>
+                                    </label>
+                                    <div class="filter-search-wrapper">
+                                        <input type="text" class="filter-search" id="atc-search" placeholder="Keresés ATC kódok között...">
+                                    </div>
+                                    <div class="filter-options-container" id="atc-options">
+                                        <div class="loading-spinner">Betöltés...</div>
+                                    </div>
+                                </div>
+
+                                <!-- Product Forms Filter -->
+                                <div class="filter-group">
+                                    <label class="filter-label">
+                                        <span>💊 Gyógyszerforma</span>
+                                        <span class="selected-count" id="forms-count"></span>
+                                    </label>
+                                    <div class="filter-options-container scrollable" id="form-options">
+                                        <div class="loading-spinner">Betöltés...</div>
+                                    </div>
+                                </div>
+
+                                <!-- Prescription Types Filter -->
+                                <div class="filter-group">
+                                    <label class="filter-label">
+                                        <span>⚕️ Vény típusa</span>
+                                        <span class="selected-count" id="prescription-count"></span>
+                                    </label>
+                                    <div class="filter-options-container" id="prescription-options">
+                                        <div class="loading-spinner">Betöltés...</div>
+                                    </div>
+                                </div>
+
+                                <!-- Boolean Filters -->
+                                <div class="filter-group">
+                                    <label class="filter-label">🔍 Gyors szűrők</label>
+                                    <div class="boolean-filters">
+                                        <label class="checkbox-label">
+                                            <input type="checkbox" id="filter-prescription-required">
+                                            <span>Csak vényköteles</span>
+                                        </label>
+                                        <label class="checkbox-label">
+                                            <input type="checkbox" id="filter-reimbursable">
+                                            <span>Csak támogatott</span>
+                                        </label>
+                                        <label class="checkbox-label">
+                                            <input type="checkbox" id="filter-in-stock">
+                                            <span>Csak raktáron</span>
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <!-- Brands Filter -->
+                                <div class="filter-group">
+                                    <label class="filter-label">
+                                        <span>🏷️ Márka</span>
+                                        <span class="selected-count" id="brands-count"></span>
+                                    </label>
+                                    <div class="filter-search-wrapper">
+                                        <input type="text" class="filter-search" id="brand-search" placeholder="Keresés márkák között...">
+                                    </div>
+                                    <div class="filter-options-container" id="brand-options">
+                                        <div class="loading-spinner">Betöltés...</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Filter Actions -->
+                            <div class="filter-actions">
+                                <button class="btn btn-primary" id="apply-filters" type="button">
+                                    ✓ Szűrők Alkalmazása
+                                </button>
+                                <button class="btn btn-secondary" id="reset-filters" type="button">
+                                    ↺ Szűrők Visszaállítása
+                                </button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </section>
 

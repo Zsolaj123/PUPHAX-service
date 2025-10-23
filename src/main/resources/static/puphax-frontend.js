@@ -11,9 +11,23 @@ class PuphaxGyogyszerKerreso {
         this.jelenlegiOldal = 0;
         this.jelenlegiKeresesiParameterek = {};
         this.utolsoKeresesiValasz = null;
-        
+
+        // Advanced filters state
+        this.filterOptions = null;
+        this.selectedFilters = {
+            manufacturers: new Set(),
+            atcCodes: new Set(),
+            productForms: new Set(),
+            prescriptionTypes: new Set(),
+            brands: new Set(),
+            prescriptionRequired: null,
+            reimbursable: null,
+            inStock: null
+        };
+
         this.inizializalasEsemenyFigyelok();
         this.apiEgeszsegEllenorzes();
+        this.fetchFilterOptions();
     }
 
     /**
@@ -48,6 +62,44 @@ class PuphaxGyogyszerKerreso {
         const torlesGomb = document.getElementById('torlese-gomb');
         torlesGomb.addEventListener('click', () => {
             this.urlapTorlese();
+        });
+
+        // Advanced filters toggle
+        const toggleFiltersBtn = document.getElementById('toggle-filters-btn');
+        toggleFiltersBtn.addEventListener('click', () => {
+            this.toggleAdvancedFilters();
+        });
+
+        // Apply filters button
+        const applyFiltersBtn = document.getElementById('apply-filters');
+        applyFiltersBtn.addEventListener('click', () => {
+            this.applyAdvancedFilters();
+        });
+
+        // Reset filters button
+        const resetFiltersBtn = document.getElementById('reset-filters');
+        resetFiltersBtn.addEventListener('click', () => {
+            this.resetAdvancedFilters();
+        });
+
+        // Clear all filters button
+        const clearAllFiltersBtn = document.getElementById('clear-all-filters');
+        clearAllFiltersBtn.addEventListener('click', () => {
+            this.resetAdvancedFilters();
+        });
+
+        // Boolean filter checkboxes
+        document.getElementById('filter-prescription-required').addEventListener('change', (e) => {
+            this.selectedFilters.prescriptionRequired = e.target.checked || null;
+            this.updateFilterCounts();
+        });
+        document.getElementById('filter-reimbursable').addEventListener('change', (e) => {
+            this.selectedFilters.reimbursable = e.target.checked || null;
+            this.updateFilterCounts();
+        });
+        document.getElementById('filter-in-stock').addEventListener('change', (e) => {
+            this.selectedFilters.inStock = e.target.checked || null;
+            this.updateFilterCounts();
         });
     }
 
@@ -642,19 +694,302 @@ class PuphaxGyogyszerKerreso {
      */
     formatPrice(price) {
         if (!price || price === 'N/A') return price;
-        
+
         // If price already has Ft, return as is
         if (price.includes('Ft')) {
             return price;
         }
-        
+
         // Try to parse as number and format
         const numPrice = parseFloat(price);
         if (!isNaN(numPrice)) {
             return numPrice.toLocaleString('hu-HU') + ' Ft';
         }
-        
+
         return price + ' Ft';
+    }
+
+    /**
+     * Fetch filter options from backend API
+     */
+    async fetchFilterOptions() {
+        try {
+            const response = await fetch(`${this.alapUrl}/szurok`);
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}`);
+            }
+
+            this.filterOptions = await response.json();
+            console.log('Filter options loaded:', this.filterOptions);
+
+            this.renderFilterOptions();
+        } catch (error) {
+            console.error('Failed to load filter options:', error);
+        }
+    }
+
+    /**
+     * Render filter options in the UI
+     */
+    renderFilterOptions() {
+        if (!this.filterOptions) return;
+
+        // Render manufacturers
+        this.renderMultiSelectFilter(
+            'manufacturer-options',
+            this.filterOptions.gyartok || [],
+            'manufacturers',
+            'manufacturer-search'
+        );
+
+        // Render ATC codes
+        this.renderMultiSelectFilter(
+            'atc-options',
+            (this.filterOptions.atcKodok || []).map(atc => atc.displayName || atc.kod),
+            'atcCodes',
+            'atc-search'
+        );
+
+        // Render product forms
+        this.renderMultiSelectFilter(
+            'form-options',
+            this.filterOptions.gyogyszerformak || [],
+            'productForms',
+            null
+        );
+
+        // Render prescription types
+        this.renderMultiSelectFilter(
+            'prescription-options',
+            (this.filterOptions.venyTipusok || []).map(vt => `${vt.kod} - ${vt.leiras}`),
+            'prescriptionTypes',
+            null
+        );
+
+        // Render brands
+        this.renderMultiSelectFilter(
+            'brand-options',
+            this.filterOptions.markak || [],
+            'brands',
+            'brand-search'
+        );
+    }
+
+    /**
+     * Render a multi-select filter with checkboxes
+     */
+    renderMultiSelectFilter(containerId, options, filterKey, searchInputId) {
+        const container = document.getElementById(containerId);
+        if (!container) return;
+
+        const limit = 50; // Show first 50 options
+        const displayOptions = options.slice(0, limit);
+
+        container.innerHTML = displayOptions.map(option => `
+            <div class="filter-option" data-filter="${filterKey}" data-value="${this.htmlEscape(option)}">
+                <input type="checkbox" id="${filterKey}-${this.generateId(option)}"
+                       value="${this.htmlEscape(option)}"
+                       onchange="puphaxApp.toggleFilterOption('${filterKey}', this.value, this.checked)">
+                <label class="filter-option-label" for="${filterKey}-${this.generateId(option)}">
+                    ${this.htmlEscape(option)}
+                </label>
+            </div>
+        `).join('');
+
+        // Add search functionality if searchInputId is provided
+        if (searchInputId) {
+            const searchInput = document.getElementById(searchInputId);
+            if (searchInput) {
+                searchInput.addEventListener('input', (e) => {
+                    this.filterOptionsList(containerId, e.target.value, filterKey);
+                });
+            }
+        }
+    }
+
+    /**
+     * Filter options list based on search term
+     */
+    filterOptionsList(containerId, searchTerm, filterKey) {
+        const container = document.getElementById(containerId);
+        const options = container.querySelectorAll('.filter-option');
+        const lowerSearchTerm = searchTerm.toLowerCase();
+
+        options.forEach(option => {
+            const label = option.querySelector('.filter-option-label').textContent.toLowerCase();
+            option.style.display = label.includes(lowerSearchTerm) ? 'flex' : 'none';
+        });
+    }
+
+    /**
+     * Toggle filter option selection
+     */
+    toggleFilterOption(filterKey, value, checked) {
+        if (checked) {
+            this.selectedFilters[filterKey].add(value);
+        } else {
+            this.selectedFilters[filterKey].delete(value);
+        }
+
+        this.updateFilterCounts();
+    }
+
+    /**
+     * Update filter counts in UI
+     */
+    updateFilterCounts() {
+        const counts = {
+            manufacturers: this.selectedFilters.manufacturers.size,
+            atcCodes: this.selectedFilters.atcCodes.size,
+            productForms: this.selectedFilters.productForms.size,
+            prescriptionTypes: this.selectedFilters.prescriptionTypes.size,
+            brands: this.selectedFilters.brands.size
+        };
+
+        // Update individual counts
+        Object.entries(counts).forEach(([key, count]) => {
+            const countElement = document.getElementById(`${key.replace(/([A-Z])/g, '-$1').toLowerCase()}-count`);
+            if (countElement) {
+                countElement.textContent = count > 0 ? count : '';
+                countElement.style.display = count > 0 ? 'inline-block' : 'none';
+            }
+        });
+
+        // Update total count badge
+        const totalCount = Object.values(counts).reduce((sum, count) => sum + count, 0) +
+                          (this.selectedFilters.prescriptionRequired ? 1 : 0) +
+                          (this.selectedFilters.reimbursable ? 1 : 0) +
+                          (this.selectedFilters.inStock ? 1 : 0);
+
+        const badge = document.getElementById('filter-count-badge');
+        if (badge) {
+            badge.textContent = totalCount;
+            badge.style.display = totalCount > 0 ? 'inline-block' : 'none';
+        }
+
+        // Update active filters display
+        this.renderActiveFilters();
+    }
+
+    /**
+     * Render active filters as badges
+     */
+    renderActiveFilters() {
+        const activeFiltersContainer = document.getElementById('active-filters');
+        const activeFiltersList = document.getElementById('active-filters-list');
+
+        const badges = [];
+
+        // Add multi-select filter badges
+        ['manufacturers', 'atcCodes', 'productForms', 'prescriptionTypes', 'brands'].forEach(key => {
+            this.selectedFilters[key].forEach(value => {
+                badges.push(this.createFilterBadge(key, value));
+            });
+        });
+
+        // Add boolean filter badges
+        if (this.selectedFilters.prescriptionRequired) {
+            badges.push(this.createFilterBadge('prescriptionRequired', 'Vényköteles'));
+        }
+        if (this.selectedFilters.reimbursable) {
+            badges.push(this.createFilterBadge('reimbursable', 'Támogatott'));
+        }
+        if (this.selectedFilters.inStock) {
+            badges.push(this.createFilterBadge('inStock', 'Raktáron'));
+        }
+
+        activeFiltersList.innerHTML = badges.join('');
+        activeFiltersContainer.style.display = badges.length > 0 ? 'block' : 'none';
+    }
+
+    /**
+     * Create filter badge HTML
+     */
+    createFilterBadge(filterKey, value) {
+        return `
+            <div class="active-filter-badge">
+                <span>${this.htmlEscape(value)}</span>
+                <button class="remove-filter-btn" onclick="puphaxApp.removeFilter('${filterKey}', '${this.htmlEscape(value)}')">
+                    ×
+                </button>
+            </div>
+        `;
+    }
+
+    /**
+     * Remove a single filter
+     */
+    removeFilter(filterKey, value) {
+        if (filterKey === 'prescriptionRequired' || filterKey === 'reimbursable' || filterKey === 'inStock') {
+            this.selectedFilters[filterKey] = null;
+            document.getElementById(`filter-${filterKey.replace(/([A-Z])/g, '-$1').toLowerCase()}`).checked = false;
+        } else {
+            this.selectedFilters[filterKey].delete(value);
+            const checkbox = document.querySelector(`input[value="${value}"][data-filter="${filterKey}"]`);
+            if (checkbox) checkbox.checked = false;
+        }
+
+        this.updateFilterCounts();
+    }
+
+    /**
+     * Toggle advanced filters panel
+     */
+    toggleAdvancedFilters() {
+        const panel = document.getElementById('advanced-filters-panel');
+        const icon = document.getElementById('toggle-icon');
+
+        if (panel.style.display === 'none') {
+            panel.style.display = 'block';
+            icon.classList.add('open');
+        } else {
+            panel.style.display = 'none';
+            icon.classList.remove('open');
+        }
+    }
+
+    /**
+     * Apply advanced filters to search
+     */
+    async applyAdvancedFilters() {
+        await this.keresesVegrehajtasa(0);
+
+        // Close filters panel
+        const panel = document.getElementById('advanced-filters-panel');
+        const icon = document.getElementById('toggle-icon');
+        panel.style.display = 'none';
+        icon.classList.remove('open');
+    }
+
+    /**
+     * Reset all advanced filters
+     */
+    resetAdvancedFilters() {
+        // Clear all selected filters
+        this.selectedFilters = {
+            manufacturers: new Set(),
+            atcCodes: new Set(),
+            productForms: new Set(),
+            prescriptionTypes: new Set(),
+            brands: new Set(),
+            prescriptionRequired: null,
+            reimbursable: null,
+            inStock: null
+        };
+
+        // Uncheck all checkboxes
+        document.querySelectorAll('.filter-option input[type="checkbox"]').forEach(cb => cb.checked = false);
+        document.querySelectorAll('.boolean-filters input[type="checkbox"]').forEach(cb => cb.checked = false);
+
+        // Update counts
+        this.updateFilterCounts();
+    }
+
+    /**
+     * Generate a simple ID from text
+     */
+    generateId(text) {
+        return text.replace(/[^a-z0-9]/gi, '-').toLowerCase().substring(0, 50);
     }
 }
 
