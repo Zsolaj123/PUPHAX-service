@@ -590,4 +590,93 @@ public class PuphaxCsvFallbackService {
         boolean inStock;                // FORGALOMBAN (column 42)
         String kihirdetesId;            // KIHIRDETES_ID (column 43)
     }
+
+    /**
+     * Get available filter options extracted from loaded CSV data.
+     * This provides the frontend with lists of valid filter values.
+     *
+     * @return FilterOptions with all available values for dropdowns/checkboxes
+     */
+    public com.puphax.model.dto.FilterOptions getFilterOptions() {
+        if (!initialized) {
+            logger.warn("CSV fallback service not initialized, returning empty filter options");
+            return com.puphax.model.dto.FilterOptions.empty();
+        }
+
+        try {
+            // Extract unique manufacturers (from companies map)
+            List<String> manufacturers = companies.values().stream()
+                .filter(name -> name != null && !name.isEmpty())
+                .distinct()
+                .sorted()
+                .limit(200)  // Limit to top 200 manufacturers
+                .toList();
+
+            // Extract ATC codes with descriptions (from ATC codes map)
+            List<com.puphax.model.dto.FilterOptions.AtcOption> atcOptions = atcCodes.entrySet().stream()
+                .filter(entry -> entry.getKey() != null && !entry.getKey().isEmpty())
+                .map(entry -> new com.puphax.model.dto.FilterOptions.AtcOption(
+                    entry.getKey(),
+                    entry.getValue(),
+                    entry.getKey().length()  // ATC level based on code length
+                ))
+                .sorted((a, b) -> a.code().compareTo(b.code()))
+                .limit(500)  // Limit to top 500 ATC codes
+                .toList();
+
+            // Extract unique product forms (GYFORMA)
+            List<String> productForms = productsById.values().stream()
+                .map(p -> p.gyForma)
+                .filter(form -> form != null && !form.isEmpty())
+                .distinct()
+                .sorted()
+                .toList();
+
+            // Extract unique administration methods (ADAGMOD)
+            List<String> administrationMethods = productsById.values().stream()
+                .map(p -> p.adagMod)
+                .filter(method -> method != null && !method.isEmpty())
+                .distinct()
+                .sorted()
+                .toList();
+
+            // Extract brand names (from brands map)
+            List<String> brands = brandNames.values().stream()
+                .filter(name -> name != null && !name.isEmpty())
+                .distinct()
+                .sorted()
+                .limit(300)  // Limit to top 300 brands
+                .toList();
+
+            // Calculate strength ranges (from POTENCIA field)
+            // This is complex as strengths can have units (e.g., "100mg", "5ml")
+            // For now, provide a simple range
+            com.puphax.model.dto.FilterOptions.StrengthRange strengthRange =
+                new com.puphax.model.dto.FilterOptions.StrengthRange(
+                    0.0, 1000.0, "mg", List.of(5.0, 10.0, 25.0, 50.0, 100.0, 250.0, 500.0)
+                );
+
+            // Count statistics
+            long totalProducts = productsById.size();
+            long inStockCount = productsById.values().stream().filter(p -> p.inStock).count();
+
+            return new com.puphax.model.dto.FilterOptions(
+                manufacturers,
+                atcOptions,
+                productForms,
+                com.puphax.model.dto.FilterOptions.getStandardPrescriptionTypes(),
+                administrationMethods,
+                com.puphax.model.dto.FilterOptions.getStandardTttCodes(),
+                brands,
+                strengthRange,
+                totalProducts,
+                inStockCount,
+                java.time.Instant.now().toString()
+            );
+
+        } catch (Exception e) {
+            logger.error("Error generating filter options: {}", e.getMessage(), e);
+            return com.puphax.model.dto.FilterOptions.empty();
+        }
+    }
 }
