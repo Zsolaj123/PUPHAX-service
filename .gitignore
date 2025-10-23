@@ -65,4 +65,13 @@ jdk-*/
 
 # Large reference data (keep only optimized versions in resources)
 reference/Ősfeltöltés2007-2023/*.csv
-reference/Ősfeltöltés2007-2023/*.csv:Zone.Identifier
+
+# Zone.Identifier files (Windows metadata)
+*:Zone.Identifier
+
+# Claude-specific files
+CLAUDE.md
+.specify/
+
+# Spec files (development only)
+specs/
