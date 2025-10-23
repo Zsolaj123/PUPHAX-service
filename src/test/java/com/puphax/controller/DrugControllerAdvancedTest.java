@@ -44,17 +44,15 @@ class DrugControllerAdvancedTest {
     @Test
     void searchDrugs_WithManufacturerFilter_ReturnsFilteredResults() throws Exception {
         // Given
-        DrugSummary drugSummary = new DrugSummary(
-            "HU001234",
-            "Aspirin 100mg",
-            "Bayer Hungary Kft.",
-            "N02BA01",
-            List.of("Acetylsalicylic acid"),
-            false,
-            true,
-            DrugSummary.DrugStatus.ACTIVE,
-            null, null, null, null, null, null, null, null, null, null, null
-        );
+        DrugSummary drugSummary = DrugSummary.builder("HU001234", "Aspirin 100mg")
+            .manufacturer("Bayer Hungary Kft.")
+            .atcCode("N02BA01")
+            .activeIngredients(List.of("Acetylsalicylic acid"))
+            .activeIngredient("Acetylsalicylic acid")
+            .prescriptionRequired(false)
+            .reimbursable(true)
+            .status(DrugSummary.DrugStatus.ACTIVE)
+            .build();
         
         PaginationInfo pagination = new PaginationInfo(0, 20, 1, 1L, false, false);
         SearchInfo searchInfo = new SearchInfo(
@@ -88,17 +86,15 @@ class DrugControllerAdvancedTest {
     @Test
     void searchDrugs_WithAtcCodeFilter_ReturnsFilteredResults() throws Exception {
         // Given
-        DrugSummary drugSummary = new DrugSummary(
-            "HU001234",
-            "Aspirin 100mg",
-            "Bayer Hungary Kft.",
-            "N02BA01",
-            List.of("Acetylsalicylic acid"),
-            false,
-            true,
-            DrugSummary.DrugStatus.ACTIVE,
-            null, null, null, null, null, null, null, null, null, null, null
-        );
+        DrugSummary drugSummary = DrugSummary.builder("HU001234", "Aspirin 100mg")
+            .manufacturer("Bayer Hungary Kft.")
+            .atcCode("N02BA01")
+            .activeIngredients(List.of("Acetylsalicylic acid"))
+            .activeIngredient("Acetylsalicylic acid")
+            .prescriptionRequired(false)
+            .reimbursable(true)
+            .status(DrugSummary.DrugStatus.ACTIVE)
+            .build();
         
         PaginationInfo pagination = new PaginationInfo(0, 20, 1, 1L, false, false);
         SearchInfo searchInfo = new SearchInfo(
@@ -132,17 +128,15 @@ class DrugControllerAdvancedTest {
     @Test
     void searchDrugs_WithBothFilters_ReturnsFilteredResults() throws Exception {
         // Given
-        DrugSummary drugSummary = new DrugSummary(
-            "HU001234",
-            "Aspirin 100mg",
-            "Bayer Hungary Kft.",
-            "N02BA01",
-            List.of("Acetylsalicylic acid"),
-            false,
-            true,
-            DrugSummary.DrugStatus.ACTIVE,
-            null, null, null, null, null, null, null, null, null, null, null
-        );
+        DrugSummary drugSummary = DrugSummary.builder("HU001234", "Aspirin 100mg")
+            .manufacturer("Bayer Hungary Kft.")
+            .atcCode("N02BA01")
+            .activeIngredients(List.of("Acetylsalicylic acid"))
+            .activeIngredient("Acetylsalicylic acid")
+            .prescriptionRequired(false)
+            .reimbursable(true)
+            .status(DrugSummary.DrugStatus.ACTIVE)
+            .build();
         
         PaginationInfo pagination = new PaginationInfo(0, 10, 1, 1L, false, false);
         SearchInfo searchInfo = new SearchInfo(
@@ -181,17 +175,15 @@ class DrugControllerAdvancedTest {
     @Test
     void searchDrugs_WithCustomPagination_ReturnsCorrectPage() throws Exception {
         // Given
-        DrugSummary drugSummary = new DrugSummary(
-            "HU001235",
-            "Aspirin 500mg",
-            "Gedeon Richter",
-            "N02BA01",
-            List.of("Acetylsalicylic acid"),
-            false,
-            true,
-            DrugSummary.DrugStatus.ACTIVE,
-            null, null, null, null, null, null, null, null, null, null, null
-        );
+        DrugSummary drugSummary = DrugSummary.builder("HU001235", "Aspirin 500mg")
+            .manufacturer("Gedeon Richter")
+            .atcCode("N02BA01")
+            .activeIngredients(List.of("Acetylsalicylic acid"))
+            .activeIngredient("Acetylsalicylic acid")
+            .prescriptionRequired(false)
+            .reimbursable(true)
+            .status(DrugSummary.DrugStatus.ACTIVE)
+            .build();
         
         PaginationInfo pagination = new PaginationInfo(2, 5, 10, 45L, true, true);
         SearchInfo searchInfo = new SearchInfo(
@@ -230,17 +222,15 @@ class DrugControllerAdvancedTest {
     @Test
     void searchDrugs_WithSortingByManufacturer_ReturnsSortedResults() throws Exception {
         // Given
-        DrugSummary drugSummary = new DrugSummary(
-            "HU001234",
-            "Aspirin 100mg",
-            "Bayer Hungary Kft.",
-            "N02BA01",
-            List.of("Acetylsalicylic acid"),
-            false,
-            true,
-            DrugSummary.DrugStatus.ACTIVE,
-            null, null, null, null, null, null, null, null, null, null, null
-        );
+        DrugSummary drugSummary = DrugSummary.builder("HU001234", "Aspirin 100mg")
+            .manufacturer("Bayer Hungary Kft.")
+            .atcCode("N02BA01")
+            .activeIngredients(List.of("Acetylsalicylic acid"))
+            .activeIngredient("Acetylsalicylic acid")
+            .prescriptionRequired(false)
+            .reimbursable(true)
+            .status(DrugSummary.DrugStatus.ACTIVE)
+            .build();
         
         PaginationInfo pagination = new PaginationInfo(0, 20, 1, 1L, false, false);
         SearchInfo searchInfo = new SearchInfo(

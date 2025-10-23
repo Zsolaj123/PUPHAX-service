@@ -206,28 +206,30 @@ public class DrugService {
             String supportPercent = getElementText(drugElement, "supportPercent");
             String source = getElementText(drugElement, "source");
 
-            // Return DrugSummary with all available fields
-            return new DrugSummary(
-                id != null ? id : "UNKNOWN",
-                name != null ? name : "Unknown Drug",
-                manufacturer,
-                atcCode,
-                activeIngredients,
-                prescriptionRequired,
-                reimbursable,
-                status,
-                tttCode,
-                productForm,
-                strength,
-                packSize,
-                prescriptionStatus,
-                validFrom,
-                validTo,
-                registrationNumber,
-                price,
-                supportPercent,
-                source
-            );
+            // Return DrugSummary using builder pattern (SOAP service has limited fields)
+            return DrugSummary.builder(
+                    id != null ? id : "UNKNOWN",
+                    name != null ? name : "Unknown Drug"
+                )
+                .manufacturer(manufacturer)
+                .atcCode(atcCode)
+                .activeIngredients(activeIngredients)
+                .activeIngredient(activeIngredients.isEmpty() ? null : String.join(", ", activeIngredients))
+                .prescriptionRequired(prescriptionRequired)
+                .reimbursable(reimbursable)
+                .status(status)
+                .tttCode(tttCode)
+                .productForm(productForm)
+                .potencia(strength)
+                .packSize(packSize)
+                .prescriptionStatus(prescriptionStatus)
+                .validFrom(validFrom)
+                .validTo(validTo)
+                .registrationNumber(registrationNumber)
+                .price(price)
+                .supportPercent(supportPercent)
+                .source(source)
+                .build();
         } catch (Exception e) {
             logger.error("Failed to parse drug element: {}", e.getMessage(), e);
             // Return a minimal drug summary to prevent total failure

@@ -107,30 +107,29 @@ public record ExtendedDrugSummary(
 ) {
     
     /**
-     * Convert to DrugSummary with all fields.
+     * Convert to DrugSummary with all available fields from ExtendedDrugSummary.
      */
     public DrugSummary toBasicSummary() {
-        return new DrugSummary(
-            id,
-            name,
-            manufacturer,
-            atcCode,
-            activeIngredients,
-            prescriptionRequired,
-            reimbursable,
-            status,
-            tttCode,
-            productForm,
-            strength,
-            packSize,
-            prescriptionStatus,
-            validFrom,
-            validTo,
-            registrationNumber,
-            price,
-            supportPercent,
-            source
-        );
+        return DrugSummary.builder(id, name)
+            .manufacturer(manufacturer)
+            .atcCode(atcCode)
+            .activeIngredients(activeIngredients)
+            .activeIngredient(activeIngredients.isEmpty() ? null : String.join(", ", activeIngredients))
+            .prescriptionRequired(prescriptionRequired)
+            .reimbursable(reimbursable)
+            .status(status)
+            .tttCode(tttCode)
+            .productForm(productForm)
+            .potencia(strength)
+            .packSize(packSize)
+            .prescriptionStatus(prescriptionStatus)
+            .validFrom(validFrom)
+            .validTo(validTo)
+            .registrationNumber(registrationNumber)
+            .price(price)
+            .supportPercent(supportPercent)
+            .source(source)
+            .build();
     }
     
     /**

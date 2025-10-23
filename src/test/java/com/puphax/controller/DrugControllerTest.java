@@ -43,17 +43,15 @@ class DrugControllerTest {
     @Test
     void searchDrugs_ValidRequest_ReturnsSearchResults() throws Exception {
         // Given
-        DrugSummary drugSummary = new DrugSummary(
-            "HU001234",
-            "Aspirin 100mg",
-            "Bayer Hungary Kft.",
-            "N02BA01",
-            List.of("Acetylsalicylic acid"),
-            false,
-            true,
-            DrugSummary.DrugStatus.ACTIVE,
-            null, null, null, null, null, null, null, null, null, null, null
-        );
+        DrugSummary drugSummary = DrugSummary.builder("HU001234", "Aspirin 100mg")
+            .manufacturer("Bayer Hungary Kft.")
+            .atcCode("N02BA01")
+            .activeIngredients(List.of("Acetylsalicylic acid"))
+            .activeIngredient("Acetylsalicylic acid")
+            .prescriptionRequired(false)
+            .reimbursable(true)
+            .status(DrugSummary.DrugStatus.ACTIVE)
+            .build();
         
         PaginationInfo pagination = new PaginationInfo(0, 20, 1, 1L, false, false);
         SearchInfo searchInfo = new SearchInfo(
@@ -111,17 +109,15 @@ class DrugControllerTest {
     @Test
     void searchDrugs_WithFilters_ReturnsFilteredResults() throws Exception {
         // Given
-        DrugSummary drugSummary = new DrugSummary(
-            "HU001234",
-            "Aspirin 100mg",
-            "Bayer Hungary Kft.",
-            "N02BA01",
-            List.of("Acetylsalicylic acid"),
-            false,
-            true,
-            DrugSummary.DrugStatus.ACTIVE,
-            null, null, null, null, null, null, null, null, null, null, null
-        );
+        DrugSummary drugSummary = DrugSummary.builder("HU001234", "Aspirin 100mg")
+            .manufacturer("Bayer Hungary Kft.")
+            .atcCode("N02BA01")
+            .activeIngredients(List.of("Acetylsalicylic acid"))
+            .activeIngredient("Acetylsalicylic acid")
+            .prescriptionRequired(false)
+            .reimbursable(true)
+            .status(DrugSummary.DrugStatus.ACTIVE)
+            .build();
         
         PaginationInfo pagination = new PaginationInfo(0, 20, 1, 1L, false, false);
         SearchInfo searchInfo = new SearchInfo(
