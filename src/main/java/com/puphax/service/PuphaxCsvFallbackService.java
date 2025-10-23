@@ -11,6 +11,7 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * CSV-based fallback service using NEAK's historical data dump (2007-2023).
@@ -678,5 +679,227 @@ public class PuphaxCsvFallbackService {
             logger.error("Error generating filter options: {}", e.getMessage(), e);
             return com.puphax.model.dto.FilterOptions.empty();
         }
+    }
+
+    /**
+     * Search products with advanced filtering using DrugSearchFilter.
+     *
+     * Supports multi-field filtering with AND logic:
+     * - Text search (name, active ingredient)
+     * - Classification (ATC codes, manufacturers, forms, administration methods)
+     * - Regulatory (TTT codes, prescription types, reimbursement, stock status)
+     * - Strength/dosage ranges
+     * - Special attributes (brands, special marker, laterality)
+     * - Validity date ranges
+     * - Pagination and sorting
+     *
+     * @param filter Comprehensive filter criteria
+     * @return List of matching ProductRecord objects (before pagination)
+     */
+    public List<ProductRecord> searchWithAdvancedFilters(com.puphax.model.dto.DrugSearchFilter filter) {
+        if (!initialized) {
+            logger.warn("CSV service not initialized, returning empty results");
+            return List.of();
+        }
+
+        long startTime = System.currentTimeMillis();
+
+        // Start with all products or search index results
+        Stream<ProductRecord> stream;
+
+        if (filter.searchTerm() != null && !filter.searchTerm().trim().isEmpty()) {
+            // Use search index for text search
+            String normalizedTerm = filter.searchTerm().trim().toLowerCase();
+            stream = nameSearchIndex.entrySet().stream()
+                .filter(entry -> entry.getKey().contains(normalizedTerm))
+                .flatMap(entry -> entry.getValue().stream())
+                .distinct();
+        } else {
+            // Start with all products
+            stream = productsById.values().stream();
+        }
+
+        // Apply filters sequentially (AND logic)
+
+        // Classification filters
+        if (filter.atcCodes() != null && !filter.atcCodes().isEmpty()) {
+            stream = stream.filter(p ->
+                p.atc != null && filter.atcCodes().contains(p.atc)
+            );
+        }
+
+        if (filter.manufacturers() != null && !filter.manufacturers().isEmpty()) {
+            stream = stream.filter(p -> {
+                if (p.brandId == null) return false;
+                String manufacturer = companies.get(p.brandId);
+                return manufacturer != null && filter.manufacturers().contains(manufacturer);
+            });
+        }
+
+        if (filter.productForms() != null && !filter.productForms().isEmpty()) {
+            stream = stream.filter(p ->
+                p.gyForma != null && filter.productForms().contains(p.gyForma)
+            );
+        }
+
+        if (filter.administrationMethods() != null && !filter.administrationMethods().isEmpty()) {
+            stream = stream.filter(p ->
+                p.adagMod != null && filter.administrationMethods().contains(p.adagMod)
+            );
+        }
+
+        // Regulatory filters
+        if (filter.tttCodes() != null && !filter.tttCodes().isEmpty()) {
+            stream = stream.filter(p ->
+                p.ttt != null && filter.tttCodes().contains(p.ttt)
+            );
+        }
+
+        if (filter.prescriptionRequired() != null) {
+            stream = stream.filter(p -> {
+                boolean isPrescriptionRequired = p.rendelhet != null &&
+                    (p.rendelhet.equals("VN") || p.rendelhet.equals("V5") ||
+                     p.rendelhet.equals("V1") || p.rendelhet.equals("J"));
+                return isPrescriptionRequired == filter.prescriptionRequired();
+            });
+        }
+
+        if (filter.reimbursable() != null) {
+            stream = stream.filter(p -> {
+                // Reimbursable if tk (forgalmi kategória) is set and not empty
+                boolean isReimbursable = p.tk != null && !p.tk.trim().isEmpty();
+                return isReimbursable == filter.reimbursable();
+            });
+        }
+
+        if (filter.inStock() != null) {
+            stream = stream.filter(p -> p.inStock == filter.inStock());
+        }
+
+        if (filter.prescriptionTypes() != null && !filter.prescriptionTypes().isEmpty()) {
+            stream = stream.filter(p ->
+                p.rendelhet != null && filter.prescriptionTypes().contains(p.rendelhet)
+            );
+        }
+
+        // Strength/dosage filters
+        if (filter.minStrength() != null || filter.maxStrength() != null) {
+            stream = stream.filter(p -> {
+                if (p.potencia == null || p.potencia.trim().isEmpty()) return false;
+                try {
+                    // Extract numeric value from potencia (e.g., "100mg" -> 100.0)
+                    String numericPart = p.potencia.replaceAll("[^0-9.]", "");
+                    if (numericPart.isEmpty()) return false;
+                    double strength = Double.parseDouble(numericPart);
+
+                    if (filter.minStrength() != null && strength < filter.minStrength()) return false;
+                    if (filter.maxStrength() != null && strength > filter.maxStrength()) return false;
+                    return true;
+                } catch (NumberFormatException e) {
+                    return false;
+                }
+            });
+        }
+
+        if (filter.strengthUnits() != null && !filter.strengthUnits().isEmpty()) {
+            stream = stream.filter(p -> {
+                if (p.hatoEgys == null) return false;
+                return filter.strengthUnits().contains(p.hatoEgys);
+            });
+        }
+
+        // Special filters
+        if (filter.brands() != null && !filter.brands().isEmpty()) {
+            stream = stream.filter(p -> {
+                if (p.brandId == null) return false;
+                String brandName = brandNames.get(p.brandId);
+                return brandName != null && filter.brands().contains(brandName);
+            });
+        }
+
+        if (filter.specialMarker() != null) {
+            stream = stream.filter(p -> {
+                boolean isSpecial = "I".equals(p.egyedi);
+                return isSpecial == filter.specialMarker();
+            });
+        }
+
+        if (filter.laterality() != null && !filter.laterality().isEmpty()) {
+            stream = stream.filter(p ->
+                p.oldalIsag != null && filter.laterality().contains(p.oldalIsag)
+            );
+        }
+
+        // Validity filters
+        if (filter.currentlyValid() != null && filter.currentlyValid()) {
+            LocalDate today = LocalDate.now();
+            stream = stream.filter(p -> {
+                if (p.validFrom != null && p.validFrom.isAfter(today)) return false;
+                if (p.validTo != null && p.validTo.isBefore(today)) return false;
+                return true;
+            });
+        }
+
+        if (filter.validFromDate() != null) {
+            try {
+                LocalDate filterDate = LocalDate.parse(filter.validFromDate());
+                stream = stream.filter(p ->
+                    p.validFrom != null && !p.validFrom.isBefore(filterDate)
+                );
+            } catch (Exception e) {
+                logger.warn("Invalid validFromDate format: {}", filter.validFromDate());
+            }
+        }
+
+        if (filter.validToDate() != null) {
+            try {
+                LocalDate filterDate = LocalDate.parse(filter.validToDate());
+                stream = stream.filter(p ->
+                    p.validTo != null && !p.validTo.isAfter(filterDate)
+                );
+            } catch (Exception e) {
+                logger.warn("Invalid validToDate format: {}", filter.validToDate());
+            }
+        }
+
+        // Deduplicate by name+strength, keeping most recent
+        List<ProductRecord> results = stream
+            .collect(Collectors.groupingBy(
+                (ProductRecord p) -> (p.name != null ? p.name : "") + "|" + (p.potencia != null ? p.potencia : ""),
+                Collectors.maxBy((ProductRecord p1, ProductRecord p2) -> {
+                    if (p1.validFrom == null) return p2.validFrom == null ? 0 : -1;
+                    if (p2.validFrom == null) return 1;
+                    return p1.validFrom.compareTo(p2.validFrom);
+                })
+            ))
+            .values().stream()
+            .filter(Optional::isPresent)
+            .map(Optional::get)
+            .collect(Collectors.toList());
+
+        // Apply sorting
+        String sortBy = filter.sortBy() != null ? filter.sortBy() : "name";
+        String sortDirection = filter.sortDirection() != null ? filter.sortDirection() : "ASC";
+
+        Comparator<ProductRecord> comparator = switch (sortBy) {
+            case "manufacturer" -> Comparator.comparing(p -> {
+                String mfr = p.brandId != null ? companies.get(p.brandId) : "";
+                return mfr != null ? mfr : "";
+            });
+            case "atcCode" -> Comparator.comparing(p -> p.atc != null ? p.atc : "");
+            default -> Comparator.comparing(p -> p.name != null ? p.name : "");
+        };
+
+        if ("DESC".equals(sortDirection)) {
+            comparator = comparator.reversed();
+        }
+
+        results.sort(comparator);
+
+        long duration = System.currentTimeMillis() - startTime;
+        logger.info("Advanced filter search completed: {} results found in {}ms (filters: {})",
+                   results.size(), duration, filter.getActiveFilterCount());
+
+        return results;
     }
 }
