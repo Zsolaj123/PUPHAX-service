@@ -77,11 +77,23 @@ public class PuphaxCsvFallbackService {
         logger.info("Searching local CSV data for: {}", searchTerm);
         String normalizedTerm = searchTerm.trim().toLowerCase();
         
-        // Search in name index
+        // Search in name index with deduplication
         List<ProductRecord> results = nameSearchIndex.entrySet().stream()
             .filter(entry -> entry.getKey().contains(normalizedTerm))
             .flatMap(entry -> entry.getValue().stream())
             .distinct()
+            // Deduplicate by name+strength, keeping most recent (highest valid-from date)
+            .collect(Collectors.groupingBy(
+                p -> (p.name != null ? p.name : "") + "|" + (p.potencia != null ? p.potencia : ""),
+                Collectors.maxBy((p1, p2) -> {
+                    if (p1.validFrom == null) return p2.validFrom == null ? 0 : -1;
+                    if (p2.validFrom == null) return 1;
+                    return p1.validFrom.compareTo(p2.validFrom);
+                })
+            ))
+            .values().stream()
+            .filter(Optional::isPresent)
+            .map(Optional::get)
             .limit(50)  // Limit results to prevent overwhelming the UI
             .collect(Collectors.toList());
         
@@ -388,9 +400,9 @@ public class PuphaxCsvFallbackService {
             }
             xml.append("      </activeIngredients>\n");
 
-            // Form and administration
+            // Form and administration (use field names that parser expects)
             if (product.gyForma != null && !product.gyForma.isEmpty()) {
-                xml.append("      <pharmaceuticalForm>").append(escapeXml(product.gyForma)).append("</pharmaceuticalForm>\n");
+                xml.append("      <productForm>").append(escapeXml(product.gyForma)).append("</productForm>\n");
             }
             if (product.adagMod != null && !product.adagMod.isEmpty()) {
                 xml.append("      <administrationMethod>").append(escapeXml(product.adagMod)).append("</administrationMethod>\n");
@@ -408,11 +420,11 @@ public class PuphaxCsvFallbackService {
                 xml.append("</activeSubstanceAmount>\n");
             }
             if (product.kiszMenny != null && !product.kiszMenny.isEmpty()) {
-                xml.append("      <packageSize>").append(escapeXml(product.kiszMenny));
+                xml.append("      <packSize>").append(escapeXml(product.kiszMenny));
                 if (product.kiszEgys != null && !product.kiszEgys.isEmpty()) {
                     xml.append(" ").append(escapeXml(product.kiszEgys));
                 }
-                xml.append("</packageSize>\n");
+                xml.append("</packSize>\n");
             }
 
             // DDD (Defined Daily Dose)

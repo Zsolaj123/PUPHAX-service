@@ -192,69 +192,21 @@ public class DrugService {
             
             // Parse status with enhanced error handling
             DrugSummary.DrugStatus status = parseStatus(getElementText(drugElement, "status"));
-        
-        // Check if we have extended data available
-        String tttCode = getElementText(drugElement, "tttCode");
-        if (tttCode != null) {
-            // We have extended data - create ExtendedDrugSummary
-            String packaging = getElementText(drugElement, "packaging");
-            String registrationNumber = getElementText(drugElement, "registrationNumber");
-            String prescriptionStatus = getElementText(drugElement, "prescriptionStatus");
+
+            // Extract all extended fields (may be null)
+            String tttCode = getElementText(drugElement, "tttCode");
             String productForm = getElementText(drugElement, "productForm");
             String strength = getElementText(drugElement, "strength");
             String packSize = getElementText(drugElement, "packSize");
-            String productType = getElementText(drugElement, "productType");
-            String price = getElementText(drugElement, "price");
-            String supportPercent = getElementText(drugElement, "supportPercent");
+            String prescriptionStatus = getElementText(drugElement, "prescriptionStatus");
             String validFrom = getElementText(drugElement, "validFrom");
             String validTo = getElementText(drugElement, "validTo");
-            String bruttoFogyasztarAr = getElementText(drugElement, "bruttoFogyasztarAr");
-            String nettoFogyasztarAr = getElementText(drugElement, "nettoFogyasztarAr");
-            String termelesAr = getElementText(drugElement, "termelesAr");
-            String nagykerAr = getElementText(drugElement, "nagykerAr");
-            String tamogatottAr = getElementText(drugElement, "tamogatottAr");
-            String teritesiDij = getElementText(drugElement, "teritesiDij");
-            String normativity = getElementText(drugElement, "normativity");
-            String supportType = getElementText(drugElement, "supportType");
+            String registrationNumber = getElementText(drugElement, "registrationNumber");
+            String price = getElementText(drugElement, "price");
+            String supportPercent = getElementText(drugElement, "supportPercent");
             String source = getElementText(drugElement, "source");
-            
-            ExtendedDrugSummary extendedSummary = new ExtendedDrugSummary(
-                id != null ? id : "UNKNOWN",
-                name != null ? name : "Unknown Drug",
-                manufacturer,
-                atcCode,
-                tttCode,
-                activeIngredients,
-                prescriptionRequired,
-                prescriptionStatus,
-                reimbursable,
-                status,
-                packaging,
-                registrationNumber,
-                productForm,
-                strength,
-                packSize,
-                productType,
-                price,
-                bruttoFogyasztarAr,
-                nettoFogyasztarAr,
-                termelesAr,
-                nagykerAr,
-                supportPercent,
-                tamogatottAr,
-                teritesiDij,
-                validFrom,
-                validTo,
-                normativity,
-                supportType,
-                source
-            );
-            
-            // Convert to basic DrugSummary for compatibility
-            return extendedSummary.toBasicSummary();
-        }
-        
-            // Basic DrugSummary (backward compatibility)
+
+            // Return DrugSummary with all available fields
             return new DrugSummary(
                 id != null ? id : "UNKNOWN",
                 name != null ? name : "Unknown Drug",
@@ -263,7 +215,18 @@ public class DrugService {
                 activeIngredients,
                 prescriptionRequired,
                 reimbursable,
-                status
+                status,
+                tttCode,
+                productForm,
+                strength,
+                packSize,
+                prescriptionStatus,
+                validFrom,
+                validTo,
+                registrationNumber,
+                price,
+                supportPercent,
+                source
             );
         } catch (Exception e) {
             logger.error("Failed to parse drug element: {}", e.getMessage(), e);

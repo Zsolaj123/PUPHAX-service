@@ -14,34 +14,68 @@ import java.util.List;
  * without the full complexity of detailed drug records.
  */
 public record DrugSummary(
-    
+
     @JsonProperty("id")
     @NotBlank
     String id,
-    
+
     @JsonProperty("name")
     @NotBlank
     String name,
-    
+
     @JsonProperty("manufacturer")
     String manufacturer,
-    
+
     @JsonProperty("atcCode")
     String atcCode,
-    
+
     @JsonProperty("activeIngredients")
     @NotNull
     List<String> activeIngredients,
-    
+
     @JsonProperty("prescriptionRequired")
     boolean prescriptionRequired,
-    
+
     @JsonProperty("reimbursable")
     boolean reimbursable,
-    
+
     @JsonProperty("status")
     @NotNull
-    DrugStatus status
+    DrugStatus status,
+
+    // Extended fields (nullable)
+    @JsonProperty("tttCode")
+    String tttCode,
+
+    @JsonProperty("productForm")
+    String productForm,
+
+    @JsonProperty("strength")
+    String strength,
+
+    @JsonProperty("packSize")
+    String packSize,
+
+    @JsonProperty("prescriptionStatus")
+    String prescriptionStatus,
+
+    @JsonProperty("validFrom")
+    String validFrom,
+
+    @JsonProperty("validTo")
+    String validTo,
+
+    @JsonProperty("registrationNumber")
+    String registrationNumber,
+
+    @JsonProperty("price")
+    String price,
+
+    @JsonProperty("supportPercent")
+    String supportPercent,
+
+    @JsonProperty("source")
+    String source
 ) {
     
     /**
@@ -69,7 +103,7 @@ public record DrugSummary(
     
     /**
      * Creates a basic DrugSummary with minimal required information.
-     * 
+     *
      * @param id Drug identifier
      * @param name Drug name
      * @param manufacturer Manufacturer name
@@ -84,7 +118,18 @@ public record DrugSummary(
             List.of(),              // No active ingredients
             false,                  // No prescription required
             false,                  // Not reimbursable
-            DrugStatus.ACTIVE       // Default to active
+            DrugStatus.ACTIVE,      // Default to active
+            null,                   // tttCode
+            null,                   // productForm
+            null,                   // strength
+            null,                   // packSize
+            null,                   // prescriptionStatus
+            null,                   // validFrom
+            null,                   // validTo
+            null,                   // registrationNumber
+            null,                   // price
+            null,                   // supportPercent
+            null                    // source
         );
     }
     

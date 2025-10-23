@@ -107,7 +107,7 @@ public record ExtendedDrugSummary(
 ) {
     
     /**
-     * Convert to basic DrugSummary for compatibility.
+     * Convert to DrugSummary with all fields.
      */
     public DrugSummary toBasicSummary() {
         return new DrugSummary(
@@ -118,7 +118,18 @@ public record ExtendedDrugSummary(
             activeIngredients,
             prescriptionRequired,
             reimbursable,
-            status
+            status,
+            tttCode,
+            productForm,
+            strength,
+            packSize,
+            prescriptionStatus,
+            validFrom,
+            validTo,
+            registrationNumber,
+            price,
+            supportPercent,
+            source
         );
     }
     
