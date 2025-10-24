@@ -823,11 +823,13 @@ public class PuphaxCsvFallbackService {
 
         // Apply filters sequentially (AND logic)
 
-        // Classification filters
+        // Classification filters (ATC supports partial matching by first letter(s))
         if (filter.atcCodes() != null && !filter.atcCodes().isEmpty()) {
-            stream = stream.filter(p ->
-                p.atc != null && filter.atcCodes().contains(p.atc)
-            );
+            stream = stream.filter(p -> {
+                if (p.atc == null) return false;
+                // Match if product ATC starts with any of the filter ATC codes (e.g., "A" matches "A10AB01")
+                return filter.atcCodes().stream().anyMatch(filterAtc -> p.atc.startsWith(filterAtc));
+            });
         }
 
         if (filter.manufacturers() != null && !filter.manufacturers().isEmpty()) {
