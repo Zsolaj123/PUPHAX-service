@@ -7,7 +7,7 @@
 
 class PuphaxGyogyszerKerreso {
     constructor() {
-        this.alapUrl = '/api/v1/gyogyszerek';
+        this.alapUrl = '/api/v1/drugs';
         this.jelenlegiOldal = 0;
         this.jelenlegiKeresesiParameterek = {};
         this.utolsoKeresesiValasz = null;
@@ -39,12 +39,6 @@ class PuphaxGyogyszerKerreso {
         keresesiUrlap.addEventListener('submit', (e) => {
             e.preventDefault();
             this.keresesVegrehajtasa();
-        });
-
-        // Valós idejű validáció ATC kódra
-        const atcKodMezo = document.getElementById('atc-kod');
-        atcKodMezo.addEventListener('input', (e) => {
-            this.atcKodValidalasa(e.target);
         });
 
         // Automatikus keresés Enter billentyűre bármely mezőben
@@ -108,31 +102,12 @@ class PuphaxGyogyszerKerreso {
      */
     async apiEgeszsegEllenorzes() {
         try {
-            const valasz = await fetch(`${this.alapUrl}/egeszseg`);
+            const valasz = await fetch(`/actuator/health`);
             const eredmeny = await valasz.json();
             console.log('API Egészség Ellenőrzés:', eredmeny);
         } catch (hiba) {
             console.warn('API egészség ellenőrzés sikertelen:', hiba);
             this.hibaMutatasa('Figyelem: Nem sikerült kapcsolódni a PUPHAX API-hoz. Kérjük, győződjön meg róla, hogy a backend szolgáltatás fut.');
-        }
-    }
-
-    /**
-     * ATC kód formátum validálása valós időben.
-     */
-    atcKodValidalasa(mezo) {
-        const atcMinta = /^[A-Z][0-9]{2}[A-Z]{2}[0-9]{2}$/;
-        const ertek = mezo.value.toUpperCase();
-        
-        if (ertek && !atcMinta.test(ertek)) {
-            mezo.setCustomValidity('Az ATC kód formátuma: A10AB01 (pl: N02BA01)');
-        } else {
-            mezo.setCustomValidity('');
-        }
-        
-        // Automatikus formázás nagybetűre
-        if (mezo.value !== ertek) {
-            mezo.value = ertek;
         }
     }
 
@@ -207,7 +182,7 @@ class PuphaxGyogyszerKerreso {
             this.hibaElrejtes();
             this.eredmenyekElrejtes();
 
-            const url = `${this.alapUrl}/kereses/haladó`;
+            const url = `${this.alapUrl}/search/advanced`;
             console.log('Advanced API Request:', url, filterCriteria);
 
             const kezdoIdo = performance.now();
@@ -237,7 +212,7 @@ class PuphaxGyogyszerKerreso {
                 filters: adatok.keresesiInfo?.alkalmazottSzurok || {}
             });
 
-            this.eredmenyekMegjelenitese(adatok);
+            this.eredmenyekMegjelenites(adatok, valaszIdo);
 
         } catch (error) {
             console.error('Advanced search error:', error);
@@ -256,7 +231,7 @@ class PuphaxGyogyszerKerreso {
             this.hibaElrejtes();
             this.eredmenyekElrejtes();
 
-            const url = `${this.alapUrl}/kereses?${keresesiParameterek.toString()}`;
+            const url = `${this.alapUrl}/search?${keresesiParameterek.toString()}`;
             console.log('API Kérés:', url);
 
             const kezdoIdo = performance.now();
@@ -830,7 +805,7 @@ class PuphaxGyogyszerKerreso {
      */
     async fetchFilterOptions() {
         try {
-            const response = await fetch(`${this.alapUrl}/szurok`);
+            const response = await fetch(`${this.alapUrl}/filters`);
             if (!response.ok) {
                 throw new Error(`HTTP ${response.status}`);
             }
@@ -1132,20 +1107,11 @@ window.tesztKeresések = {
     
     richter: () => {
         document.getElementById('keresett-kifejezes').value = 'aspirin';
-        document.getElementById('gyarto').value = 'Richter';
         puphaxApp.keresesVegrehajtasa();
     },
-    
-    atcKod: () => {
-        document.getElementById('keresett-kifejezes').value = 'aspirin';
-        document.getElementById('atc-kod').value = 'N02BA01';
-        puphaxApp.keresesVegrehajtasa();
-    },
-    
-    teljesKereses: () => {
+
+    paracetamol: () => {
         document.getElementById('keresett-kifejezes').value = 'paracetamol';
-        document.getElementById('gyarto').value = 'TEVA';
-        document.getElementById('atc-kod').value = 'N02BE01';
         puphaxApp.keresesVegrehajtasa();
     }
 };
