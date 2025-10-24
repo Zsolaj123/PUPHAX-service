@@ -336,6 +336,20 @@ class PuphaxGyogyszerKerreso {
     }
 
     /**
+     * Helper method to build a field row for drug details
+     */
+    buildFieldRow(label, value, formatter = null) {
+        if (!value && value !== 0 && value !== false) return '';
+        const displayValue = formatter ? formatter(value) : this.htmlEscape(String(value));
+        return `
+            <div class="gyogyszer-reszlet">
+                <span class="reszlet-cimke">${label}</span>
+                <span class="reszlet-ertek">${displayValue}</span>
+            </div>
+        `;
+    }
+
+    /**
      * Egyetlen gyógyszer elem HTML létrehozása.
      */
     gyogyszerKartyaHtml(gyogyszer) {
