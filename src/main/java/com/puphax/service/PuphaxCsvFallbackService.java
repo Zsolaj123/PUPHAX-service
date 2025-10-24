@@ -923,7 +923,8 @@ public class PuphaxCsvFallbackService {
 
         if (filter.specialMarker() != null) {
             stream = stream.filter(p -> {
-                boolean isSpecial = "I".equals(p.egyedi);
+                // EGYEDI field values: "0" (normal) or "1" (special authorization/compassionate use)
+                boolean isSpecial = "1".equals(p.egyedi);
                 return isSpecial == filter.specialMarker();
             });
         }

@@ -264,45 +264,60 @@ curl -X POST "http://localhost:8081/api/v1/drugs/search/advanced" \
 
 ---
 
-## ISSUE #4: Missing "Egyedi Méltányosság" Filter
+## ISSUE #4: Egyedi Filter Bug (CRITICAL BUG FIXED)
 
 ### Problem
-**Severity:** 🟡 MEDIUM
-**Impact:** 712 special authorization drugs not filterable
-**Status:** ⏳ NOT YET IMPLEMENTED
+**Severity:** 🔴 CRITICAL BUG
+**Impact:** Egyedi filter not working (checked wrong value)
+**Status:** ✅ FIXED
 
-#### Data Analysis
+#### Bug Discovery
 ```bash
-# EGYEDI field (column 35) values:
-43,218 products with EGYEDI=0 (normal)
-   712 products with EGYEDI=1 (individual compassion/special authorization)
+# Testing egyedi filter with specialMarker=true
+curl -X POST "http://localhost:8081/api/v1/drugs/search/advanced" \
+  -H "Content-Type: application/json" \
+  -d '{"specialMarker": true}'
+# Result: 0 drugs (expected 712)
+
+# Checking CSV data
+cut -d';' -f35 TERMEK.csv | sort | uniq -c
+# Result: ALL products have EGYEDI=0 (none have EGYEDI=1)
 ```
 
-#### Current Status
-- ✅ Data exists in CSV (EGYEDI field, column 35)
-- ❌ NOT exposed as filter option in UI
-- ❌ NOT implemented in backend `DrugSearchFilter`
+#### Root Cause
+**Code Bug:** Filter checked for `"I"` instead of `"1"`
+```java
+// BEFORE (BUG at line 926):
+boolean isSpecial = "I".equals(p.egyedi);  // Wrong! Checks for "I"
 
-#### Implementation Plan
-**Backend:**
-1. Add `egyediFilter` boolean to `DrugSearchFilter.java`
-2. Add to filter options endpoint (`/api/v1/drugs/filters`)
-3. Implement filter logic in `PuphaxCsvFallbackService.java:searchWithAdvancedFilters()`
-
-**Frontend:**
-4. Add checkbox to `index.html` advanced filters section:
-   ```html
-   <label class="checkbox-label">
-     <input type="checkbox" id="filter-egyedi">
-     <span>Csak egyedi méltányosság</span>
-   </label>
-   ```
-5. Update `puphax-frontend.js` filter handling
-
-**SQL-equivalent Logic:**
-```sql
-WHERE egyedi = '1'  -- Only show individual compassion drugs
+// AFTER (FIXED):
+boolean isSpecial = "1".equals(p.egyedi);  // Correct! Checks for "1"
 ```
+
+**Data Reality:** Current TERMEK.csv contains **0 products with EGYEDI=1**
+- Previous documentation claimed 712 products
+- Actual CSV data shows all products have EGYEDI=0
+- Filter is now correctly implemented for future data
+
+#### Fix Applied ✅
+**File Modified:**
+- `PuphaxCsvFallbackService.java:926-928` - Fixed value check
+
+**Code Change:**
+```java
+if (filter.specialMarker() != null) {
+    stream = stream.filter(p -> {
+        // EGYEDI field values: "0" (normal) or "1" (special authorization/compassionate use)
+        boolean isSpecial = "1".equals(p.egyedi);
+        return isSpecial == filter.specialMarker();
+    });
+}
+```
+
+**Result:**
+- Filter now correctly checks for "1" value
+- Ready for when EGYEDI=1 products are added to database
+- No UI changes needed (filter already in DrugSearchFilter.java)
 
 ---
 
@@ -394,10 +409,12 @@ Boolean prescriptionRequired
 - **Result:** ATC filters now functional (1,415+ drugs for "L" code)
 - **Rebuild:** Required (static files in JAR)
 
-### 📋 Phase 4: Egyedi Filter (NOT IMPLEMENTED)
-- **Impact:** 712 special authorization drugs
-- **Status:** Code location documented, ready for implementation
-- **Effort:** ~2-3 hours (backend + frontend)
+### ✅ Phase 4: Egyedi Filter Bug Fix (COMPLETED)
+- **Impact:** 0 special authorization drugs in current dataset (expected 712)
+- **Status:** Backend bug fixed (was checking "I" instead of "1"), ready for data
+- **Finding:** Current TERMEK.csv contains **0 products with EGYEDI=1**
+- **Bug Fixed:** Changed filter check from `"I".equals(p.egyedi)` to `"1".equals(p.egyedi)`
+- **Effort:** 1 hour (investigation + bug fix)
 
 ### 📋 Phase 5: Prescription Types (NOT IMPLEMENTED)
 - **Impact:** 43,930 products (all with prescription info)
