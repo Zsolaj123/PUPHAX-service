@@ -700,6 +700,46 @@ footer {
     margin-bottom: 0;
 }
 
+/* ===== SECTION HEADERS (Phase 4 - Enhanced Drug Card) ===== */
+
+.reszletek-szekció {
+    margin-bottom: 25px;
+}
+
+.reszletek-szekció:last-child {
+    margin-bottom: 0;
+}
+
+.szekció-cím {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--primary-color);
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid var(--border-color);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* Section-specific color-coded borders */
+.reszletek-szekció:nth-child(1) .szekció-cím { border-color: #3b82f6; } /* Blue - Core Identification */
+.reszletek-szekció:nth-child(2) .szekció-cím { border-color: #10b981; } /* Green - Validity & Registration */
+.reszletek-szekció:nth-child(3) .szekció-cím { border-color: #f59e0b; } /* Orange - Classification */
+.reszletek-szekció:nth-child(4) .szekció-cím { border-color: #8b5cf6; } /* Purple - Composition */
+.reszletek-szekció:nth-child(5) .szekció-cím { border-color: #ef4444; } /* Red - Dosage Information */
+.reszletek-szekció:nth-child(6) .szekció-cím { border-color: #06b6d4; } /* Cyan - DDD & Dosing */
+.reszletek-szekció:nth-child(7) .szekció-cím { border-color: #ec4899; } /* Pink - Regulatory & Prescription */
+.reszletek-szekció:nth-child(8) .szekció-cím { border-color: #14b8a6; } /* Teal - Distribution */
+.reszletek-szekció:nth-child(9) .szekció-cím { border-color: #f97316; } /* Deep Orange - Pricing & Reimbursement */
+.reszletek-szekció:nth-child(10) .szekció-cím { border-color: #64748b; } /* Slate - Metadata */
+
+/* New badge for in-stock indicator */
+.gyogyszer-jelzo.raktaron {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: white;
+}
+
 /* ===== ADVANCED FILTERS PANEL ===== */
 
 .advanced-filters-container {
