@@ -91,10 +91,6 @@ class PuphaxGyogyszerKerreso {
             this.selectedFilters.reimbursable = e.target.checked || null;
             this.updateFilterCounts();
         });
-        document.getElementById('filter-in-stock').addEventListener('change', (e) => {
-            this.selectedFilters.inStock = e.target.checked || null;
-            this.updateFilterCounts();
-        });
     }
 
     /**
@@ -205,11 +201,11 @@ class PuphaxGyogyszerKerreso {
             this.utolsoKeresesiValasz = adatok;
 
             console.log('Advanced search results:', {
-                totalResults: adatok.pagination?.osszesElem || 0,
-                page: (adatok.pagination?.jelenlegiOldal || 0) + 1,
-                totalPages: adatok.pagination?.osszesOldal || 0,
+                totalResults: adatok.pagination?.totalElements || 0,
+                page: (adatok.pagination?.currentPage || 0) + 1,
+                totalPages: adatok.pagination?.totalPages || 0,
                 responseTime: `${valaszIdo.toFixed(2)}ms`,
-                filters: adatok.keresesiInfo?.alkalmazottSzurok || {}
+                filters: adatok.searchInfo?.filters || {}
             });
 
             this.eredmenyekMegjelenites(adatok, valaszIdo);
@@ -267,16 +263,16 @@ class PuphaxGyogyszerKerreso {
         // Check if results are from CSV fallback
         const csvFallbackBanner = this.csvFallbackErtesites(valasz);
 
-        if (!valasz.gyogyszerek || valasz.gyogyszerek.length === 0) {
+        if (!valasz.drugs || valasz.drugs.length === 0) {
             eredmenyekTartalom.innerHTML = csvFallbackBanner + this.uresEredmenyekHtml();
         } else {
-            const drugsHtml = valasz.gyogyszerek.map(gyogyszer =>
+            const drugsHtml = valasz.drugs.map(gyogyszer =>
                 this.gyogyszerKartyaHtml(gyogyszer)
             ).join('');
             eredmenyekTartalom.innerHTML = csvFallbackBanner + drugsHtml;
         }
 
-        this.lapozasFreszites(valasz.lapozas);
+        this.lapozasFreszites(valasz.pagination);
         this.eredmenyekMutatas();
     }
 
@@ -284,9 +280,9 @@ class PuphaxGyogyszerKerreso {
      * CSV fallback értesítés banner létrehozása.
      */
     csvFallbackErtesites(valasz) {
-        // Check if using CSV fallback (manufacturer="Unknown" is a good indicator)
-        const usingFallback = valasz.gyogyszerek && valasz.gyogyszerek.length > 0 &&
-                             valasz.gyogyszerek[0].gyarto === "Unknown";
+        // Check if using CSV fallback (source="CSV" is the indicator)
+        const usingFallback = valasz.drugs && valasz.drugs.length > 0 &&
+                             valasz.drugs[0].source === "CSV";
 
         if (usingFallback) {
             return `
@@ -545,8 +541,8 @@ class PuphaxGyogyszerKerreso {
      */
     lapozasFreszites(lapozas) {
         const lapozasElem = document.getElementById('lapozas');
-        
-        if (lapozas && lapozas.osszesOldal > 1) {
+
+        if (lapozas && lapozas.totalPages > 1) {
             lapozasElem.innerHTML = this.lapozasHtml(lapozas);
             lapozasElem.style.display = 'block';
         } else {
@@ -558,11 +554,11 @@ class PuphaxGyogyszerKerreso {
      * Lapozás HTML létrehozása.
      */
     lapozasHtml(lapozas) {
-        const jelenlegiOldal = lapozas.jelenlegiOldal;
-        const osszesOldal = lapozas.osszesOldal;
-        const osszesElem = lapozas.osszesElem;
-        const kovetkezoVan = lapozas.kovetkezoOldal !== null && lapozas.kovetkezoOldal !== undefined;
-        const elozoVan = lapozas.elozoOldal !== null && lapozas.elozoOldal !== undefined;
+        const jelenlegiOldal = lapozas.currentPage;
+        const osszesOldal = lapozas.totalPages;
+        const osszesElem = lapozas.totalElements;
+        const kovetkezoVan = lapozas.hasNext;
+        const elozoVan = lapozas.hasPrevious;
         
         return `
             <div class="lapozas-info">
@@ -617,8 +613,8 @@ class PuphaxGyogyszerKerreso {
      */
     async oldalraUgras(oldal) {
         if (oldal < 0 || !this.utolsoKeresesiValasz) return;
-        
-        const osszesOldal = this.utolsoKeresesiValasz.lapozas.osszesOldal;
+
+        const osszesOldal = this.utolsoKeresesiValasz.pagination.totalPages;
         if (oldal >= osszesOldal) return;
 
         await this.keresesVegrehajtasa(oldal);
@@ -629,14 +625,14 @@ class PuphaxGyogyszerKerreso {
      */
     keresesiInformacioMutatas(valasz, valaszIdo) {
         const eredmenyekInfo = document.getElementById('eredmenyek-info');
-        
-        const gyogyszerSzam = valasz.gyogyszerek.length;
-        const osszesszam = valasz.lapozas.osszesElem;
-        
+
+        const gyogyszerSzam = valasz.drugs ? valasz.drugs.length : (valasz.gyogyszerek ? valasz.gyogyszerek.length : 0);
+        const osszesszam = valasz.pagination ? valasz.pagination.totalElements : (valasz.lapozas ? valasz.lapozas.osszesElem : 0);
+
         eredmenyekInfo.innerHTML = `
             <span>Találatok: ${osszesszam.toLocaleString('hu-HU')} (megjelenítve: ${gyogyszerSzam})</span>
             <span>Válaszidő: ${Math.round(valaszIdo)}ms</span>
-            <span>${valasz.keresesiInfo?.gyorsitotarHit ? '⚡ Gyorsítótárból' : '🌐 Friss adat'}</span>
+            <span>${valasz.searchInfo?.cacheHit ? '⚡ Gyorsítótárból' : '🌐 Friss adat'}</span>
         `;
     }
 
@@ -644,9 +640,9 @@ class PuphaxGyogyszerKerreso {
      * Tartomány formázása a lapozási információhoz.
      */
     formatumTartomany(lapozas) {
-        const { jelenlegiOldal, oldalMeret, osszesElem } = lapozas;
-        const kezdo = jelenlegiOldal * oldalMeret + 1;
-        const veg = Math.min((jelenlegiOldal + 1) * oldalMeret, osszesElem);
+        const { currentPage, pageSize, totalElements } = lapozas;
+        const kezdo = currentPage * pageSize + 1;
+        const veg = Math.min((currentPage + 1) * pageSize, totalElements);
         return `${kezdo.toLocaleString('hu-HU')}-${veg.toLocaleString('hu-HU')}`;
     }
 
@@ -828,15 +824,15 @@ class PuphaxGyogyszerKerreso {
         // Render manufacturers
         this.renderMultiSelectFilter(
             'manufacturer-options',
-            this.filterOptions.gyartok || [],
+            this.filterOptions.manufacturers || [],
             'manufacturers',
             'manufacturer-search'
         );
 
-        // Render ATC codes
-        this.renderMultiSelectFilter(
+        // Render ATC codes (pass full object, not just string)
+        this.renderATCFilter(
             'atc-options',
-            (this.filterOptions.atcKodok || []).map(atc => atc.displayName || atc.kod),
+            this.filterOptions.atcCodes || [],
             'atcCodes',
             'atc-search'
         );
@@ -844,7 +840,7 @@ class PuphaxGyogyszerKerreso {
         // Render product forms
         this.renderMultiSelectFilter(
             'form-options',
-            this.filterOptions.gyogyszerformak || [],
+            this.filterOptions.productForms || [],
             'productForms',
             null
         );
@@ -852,7 +848,10 @@ class PuphaxGyogyszerKerreso {
         // Render prescription types
         this.renderMultiSelectFilter(
             'prescription-options',
-            (this.filterOptions.venyTipusok || []).map(vt => `${vt.kod} - ${vt.leiras}`),
+            (this.filterOptions.prescriptionTypes || []).map(pt => {
+                if (typeof pt === 'string') return pt;
+                return `${pt.code} - ${pt.description}`;
+            }),
             'prescriptionTypes',
             null
         );
@@ -860,7 +859,7 @@ class PuphaxGyogyszerKerreso {
         // Render brands
         this.renderMultiSelectFilter(
             'brand-options',
-            this.filterOptions.markak || [],
+            this.filterOptions.brands || [],
             'brands',
             'brand-search'
         );
@@ -873,7 +872,8 @@ class PuphaxGyogyszerKerreso {
         const container = document.getElementById(containerId);
         if (!container) return;
 
-        const limit = 50; // Show first 50 options
+        // Show all options for filters with search, limit to 100 for others
+        const limit = searchInputId ? options.length : 100;
         const displayOptions = options.slice(0, limit);
 
         container.innerHTML = displayOptions.map(option => `
@@ -888,6 +888,41 @@ class PuphaxGyogyszerKerreso {
         `).join('');
 
         // Add search functionality if searchInputId is provided
+        if (searchInputId) {
+            const searchInput = document.getElementById(searchInputId);
+            if (searchInput) {
+                searchInput.addEventListener('input', (e) => {
+                    this.filterOptionsList(containerId, e.target.value, filterKey);
+                });
+            }
+        }
+    }
+
+    /**
+     * Render ATC filter with code + description display, but only store code
+     */
+    renderATCFilter(containerId, atcOptions, filterKey, searchInputId) {
+        const container = document.getElementById(containerId);
+        if (!container) return;
+
+        container.innerHTML = atcOptions.map(atc => {
+            const code = typeof atc === 'string' ? atc : atc.code;
+            const description = (typeof atc === 'object' && atc.description) ? ` - ${atc.description}` : '';
+            const displayText = `${code}${description}`;
+
+            return `
+                <div class="filter-option" data-filter="${filterKey}" data-value="${this.htmlEscape(code)}">
+                    <input type="checkbox" id="${filterKey}-${this.generateId(code)}"
+                           value="${this.htmlEscape(code)}"
+                           onchange="puphaxApp.toggleFilterOption('${filterKey}', this.value, this.checked)">
+                    <label class="filter-option-label" for="${filterKey}-${this.generateId(code)}">
+                        ${this.htmlEscape(displayText)}
+                    </label>
+                </div>
+            `;
+        }).join('');
+
+        // Add search functionality
         if (searchInputId) {
             const searchInput = document.getElementById(searchInputId);
             if (searchInput) {
@@ -971,11 +1006,13 @@ class PuphaxGyogyszerKerreso {
 
         const badges = [];
 
-        // Add multi-select filter badges
-        ['manufacturers', 'atcCodes', 'productForms', 'prescriptionTypes', 'brands'].forEach(key => {
-            this.selectedFilters[key].forEach(value => {
-                badges.push(this.createFilterBadge(key, value));
-            });
+        // Add multi-select filter badges (removed 'brands' and 'inStock' filters)
+        ['manufacturers', 'atcCodes', 'productForms', 'prescriptionTypes'].forEach(key => {
+            if (this.selectedFilters[key]) {
+                this.selectedFilters[key].forEach(value => {
+                    badges.push(this.createFilterBadge(key, value));
+                });
+            }
         });
 
         // Add boolean filter badges
@@ -984,9 +1021,6 @@ class PuphaxGyogyszerKerreso {
         }
         if (this.selectedFilters.reimbursable) {
             badges.push(this.createFilterBadge('reimbursable', 'Támogatott'));
-        }
-        if (this.selectedFilters.inStock) {
-            badges.push(this.createFilterBadge('inStock', 'Raktáron'));
         }
 
         activeFiltersList.innerHTML = badges.join('');
@@ -1011,10 +1045,10 @@ class PuphaxGyogyszerKerreso {
      * Remove a single filter
      */
     removeFilter(filterKey, value) {
-        if (filterKey === 'prescriptionRequired' || filterKey === 'reimbursable' || filterKey === 'inStock') {
+        if (filterKey === 'prescriptionRequired' || filterKey === 'reimbursable') {
             this.selectedFilters[filterKey] = null;
             document.getElementById(`filter-${filterKey.replace(/([A-Z])/g, '-$1').toLowerCase()}`).checked = false;
-        } else {
+        } else if (this.selectedFilters[filterKey]) {
             this.selectedFilters[filterKey].delete(value);
             const checkbox = document.querySelector(`input[value="${value}"][data-filter="${filterKey}"]`);
             if (checkbox) checkbox.checked = false;
