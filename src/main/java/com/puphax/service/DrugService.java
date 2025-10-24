@@ -171,6 +171,9 @@ public class DrugService {
      * Convert ProductRecord to enhanced DrugSummary with all 55 fields.
      */
     private DrugSummary convertProductRecordToDrugSummary(PuphaxCsvFallbackService.ProductRecord p) {
+        // Look up manufacturer name from forgEngtId (marketing authorization holder, not distributor)
+        String manufacturerName = csvFallbackService.getCompanyName(p.forgEngtId);
+
         return DrugSummary.builder(p.id, p.name)
             // Core identification
             .parentId(p.parentId)
@@ -220,6 +223,7 @@ public class DrugService {
             .tobblGar(p.tobblGar)
             .dobAzon(p.dobAzon)
             // Distribution and availability
+            .manufacturer(manufacturerName)
             .inStock(p.inStock)
             // Status and source
             .status(DrugSummary.DrugStatus.ACTIVE)
@@ -356,6 +360,15 @@ public class DrugService {
             String supportPercent = getElementText(drugElement, "supportPercent");
             String source = getElementText(drugElement, "source");
 
+            // Extract composition and dosage fields (new in Phase 2)
+            String hatoMenny = getElementText(drugElement, "hatoMenny");
+            String hatoEgys = getElementText(drugElement, "hatoEgys");
+            String kiszMenny = getElementText(drugElement, "kiszMenny");
+            String kiszEgys = getElementText(drugElement, "kiszEgys");
+            String adagMenny = getElementText(drugElement, "adagMenny");
+            String adagEgys = getElementText(drugElement, "adagEgys");
+            String adagMod = getElementText(drugElement, "administrationMethod");
+
             // Return DrugSummary using builder pattern (SOAP service has limited fields)
             return DrugSummary.builder(
                     id != null ? id : "UNKNOWN",
@@ -379,6 +392,14 @@ public class DrugService {
                 .price(price)
                 .supportPercent(supportPercent)
                 .source(source)
+                // Add composition and dosage fields (Phase 2)
+                .hatoMenny(hatoMenny)
+                .hatoEgys(hatoEgys)
+                .kiszMenny(kiszMenny)
+                .kiszEgys(kiszEgys)
+                .adagMenny(adagMenny)
+                .adagEgys(adagEgys)
+                .adagMod(adagMod)
                 .build();
         } catch (Exception e) {
             logger.error("Failed to parse drug element: {}", e.getMessage(), e);

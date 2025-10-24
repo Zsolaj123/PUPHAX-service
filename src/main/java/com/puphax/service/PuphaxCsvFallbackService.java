@@ -113,7 +113,7 @@ public class PuphaxCsvFallbackService {
             return;
         }
         
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8))) {
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(is, java.nio.charset.Charset.forName("ISO-8859-2")))) {
             reader.readLine(); // Skip header
             String line;
             int count = 0;
@@ -140,7 +140,7 @@ public class PuphaxCsvFallbackService {
             return;
         }
         
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8))) {
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(is, java.nio.charset.Charset.forName("ISO-8859-2")))) {
             reader.readLine(); // Skip header
             String line;
             int count = 0;
@@ -167,7 +167,7 @@ public class PuphaxCsvFallbackService {
             return;
         }
         
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8))) {
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(is, java.nio.charset.Charset.forName("ISO-8859-2")))) {
             reader.readLine(); // Skip header
             String line;
             int count = 0;
@@ -196,29 +196,37 @@ public class PuphaxCsvFallbackService {
         
         LocalDate today = LocalDate.now();
         DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy.MM.dd");
-        
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8))) {
+        LocalDate minValidFrom = LocalDate.of(2022, 1, 1); // Only load products from 2022 onwards
+
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8))) {  // TERMEK.csv is UTF-8
             String headerLine = reader.readLine();
             logger.debug("TERMEK header: {}", headerLine);
-            
+
             String line;
             int totalCount = 0;
             int validCount = 0;
-            
+            int skippedOldProducts = 0;
+
             while ((line = reader.readLine()) != null) {
                 totalCount++;
                 try {
                     String[] fields = line.split("\t", -1); // -1 to keep empty trailing fields
-                    
+
                     if (fields.length < 20) {
                         continue; // Skip malformed lines
                     }
-                    
+
                     // Parse validity dates (fields 2 and 3)
                     LocalDate validFrom = parseDate(unquote(fields[2]), dateFormatter);
                     LocalDate validTo = parseDate(unquote(fields[3]), dateFormatter);
-                    
-                    // Only load currently valid or recently expired products (within last 2 years)
+
+                    // Only load products added from 2022 onwards (optimize for recent data)
+                    if (validFrom != null && validFrom.isBefore(minValidFrom)) {
+                        skippedOldProducts++;
+                        continue; // Skip old products (pre-2022)
+                    }
+
+                    // Also skip products that expired more than 2 years ago
                     if (validTo != null && validTo.isBefore(today.minusYears(2))) {
                         continue; // Skip old expired products
                     }
@@ -293,8 +301,9 @@ public class PuphaxCsvFallbackService {
                     logger.debug("Error parsing product line {}: {}", totalCount, e.getMessage());
                 }
             }
-            
-            logger.info("Loaded {} valid products out of {} total products", validCount, totalCount);
+
+            logger.info("Loaded {} valid products out of {} total products (skipped {} pre-2022 products)",
+                       validCount, totalCount, skippedOldProducts);
         }
     }
     
@@ -379,8 +388,8 @@ public class PuphaxCsvFallbackService {
                 xml.append("      <shortName>").append(escapeXml(product.shortName)).append("</shortName>\n");
             }
 
-            // Manufacturer
-            String manufacturer = companies.getOrDefault(product.brandId, "Unknown");
+            // Manufacturer (use forgEngtId for marketing authorization holder, not brandId)
+            String manufacturer = companies.getOrDefault(product.forgEngtId, "Unknown");
             String brand = brandNames.getOrDefault(product.brandId, manufacturer);
             xml.append("      <manufacturer>").append(escapeXml(manufacturer)).append("</manufacturer>\n");
             xml.append("      <brand>").append(escapeXml(brand)).append("</brand>\n");
@@ -409,9 +418,17 @@ public class PuphaxCsvFallbackService {
                 xml.append("      <administrationMethod>").append(escapeXml(product.adagMod)).append("</administrationMethod>\n");
             }
 
-            // Strength and dosage
+            // Strength and dosage (include both combined and separate fields for parser compatibility)
             if (product.potencia != null && !product.potencia.isEmpty()) {
                 xml.append("      <strength>").append(escapeXml(product.potencia)).append("</strength>\n");
+            }
+
+            // Active ingredient amount and unit (separate fields)
+            if (product.hatoMenny != null && !product.hatoMenny.isEmpty()) {
+                xml.append("      <hatoMenny>").append(escapeXml(product.hatoMenny)).append("</hatoMenny>\n");
+            }
+            if (product.hatoEgys != null && !product.hatoEgys.isEmpty()) {
+                xml.append("      <hatoEgys>").append(escapeXml(product.hatoEgys)).append("</hatoEgys>\n");
             }
             if (product.hatoMenny != null && !product.hatoMenny.isEmpty()) {
                 xml.append("      <activeSubstanceAmount>").append(escapeXml(product.hatoMenny));
@@ -420,12 +437,28 @@ public class PuphaxCsvFallbackService {
                 }
                 xml.append("</activeSubstanceAmount>\n");
             }
+
+            // Package quantity and unit (separate fields)
+            if (product.kiszMenny != null && !product.kiszMenny.isEmpty()) {
+                xml.append("      <kiszMenny>").append(escapeXml(product.kiszMenny)).append("</kiszMenny>\n");
+            }
+            if (product.kiszEgys != null && !product.kiszEgys.isEmpty()) {
+                xml.append("      <kiszEgys>").append(escapeXml(product.kiszEgys)).append("</kiszEgys>\n");
+            }
             if (product.kiszMenny != null && !product.kiszMenny.isEmpty()) {
                 xml.append("      <packSize>").append(escapeXml(product.kiszMenny));
                 if (product.kiszEgys != null && !product.kiszEgys.isEmpty()) {
                     xml.append(" ").append(escapeXml(product.kiszEgys));
                 }
                 xml.append("</packSize>\n");
+            }
+
+            // Dose amount and unit (new fields)
+            if (product.adagMenny != null && !product.adagMenny.isEmpty()) {
+                xml.append("      <adagMenny>").append(escapeXml(product.adagMenny)).append("</adagMenny>\n");
+            }
+            if (product.adagEgys != null && !product.adagEgys.isEmpty()) {
+                xml.append("      <adagEgys>").append(escapeXml(product.adagEgys)).append("</adagEgys>\n");
             }
 
             // DDD (Defined Daily Dose)
@@ -528,7 +561,82 @@ public class PuphaxCsvFallbackService {
     public boolean isInitialized() {
         return initialized;
     }
-    
+
+    /**
+     * Get company name by company ID.
+     */
+    public String getCompanyName(String companyId) {
+        if (companyId == null || companyId.isEmpty()) {
+            return null;
+        }
+        return companies.get(companyId);
+    }
+
+    /**
+     * Validate manufacturer name - filter out invalid/generic entries.
+     */
+    private boolean isValidManufacturer(String name) {
+        if (name == null || name.trim().isEmpty()) {
+            return false;
+        }
+
+        String trimmed = name.trim();
+
+        // Filter out empty or too short names
+        if (trimmed.length() < 3) {
+            return false;
+        }
+
+        // Filter out generic/invalid entries
+        String lower = trimmed.toLowerCase();
+        if (lower.equals("ismeretlen") || lower.equals("unknown") ||
+            lower.equals("??") || lower.equals("-") ||
+            lower.startsWith("2015.") || lower.startsWith("2016.") ||
+            lower.startsWith("2017.") || lower.startsWith("2018.") ||
+            lower.startsWith("2019.") || lower.startsWith("2020.")) {
+            return false;
+        }
+
+        // Filter out entries that are only numbers or dates
+        if (trimmed.matches("^[0-9.\\-/]+$")) {
+            return false;
+        }
+
+        // Must contain at least one letter
+        if (!trimmed.matches(".*[a-zA-ZáéíóöőúüűÁÉÍÓÖŐÚÜŰ].*")) {
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * Validate brand name - filter out generic/invalid entries.
+     */
+    private boolean isValidBrand(String name) {
+        if (name == null || name.trim().isEmpty()) {
+            return false;
+        }
+
+        String trimmed = name.trim();
+
+        // Filter out too short names
+        if (trimmed.length() < 3) {
+            return false;
+        }
+
+        // Filter out generic entries
+        String upper = trimmed.toUpperCase();
+        if (upper.equals("ISMERETLEN") || upper.equals("UNKNOWN") ||
+            upper.equals("ALAPANYAG") || upper.equals("FONO") ||
+            upper.equals("GALENIKUM") || upper.equals("GYÓGYKÖNVYI GALENIKUM") ||
+            upper.contains("EGYKOMPONENSŰ HOMEOPÁTIÁS")) {
+            return false;
+        }
+
+        return true;
+    }
+
     /**
      * Product record from TERMEK table with all 44 CSV fields.
      */
@@ -605,24 +713,23 @@ public class PuphaxCsvFallbackService {
         }
 
         try {
-            // Extract unique manufacturers (from companies map)
+            // Extract unique manufacturers (from companies map) with validation
             List<String> manufacturers = companies.values().stream()
-                .filter(name -> name != null && !name.isEmpty())
+                .filter(this::isValidManufacturer)
                 .distinct()
-                .sorted()
-                .limit(200)  // Limit to top 200 manufacturers
-                .toList();
+                .sorted()  // Sort alphabetically for better UX
+                .toList();  // Show all valid manufacturers (~2,300)
 
-            // Extract ATC codes with descriptions (from ATC codes map)
+            // Extract only WHO main ATC categories (level 1: A-V)
             List<com.puphax.model.dto.FilterOptions.AtcOption> atcOptions = atcCodes.entrySet().stream()
-                .filter(entry -> entry.getKey() != null && !entry.getKey().isEmpty())
+                .filter(entry -> entry.getKey() != null && entry.getKey().length() == 1 &&
+                               entry.getKey().matches("[A-V]"))  // Only single letter A-V
                 .map(entry -> new com.puphax.model.dto.FilterOptions.AtcOption(
                     entry.getKey(),
                     entry.getValue(),
-                    entry.getKey().length()  // ATC level based on code length
+                    1  // Level 1 (main categories)
                 ))
                 .sorted((a, b) -> a.code().compareTo(b.code()))
-                .limit(500)  // Limit to top 500 ATC codes
                 .toList();
 
             // Extract unique product forms (GYFORMA)
@@ -641,13 +748,8 @@ public class PuphaxCsvFallbackService {
                 .sorted()
                 .toList();
 
-            // Extract brand names (from brands map)
-            List<String> brands = brandNames.values().stream()
-                .filter(name -> name != null && !name.isEmpty())
-                .distinct()
-                .sorted()
-                .limit(300)  // Limit to top 300 brands
-                .toList();
+            // Brands filter removed (redundant with manufacturers)
+            List<String> brands = List.of();  // Empty list - brand filter removed
 
             // Calculate strength ranges (from POTENCIA field)
             // This is complex as strengths can have units (e.g., "100mg", "5ml")
@@ -730,8 +832,8 @@ public class PuphaxCsvFallbackService {
 
         if (filter.manufacturers() != null && !filter.manufacturers().isEmpty()) {
             stream = stream.filter(p -> {
-                if (p.brandId == null) return false;
-                String manufacturer = companies.get(p.brandId);
+                if (p.forgEngtId == null) return false;  // Use forgEngtId (marketing authorization holder)
+                String manufacturer = companies.get(p.forgEngtId);
                 return manufacturer != null && filter.manufacturers().contains(manufacturer);
             });
         }
