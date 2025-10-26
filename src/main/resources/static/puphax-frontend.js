@@ -25,7 +25,11 @@ class PuphaxGyogyszerKerreso {
             inStock: null
         };
 
+        // Data source selection (CSV by default)
+        this.dataSource = localStorage.getItem('puphax-data-source') || 'csv';
+
         this.inizializalasEsemenyFigyelok();
+        this.initializeDataSourceSelector();
         this.apiEgeszsegEllenorzes();
         this.fetchFilterOptions();
     }
@@ -94,6 +98,235 @@ class PuphaxGyogyszerKerreso {
     }
 
     /**
+     * Initialize data source selector with event listeners and load saved preference.
+     */
+    initializeDataSourceSelector() {
+        const switchElement = document.getElementById('data-source-switch');
+        const messageText = document.getElementById('data-source-text');
+        const csvOption = document.getElementById('csv-option');
+        const soapOption = document.getElementById('soap-option');
+
+        if (!switchElement || !messageText || !csvOption || !soapOption) {
+            console.warn('Data source switch elements not found, skipping initialization');
+            return;
+        }
+
+        // Check SOAP health status
+        this.checkSoapHealth();
+
+        // Load saved preference and update light-up
+        // Unchecked = CSV (default), Checked = SOAP
+        if (this.dataSource === 'soap') {
+            switchElement.checked = true;
+            this.updateLightUp(soapOption, csvOption);
+        } else {
+            switchElement.checked = false;
+            this.updateLightUp(csvOption, soapOption);
+        }
+
+        this.updateDataSourceInfo(this.dataSource, messageText);
+
+        // Event listener for switch toggle
+        switchElement.addEventListener('change', async (e) => {
+            if (e.target.checked) {
+                // Switching to SOAP (live data) - perform health check first
+                await this.switchToSoap(switchElement, messageText, soapOption, csvOption);
+            } else {
+                // Switched to CSV (recommended)
+                this.dataSource = 'csv';
+                localStorage.setItem('puphax-data-source', 'csv');
+                this.updateDataSourceInfo('csv', messageText);
+                this.updateLightUp(csvOption, soapOption);
+            }
+        });
+    }
+
+    /**
+     * Update light-up effect for active option.
+     */
+    updateLightUp(activeOption, inactiveOption) {
+        if (activeOption && inactiveOption) {
+            activeOption.classList.add('active');
+            inactiveOption.classList.remove('active');
+        }
+    }
+
+    /**
+     * Switch to SOAP with health check and loading animation.
+     */
+    async switchToSoap(switchElement, messageText, soapOption, csvOption) {
+        const soapBadge = document.getElementById('soap-badge');
+        const soapDesc = document.getElementById('soap-desc');
+        const dataSourceMessage = document.getElementById('data-source-message');
+
+        // Show loading state
+        if (soapBadge) {
+            soapBadge.textContent = 'Ellenőrzés...';
+            soapBadge.classList.remove('live', 'offline');
+            soapBadge.classList.add('checking');
+        }
+        if (soapDesc) {
+            soapDesc.textContent = 'Kapcsolat tesztelése...';
+        }
+        if (messageText) {
+            messageText.innerHTML = '<span class="loading-spinner">⏳</span> Élő adatok elérhetőségének ellenőrzése...';
+        }
+        if (dataSourceMessage) {
+            dataSourceMessage.classList.add('checking');
+        }
+
+        try {
+            // Test the actual SOAP health endpoint with timeout
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 8000);
+
+            const response = await fetch('/api/v1/gyogyszerek/egeszseg/gyors', {
+                signal: controller.signal
+            });
+            clearTimeout(timeoutId);
+
+            // Check if SOAP is healthy (200 OK and status is "FEL")
+            if (response.ok && response.status === 200) {
+                const healthData = await response.json();
+
+                // Check if the actual PUPHAX service is UP (not just our health endpoint)
+                if (healthData.statu !== 'FEL') {
+                    throw new Error('PUPHAX web service is down: ' + (healthData.uzenet || 'Service unavailable'));
+                }
+
+                // SOAP is online - allow switch
+                console.log('SOAP service is online - allowing switch');
+                this.dataSource = 'soap';
+                localStorage.setItem('puphax-data-source', 'soap');
+
+                // Update UI to success state
+                if (soapBadge) {
+                    soapBadge.textContent = 'Friss';
+                    soapBadge.classList.remove('checking', 'offline');
+                    soapBadge.classList.add('live');
+                }
+                if (soapDesc) {
+                    soapDesc.textContent = 'Legújabb termékek';
+                }
+                if (dataSourceMessage) {
+                    dataSourceMessage.classList.remove('checking', 'error');
+                }
+
+                this.updateDataSourceInfo('soap', messageText);
+                this.updateLightUp(soapOption, csvOption);
+            } else {
+                // SOAP returned an error - switch back to CSV
+                throw new Error('SOAP service returned error status: ' + response.status);
+            }
+        } catch (error) {
+            // Network error, timeout, or SOAP is offline - switch back to CSV
+            console.log('SOAP service check failed:', error.message);
+
+            // Switch back to CSV automatically
+            switchElement.checked = false;
+            this.dataSource = 'csv';
+            localStorage.setItem('puphax-data-source', 'csv');
+
+            // Show error state
+            if (soapBadge) {
+                soapBadge.textContent = 'Offline';
+                soapBadge.classList.remove('checking', 'live');
+                soapBadge.classList.add('offline');
+            }
+            if (soapDesc) {
+                soapDesc.textContent = 'Nem elérhető';
+            }
+            if (messageText) {
+                messageText.innerHTML = '<span class="error-icon">⚠️</span> Élő adatok nem elérhetők - Helyi adatbázis használata (43,930 termék)';
+            }
+            if (dataSourceMessage) {
+                dataSourceMessage.classList.remove('checking');
+                dataSourceMessage.classList.add('error');
+
+                // Remove error class after 5 seconds
+                setTimeout(() => {
+                    if (dataSourceMessage) {
+                        dataSourceMessage.classList.remove('error');
+                        this.updateDataSourceInfo('csv', messageText);
+                    }
+                }, 5000);
+            }
+
+            this.updateLightUp(csvOption, soapOption);
+        }
+    }
+
+    /**
+     * Check SOAP web service health and update badge.
+     */
+    async checkSoapHealth() {
+        const soapBadge = document.getElementById('soap-badge');
+        const soapDesc = document.getElementById('soap-desc');
+
+        if (!soapBadge || !soapDesc) return;
+
+        try {
+            // Test the actual SOAP health endpoint with timeout
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 5000);
+
+            const response = await fetch('/api/v1/gyogyszerek/egeszseg/gyors', {
+                signal: controller.signal
+            });
+            clearTimeout(timeoutId);
+
+            // Check if SOAP is healthy (200 OK and status is "FEL")
+            if (response.ok && response.status === 200) {
+                const healthData = await response.json();
+
+                // Check if the actual PUPHAX service is UP
+                if (healthData.statu !== 'FEL') {
+                    // SOAP returned an error - mark as offline
+                    this.markSoapOffline(soapBadge, soapDesc);
+                    return;
+                }
+
+                // SOAP is online and working - keep the "Friss" badge
+                console.log('SOAP service is online');
+            } else {
+                // SOAP returned an error status - mark as offline
+                this.markSoapOffline(soapBadge, soapDesc);
+            }
+        } catch (error) {
+            // Network error, timeout, or SOAP is offline
+            console.log('SOAP service check failed:', error.message);
+            this.markSoapOffline(soapBadge, soapDesc);
+        }
+    }
+
+    /**
+     * Mark SOAP as offline.
+     */
+    markSoapOffline(soapBadge, soapDesc) {
+        if (soapBadge) {
+            soapBadge.textContent = 'Offline';
+            soapBadge.classList.remove('live');
+            soapBadge.classList.add('offline');
+        }
+        if (soapDesc) {
+            soapDesc.textContent = 'Nem elérhető';
+        }
+    }
+
+    /**
+     * Update data source info message.
+     */
+    updateDataSourceInfo(source, messageText) {
+        if (!messageText) return;
+
+        if (source === 'csv') {
+            messageText.textContent = 'Helyi adatbázis: 43,930 termék, összes szűrő elérhető';
+        } else {
+            messageText.textContent = 'Élő adatok: Legfrissebb termékek (utolsó 1-2 év), automatikus visszaváltás CSV-re ha offline';
+        }
+    }
+
+    /**
      * API egészségének ellenőrzése oldal betöltéskor.
      */
     async apiEgeszsegEllenorzes() {
@@ -156,6 +389,9 @@ class PuphaxGyogyszerKerreso {
         if (this.selectedFilters.inStock !== null) {
             filterCriteria.inStock = this.selectedFilters.inStock;
         }
+
+        // Data source selection
+        filterCriteria.dataSource = this.dataSource;
 
         // Pagination and sorting
         filterCriteria.page = oldal;
@@ -509,7 +745,7 @@ class PuphaxGyogyszerKerreso {
                     ` : ''}
 
                     <div class="gyogyszer-jelzok">
-                        ${gyogyszer.prescriptionRequired || gyogyszer.venykoeteles ? '<span class="gyogyszer-jelzo venykoeteles">⚕️ Vényköteles</span>' : ''}
+                        ${gyogyszer.prescriptionRequired === true ? '<span class="gyogyszer-jelzo venykoeteles">⚕️ Vényköteles</span>' : ''}
                         ${gyogyszer.reimbursable || gyogyszer.tamogatott ? '<span class="gyogyszer-jelzo tamogatott">💰 Támogatott</span>' : ''}
                         ${gyogyszer.inStock ? '<span class="gyogyszer-jelzo raktaron">✓ Raktáron</span>' : ''}
                     </div>
@@ -845,15 +1081,11 @@ class PuphaxGyogyszerKerreso {
             null
         );
 
-        // Render prescription types
-        this.renderMultiSelectFilter(
+        // Render prescription types (using dedicated method to separate code from display text)
+        this.renderPrescriptionFilter(
             'prescription-options',
-            (this.filterOptions.prescriptionTypes || []).map(pt => {
-                if (typeof pt === 'string') return pt;
-                return `${pt.code} - ${pt.description}`;
-            }),
-            'prescriptionTypes',
-            null
+            this.filterOptions.prescriptionTypes || [],
+            'prescriptionTypes'
         );
 
         // Render brands
@@ -931,6 +1163,32 @@ class PuphaxGyogyszerKerreso {
                 });
             }
         }
+    }
+
+    /**
+     * Render prescription type filter with proper code/description separation.
+     * Similar to renderATCFilter but for prescription types.
+     */
+    renderPrescriptionFilter(containerId, prescriptionTypes, filterKey) {
+        const container = document.getElementById(containerId);
+        if (!container) return;
+
+        container.innerHTML = prescriptionTypes.map(pt => {
+            const code = typeof pt === 'string' ? pt : pt.code;
+            const description = (typeof pt === 'object' && pt.description) ? pt.description : '';
+            const displayText = description ? `${code} - ${description}` : code;
+
+            return `
+                <div class="filter-option" data-filter="${filterKey}" data-value="${this.htmlEscape(code)}">
+                    <input type="checkbox" id="${filterKey}-${this.generateId(code)}"
+                           value="${this.htmlEscape(code)}"
+                           onchange="puphaxApp.toggleFilterOption('${filterKey}', this.value, this.checked)">
+                    <label class="filter-option-label" for="${filterKey}-${this.generateId(code)}">
+                        ${this.htmlEscape(displayText)}
+                    </label>
+                </div>
+            `;
+        }).join('');
     }
 
     /**

@@ -397,14 +397,41 @@ public class PuphaxSoapClient {
      */
     public String getServiceStatus() {
         try {
-            configurePort();
-            
-            // For now, return a successful status without calling the real service
-            // In production: perform actual health check with PUPHAX service
-            logger.info("Health check using mock response. Real PUPHAX health check pending API documentation.");
-            
-            return "<serviceStatus><status>UP</status><message>PUPHAX SOAP client ready (mock mode)</message></serviceStatus>";
-            
+            // Test actual PUPHAX service availability by fetching WSDL
+            String wsdlUrlString = endpointUrl + "?wsdl";
+            logger.debug("Testing PUPHAX service at: {}", wsdlUrlString);
+
+            java.net.http.HttpClient httpClient = java.net.http.HttpClient.newBuilder()
+                .connectTimeout(java.time.Duration.ofSeconds(10))
+                .build();
+
+            java.net.http.HttpRequest request = java.net.http.HttpRequest.newBuilder()
+                .uri(java.net.URI.create(wsdlUrlString))
+                .timeout(java.time.Duration.ofSeconds(10))
+                .GET()
+                .build();
+
+            java.net.http.HttpResponse<String> response = httpClient.send(request,
+                java.net.http.HttpResponse.BodyHandlers.ofString(java.nio.charset.StandardCharsets.UTF_8));
+
+            String responseBody = response.body();
+
+            // Check if response is valid WSDL (XML) or error message (HTML)
+            if (response.statusCode() == 200 && responseBody.trim().startsWith("<?xml")) {
+                logger.debug("PUPHAX service is UP - valid WSDL received");
+                return "<serviceStatus><status>UP</status><message>PUPHAX service is accessible</message></serviceStatus>";
+            } else {
+                // Service returned HTML error page or non-XML content
+                logger.warn("PUPHAX service returned non-XML content (status: {})", response.statusCode());
+                throw new PuphaxServiceException("PUPHAX service unavailable - returned HTML error page");
+            }
+
+        } catch (java.net.http.HttpTimeoutException e) {
+            logger.warn("PUPHAX service health check timed out: {}", e.getMessage());
+            throw new PuphaxServiceException("PUPHAX service timeout", e);
+        } catch (java.io.IOException | InterruptedException e) {
+            logger.warn("PUPHAX service health check failed: {}", e.getMessage());
+            throw new PuphaxServiceException("PUPHAX service unreachable: " + e.getMessage(), e);
         } catch (Exception e) {
             logger.warn("PUPHAX service health check failed: {}", e.getMessage());
             throw new PuphaxServiceException("Service health check failed: " + e.getMessage(), e);

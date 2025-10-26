@@ -160,23 +160,34 @@ public class HealthService {
     }
     
     /**
-     * Quick health check that only verifies essential components.
-     * 
-     * @return Simple health status without detailed component checks
+     * Quick health check that actually tests the PUPHAX SOAP service.
+     *
+     * @return Simple health status with PUPHAX service check
      */
     public HealthStatus checkHealthQuick() {
         try {
-            // Just check if PUPHAX client is initialized
+            logger.debug("Quick health check - testing PUPHAX SOAP service");
+
+            // Actually check PUPHAX SOAP service
+            ComponentHealth soapHealth = checkPuphaxSoapService();
+
             Map<String, ComponentHealth> components = Map.of(
-                "api", ComponentHealth.up(0L, "API is operational")
+                "puphax-soap", soapHealth
             );
-            
+
+            // If SOAP is down, return DOWN status
+            if ("DOWN".equals(soapHealth.status())) {
+                logger.warn("Quick health check: PUPHAX SOAP service is DOWN");
+                return HealthStatus.down(applicationVersion, components, "PUPHAX SOAP service is not available");
+            }
+
+            logger.debug("Quick health check: PUPHAX SOAP service is UP");
             return HealthStatus.up(applicationVersion, components);
-            
+
         } catch (Exception e) {
             logger.error("Quick health check failed: {}", e.getMessage());
             Map<String, ComponentHealth> components = Map.of(
-                "api", ComponentHealth.down("API error: " + e.getMessage())
+                "puphax-soap", ComponentHealth.down("Health check error: " + e.getMessage())
             );
             return HealthStatus.down(applicationVersion, components, "Service is not operational");
         }
